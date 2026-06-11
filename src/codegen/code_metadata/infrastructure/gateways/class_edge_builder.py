@@ -96,13 +96,13 @@ class ClassEdgeBuilder:
     def _visit_function_def(self, func_def: AstFunctionDef):
         func_fqn = f"{self.class_node.id}::{func_def.name}"
         if func_def.is_overload:
-            func_fqn = f"{func_fqn}::<overload_{func_def.lineno}>"
+            func_fqn = f"{func_fqn}<overload_{func_def.lineno}>"
         elif func_def.is_setter_property:
-            func_fqn = f"{func_fqn}::<setter>"
+            func_fqn = f"{func_fqn}<setter>"
         elif func_def.is_deleter_property:
-            func_fqn = f"{func_fqn}::<deleter>"
+            func_fqn = f"{func_fqn}<deleter>"
         elif func_def.is_expression_property:
-            func_fqn = f"{func_fqn}::<expression>"
+            func_fqn = f"{func_fqn}<expression>"
         func_node = self.node_registry.get_node(func_fqn)
         assert isinstance(func_node, MethodNode), func_node
         self.scope_stack.append(func_node)

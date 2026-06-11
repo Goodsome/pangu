@@ -6,6 +6,7 @@ from typing import Any
 from typing import Literal
 from pydantic import BaseModel
 from pydantic import Field
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
@@ -18,10 +19,10 @@ from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import create_edge
+from codegen.shared.domain.core.aggregate_root import AggregateRoot
 
 
-class _BaseNode(BaseModel):
-    id: str
+class _BaseNode(AggregateRoot[Fqn]):
     name: str
     description: str | None = Field(default=None)
     outbound_edges: list[CodeEdge] = Field(default_factory=list)
