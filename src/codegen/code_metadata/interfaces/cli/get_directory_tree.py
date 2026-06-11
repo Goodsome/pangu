@@ -26,7 +26,7 @@ def _add_children(parent: Tree, node_tree: NodeTree) -> None:
     for child in node_tree.children:
         icon = ICONS.get(child.node.kind, "📄")
         branch = parent.add(
-            f"{icon} [bold]{child.node.name}[/bold]  [dim]{child.node.fqn}[/dim]"
+            f"{icon} [bold]{child.node.name}[/bold]  [dim]{child.node.id}[/dim]"
         )
         _add_children(branch, child)
 
@@ -43,6 +43,6 @@ def get_directory_tree(
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(1)
     icon = ICONS.get(root.node.kind, "📄")
-    tree = Tree(f"{icon} [bold]{root.node.name}[/bold]  [dim]{root.node.fqn}[/dim]")
+    tree = Tree(f"{icon} [bold]{root.node.name}[/bold]  [dim]{root.node.id}[/dim]")
     _add_children(tree, root)
     console.print(tree)

@@ -29,7 +29,7 @@ class FunctionNodeMapper:
         )
         body = [ast_stmt_adapter.validate_python(stmt) for stmt in orm_model.body]
         return FunctionNode(
-            fqn=orm_model.fqn,
+            id=orm_model.fqn,
             name=orm_model.name,
             outbound_edges=to_outbound_edges(orm_model.outbound_edges),
             decorator_list=decorator_list,

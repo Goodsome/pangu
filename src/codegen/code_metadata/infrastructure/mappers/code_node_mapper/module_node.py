@@ -23,7 +23,7 @@ class ModuleNodeMapper:
         assert isinstance(orm_model, ModuleNodeModel)
         exprs = [ast_expr_adapter.validate_python(expr) for expr in orm_model.exprs]
         return ModuleNode(
-            fqn=orm_model.fqn,
+            id=orm_model.fqn,
             name=orm_model.name,
             description=orm_model.description,
             is_package=orm_model.is_package,

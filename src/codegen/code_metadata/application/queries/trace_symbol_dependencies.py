@@ -106,36 +106,36 @@ def _detail_to_node(detail: CodeNodeDetailDto) -> CodeNode:
     match detail.kind:
         case CodeNodeKind.DIRECTORY:
             return DirectoryNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )
         case CodeNodeKind.FILE:
             return FileNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )
         case CodeNodeKind.MODULE:
             return ModuleNode(
-                fqn=detail.fqn,
+                id=detail.fqn,
                 name=detail.name,
                 is_package=bool(detail.properties.get("is_package", False)),
                 outbound_edges=outbound_edges,
             )
         case CodeNodeKind.CLASS:
             return ClassNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )
         case CodeNodeKind.FUNCTION:
             return FunctionNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )
         case CodeNodeKind.METHOD:
             return MethodNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )
         case CodeNodeKind.VARIABLE:
             return VariableNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )
         case CodeNodeKind.EXTERNAL:
             return ExternalNode(
-                fqn=detail.fqn, name=detail.name, outbound_edges=outbound_edges
+                id=detail.fqn, name=detail.name, outbound_edges=outbound_edges
             )

@@ -51,7 +51,7 @@ def list_unused_nodes(
     table.add_column("FQN", style="green")
     table.add_column("Name", style="cyan")
     for idx, node in enumerate(nodes, 1):
-        table.add_row(str(idx), node.fqn, node.name)
+        table.add_row(str(idx), node.id, node.name)
     console.print(table)
     console.print(
         f"\n[dim]Total: {len(nodes)} unused {type.value.lower()} node(s)[/dim]"

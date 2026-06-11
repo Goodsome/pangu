@@ -15,7 +15,7 @@ class GetDirectoryTree:
 
     def execute(self, fqn_prefix: str) -> NodeTree:
         dtos = self.query_service.find_by_fqn_prefix(fqn_prefix)
-        index = {d.fqn: d for d in dtos}
+        index = {d.id: d for d in dtos}
         root_dto = index.get(fqn_prefix)
         if root_dto is None:
             raise ValueError(f"Node with fqn '{fqn_prefix}' not found")

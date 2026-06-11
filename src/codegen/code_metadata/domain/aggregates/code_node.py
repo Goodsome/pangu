@@ -21,7 +21,7 @@ from codegen.code_metadata.domain.value_objects.code_edge import create_edge
 
 
 class _BaseNode(BaseModel):
-    fqn: str
+    id: str
     name: str
     description: str | None = Field(default=None)
     outbound_edges: list[CodeEdge] = Field(default_factory=list)
@@ -40,7 +40,7 @@ class _BaseNode(BaseModel):
         self._add_edge_by_type(type, fqn)
 
     def parent_fqn(self) -> str:
-        splits = re.split("[.|::]", self.fqn)
+        splits = re.split("[.|::]", self.id)
         return ".".join(splits[:-1])
 
 
@@ -64,11 +64,11 @@ class ModuleNode(_BaseNode):
     exprs: list[AstExpr] = Field(default_factory=list)
 
     def contains(self, node: ModuleNode):
-        edge = ContainsEdge(fqn=node.fqn, direction=EdgeDirection.OUT)
+        edge = ContainsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
     def defines(self, node: ClassNode | FunctionNode | VariableNode):
-        edge = DefinesEdge(fqn=node.fqn, direction=EdgeDirection.OUT)
+        edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
     def imports(
@@ -78,7 +78,7 @@ class ModuleNode(_BaseNode):
         is_type_checking: bool = False,
     ):
         edge = ImportsEdge(
-            fqn=node.fqn,
+            fqn=node.id,
             direction=EdgeDirection.OUT,
             asname=asname,
             is_type_checking=is_type_checking,
@@ -87,16 +87,16 @@ class ModuleNode(_BaseNode):
 
     def get_parent_by_level(self, level: int) -> str:
         if level == 0:
-            return self.fqn
-        parts = self.fqn.split(".")
+            return self.id
+        parts = self.id.split(".")
         if level >= len(parts):
             raise ValueError(
-                f"Level {level} is greater than the depth of the module {self.fqn}"
+                f"Level {level} is greater than the depth of the module {self.id}"
             )
         return ".".join(parts[:-level])
 
     def get_physical_path(self) -> Path:
-        return Path("src") / self.fqn.replace(".", "/")
+        return Path("src") / self.id.replace(".", "/")
 
 
 class ClassNode(_BaseNode):
@@ -108,11 +108,11 @@ class ClassNode(_BaseNode):
     type_params: list[AstTypeParam] = Field(default_factory=list)
 
     def defines(self, node: MethodNode | VariableNode):
-        edge = DefinesEdge(fqn=node.fqn, direction=EdgeDirection.OUT)
+        edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
     def inherits(self, node: ClassNode | ExternalNode, base: AstExpr):
-        edge = InheritsEdge(fqn=node.fqn, direction=EdgeDirection.OUT)
+        edge = InheritsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
 
@@ -125,11 +125,11 @@ class FunctionNode(_BaseNode):
     body: list[AstStmt] = Field(default_factory=list)
 
     def defines(self, node: VariableNode):
-        edge = DefinesEdge(fqn=node.fqn, direction=EdgeDirection.OUT)
+        edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
     def add_returns(self, node: ClassNode | ExternalNode | VariableNode):
-        self._add_edge_by_type(EdgeType.RETURNS, node.fqn)
+        self._add_edge_by_type(EdgeType.RETURNS, node.id)
 
 
 class MethodNode(_BaseNode):
@@ -141,11 +141,11 @@ class MethodNode(_BaseNode):
     body: list[AstStmt] = Field(default_factory=list)
 
     def defines(self, node: VariableNode):
-        edge = DefinesEdge(fqn=node.fqn, direction=EdgeDirection.OUT)
+        edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
     def add_returns(self, node: ClassNode | ExternalNode | VariableNode):
-        self._add_edge_by_type(EdgeType.RETURNS, node.fqn)
+        self._add_edge_by_type(EdgeType.RETURNS, node.id)
 
 
 class VariableNode(_BaseNode):

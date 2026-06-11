@@ -94,7 +94,7 @@ class ClassEdgeBuilder:
         self.edge_stack.pop()
 
     def _visit_function_def(self, func_def: AstFunctionDef):
-        func_fqn = f"{self.class_node.fqn}::{func_def.name}"
+        func_fqn = f"{self.class_node.id}::{func_def.name}"
         if func_def.is_overload:
             func_fqn = f"{func_fqn}::<overload_{func_def.lineno}>"
         elif func_def.is_setter_property:
@@ -109,8 +109,8 @@ class ClassEdgeBuilder:
         self._empty_function_local_aliases()
         self._visit_return(func_def.returns)
         
-        for body in func_def.body:
-            self._visit_stmt(body)
+        # for body in func_def.body:
+            # self._visit_stmt(body)
             
         self.scope_stack.pop()
 
@@ -129,7 +129,7 @@ class ClassEdgeBuilder:
         target = assign.targets[0]
         if not isinstance(target, AstName):
             return
-        fqn = f"{self.class_node.fqn}::{target.id}"
+        fqn = f"{self.class_node.id}::{target.id}"
         node = self.node_registry.get_node(fqn)
         self.scope_stack.append(node)
         self.scope_stack.pop()
@@ -145,7 +145,7 @@ class ClassEdgeBuilder:
         target = ann_assign.target
         if not isinstance(target, AstName):
             return
-        fqn = f"{self.class_node.fqn}::{target.id}"
+        fqn = f"{self.class_node.id}::{target.id}"
         node = self.node_registry.get_node(fqn)
         self.scope_stack.append(node)
         self._visit_ann_assign_annotation(ann_assign.annotation)
@@ -192,7 +192,7 @@ class ClassEdgeBuilder:
         target_node = self.node_registry.get_node(fqn)
         while self.attribute_stack:
             attr = self.attribute_stack.pop()
-            fqn = f"{target_node.fqn}::{attr}"
+            fqn = f"{target_node.id}::{attr}"
             if self.attribute_stack:
                 self.current_node.add_edge(EdgeType.READS, fqn)
         self.current_node.add_edge(self.current_edge, fqn)

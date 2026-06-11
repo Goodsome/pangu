@@ -135,7 +135,7 @@ def dto_to_upsert_dict(dto: CodeNode, sync_id: str) -> dict[str, Any]:
         case _:
             assert_never(dto)
     return {
-        "fqn": dto.fqn,
+        "fqn": dto.id,
         "kind": dto.kind.value,
         "name": dto.name,
         "description": dto.description,

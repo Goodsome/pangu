@@ -117,7 +117,7 @@ class ModuleBuildContext:
             local_alias_key = asname
         else:
             local_alias_key = node.name
-        self.local_aliases[local_alias_key] = node.fqn
+        self.local_aliases[local_alias_key] = node.id
 
     def _add_node(self, dto: CodeNode) -> None:
         self.node_registry.add_node(dto)
@@ -134,7 +134,7 @@ class ModuleBuildContext:
         raise ValueError(f"{import_name} not found in {from_name}")
 
     def _build_class_edge(self, class_def: AstClassDef):
-        class_fqn = f"{self.module.fqn}::{class_def.name}"
+        class_fqn = f"{self.module.id}::{class_def.name}"
         node = self.node_registry.get_node(class_fqn)
         assert isinstance(node, ClassNode)
         class_edge_builder = ClassEdgeBuilder(

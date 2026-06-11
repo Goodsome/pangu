@@ -55,7 +55,7 @@ class FileSystemFileDiffer(FileDiffer):
 def module_node_dto_to_code_document(
     module: ModuleNode, node_registry: NodeRegistry
 ) -> CodeDocument:
-    physical_path = Path("src") / module.fqn.replace(".", "/")
+    physical_path = Path("src") / module.id.replace(".", "/")
     if module.is_package:
         physical_path = physical_path / "__init__.py"
     else:
@@ -101,7 +101,7 @@ def node_to_ast_stmt(node: CodeNode, node_registry: NodeRegistry) -> AstStmt:
         case VariableNode():
             return variable_node_dto_to_ast(node, node_registry)
         case _:
-            raise NotImplementedError(f"node.kind={node.kind!r}, node.fqn={node.fqn!r}")
+            raise NotImplementedError(f"node.kind={node.kind!r}, node.fqn={node.id!r}")
 
 
 def edge_to_ast_expr(edge: CodeEdge, node_registry: NodeRegistry) -> AstExpr:

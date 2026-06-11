@@ -101,7 +101,7 @@ class CodeGraphAcl:
 
     def _build_module_by_path(self, path: Path) -> ModuleNode:
         module_fqn = self.fqn_factory.build_module_fqn(path)
-        node = ModuleNode(fqn=module_fqn, name=module_fqn.rsplit(".", maxsplit=1)[-1])
+        node = ModuleNode(id=module_fqn, name=module_fqn.rsplit(".", maxsplit=1)[-1])
         self._add_node(node)
         return node
 
@@ -164,7 +164,7 @@ class CodeGraphAcl:
                 pass
             case _:
                 raise NotImplementedError(
-                    f"Unsupported statement: stmt={stmt!r} in parent_node.fqn={parent_node.fqn!r}"
+                    f"Unsupported statement: stmt={stmt!r} in parent_node.fqn={parent_node.id!r}"
                 )
 
     def _parse_ast_imports(self, stmt: AstStmt, node: ModuleNode):
@@ -191,9 +191,9 @@ class CodeGraphAcl:
     def _parse_class_def(
         self, class_def: AstClassDef, module_node: ModuleNode
     ) -> ClassNode:
-        class_fqn = f"{module_node.fqn}::{class_def.name}"
+        class_fqn = f"{module_node.id}::{class_def.name}"
         node = ClassNode(
-            fqn=class_fqn,
+            id=class_fqn,
             name=class_def.name,
             description=class_def.description,
             decorator_list=class_def.decorator_list,
@@ -209,7 +209,7 @@ class CodeGraphAcl:
     def _parse_function_def(
         self, func_def: AstFunctionDef, parent_node: ModuleNode | ClassNode
     ) -> FunctionNode | MethodNode:
-        func_fqn = f"{parent_node.fqn}::{func_def.name}"
+        func_fqn = f"{parent_node.id}::{func_def.name}"
         if func_def.is_overload:
             func_fqn = f"{func_fqn}::<overload_{func_def.lineno}>"
         elif func_def.is_setter_property:
@@ -221,7 +221,7 @@ class CodeGraphAcl:
         match parent_node:
             case ClassNode():
                 func_node = MethodNode(
-                    fqn=func_fqn,
+                    id=func_fqn,
                     name=func_def.name,
                     decorator_list=func_def.decorator_list,
                     returns=func_def.returns,
@@ -230,7 +230,7 @@ class CodeGraphAcl:
                 parent_node.defines(func_node)
             case ModuleNode():
                 func_node = FunctionNode(
-                    fqn=func_fqn,
+                    id=func_fqn,
                     name=func_def.name,
                     decorator_list=func_def.decorator_list,
                     returns=func_def.returns,
@@ -264,8 +264,8 @@ class CodeGraphAcl:
         annotation: AstExpr | None = None,
         value: AstExpr | None = None,
     ) -> VariableNode:
-        var_fqn = f"{parent_node.fqn}::{name}"
-        node = VariableNode(fqn=var_fqn, name=name, annotation=annotation, value=value)
+        var_fqn = f"{parent_node.id}::{name}"
+        node = VariableNode(id=var_fqn, name=name, annotation=annotation, value=value)
         parent_node.defines(node)
         self._add_node(node)
         return node

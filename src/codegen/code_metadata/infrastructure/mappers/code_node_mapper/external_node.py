@@ -17,7 +17,7 @@ class ExternalNodeMapper:
     @classmethod
     def to_dto(cls, orm_model: CodeNodeModel) -> ExternalNode:
         return ExternalNode(
-            fqn=orm_model.fqn,
+            id=orm_model.fqn,
             name=orm_model.name,
             outbound_edges=to_outbound_edges(orm_model.outbound_edges),
         )

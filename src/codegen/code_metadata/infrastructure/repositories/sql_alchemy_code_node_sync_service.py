@@ -76,7 +76,7 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
             )
             edge_values: list[dict[str, object]] = []
             for dto in node_dtos:
-                source_id = fqn_to_id.get(dto.fqn)
+                source_id = fqn_to_id.get(dto.id)
                 if not source_id:
                     continue
                 for idx, edge_dto in enumerate(dto.outbound_edges):

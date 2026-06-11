@@ -28,7 +28,7 @@ class VariableNodeMapper:
             else None
         )
         return VariableNode(
-            fqn=orm_model.fqn,
+            id=orm_model.fqn,
             name=orm_model.name,
             annotation=annotation,
             value=value,

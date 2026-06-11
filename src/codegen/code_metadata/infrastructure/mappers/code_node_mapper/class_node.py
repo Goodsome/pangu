@@ -27,7 +27,7 @@ class ClassNodeMapper:
             type_param_adapter.validate_python(tp) for tp in orm_model.type_params
         ]
         return ClassNode(
-            fqn=orm_model.fqn,
+            id=orm_model.fqn,
             name=orm_model.name,
             description=orm_model.description,
             outbound_edges=to_outbound_edges(orm_model.outbound_edges),
