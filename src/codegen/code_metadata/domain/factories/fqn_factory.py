@@ -2,22 +2,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
+from codegen.code_metadata.domain.core.fqn import Fqn
+
 
 @dataclass
 class FqnFactory:
     SOURCE_ROOTS: ClassVar[list[Path]] = [Path("src")]
 
-    def build_dir_fqn(self, path: Path) -> str:
-        """目录 FQN：相对路径/，以 / 结尾。根目录为 /。"""
-        if path == Path("."):
-            return "/"
-        return f"{path.as_posix()}/"
-
-    def build_file_fqn(self, path: Path) -> str:
-        """文件 FQN：相对文件路径。"""
-        return path.as_posix()
-
-    def build_module_fqn(self, path: Path) -> str:
+    def build_module_fqn(self, path: Path) -> Fqn:
         """模块 FQN：将路径分隔符替换为 '.'，去除后缀。
 
         __init__.py 映射到其所在目录的包名(如 src/foo/__init__.py → src.foo),
@@ -31,5 +23,5 @@ class FqnFactory:
             except ValueError:
                 continue
         if logical_path.name == "__init__.py":
-            return ".".join(logical_path.parent.parts)
-        return ".".join(logical_path.with_suffix("").parts)
+            return Fqn(".".join(logical_path.parent.parts))
+        return Fqn(".".join(logical_path.with_suffix("").parts))

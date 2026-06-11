@@ -8,6 +8,7 @@ from event_hub import EventHub
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
 from codegen.code_metadata.application.commands.clean_node import CleanNodeHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
+from codegen.code_metadata.application.commands.sync_module import SyncModuleHandler
 from codegen.code_metadata.application.commands.generate_code import GenerateCode
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
@@ -181,6 +182,12 @@ class Container(DeclarativeContainer):
         CleanNodeHandler,
         query_service=code_node_query_service,
         uow=code_node_unit_of_work,
+    )
+    sync_module: Factory[SyncModuleHandler] = Factory(
+        SyncModuleHandler,
+        query_service=code_node_query_service,
+        code_generator=python_code_generator,
+        file_system=file_system_port,
     )
     ingest_project: Factory[IngestProject] = Factory(
         IngestProject,

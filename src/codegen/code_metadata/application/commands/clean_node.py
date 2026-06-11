@@ -25,7 +25,8 @@ class CleanNodeHandler:
         unused_nodes = self.query_service.find_unused_nodes(fqns={cmd.fqn})
         if not unused_nodes:
             return
-        module_fqns: set[Fqn] = {node.id.module_fqn for node in unused_nodes}
+        # module_fqns: set[Fqn] = {node.id.module_fqn for node in unused_nodes}
+        
 
         with self.uow:
             for node in unused_nodes:

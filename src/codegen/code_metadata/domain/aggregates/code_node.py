@@ -97,7 +97,10 @@ class ModuleNode(_BaseNode):
         return ".".join(parts[:-level])
 
     def get_physical_path(self) -> Path:
-        return Path("src") / self.id.replace(".", "/")
+        path = Path("src") / self.id.replace(".", "/")
+        if not self.is_package:
+            path = path.with_suffix(".py")
+        return path
 
 
 class ClassNode(_BaseNode):

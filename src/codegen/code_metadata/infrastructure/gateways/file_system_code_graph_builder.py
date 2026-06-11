@@ -116,7 +116,7 @@ class CodeGraphAcl:
 
     def _ensure_parent_module(self, module: ModuleNode) -> None:
         module_path = module.get_physical_path()
-        if module_path == self.root_path:
+        if module_path.with_suffix("") == self.root_path:
             return
         assert len(module_path.parts) >= len(
             self.root_path.parts
