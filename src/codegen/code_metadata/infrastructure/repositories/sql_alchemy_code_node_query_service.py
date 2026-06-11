@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import override
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, exists, not_, select
+from sqlalchemy import ColumnElement, exists, not_, or_, select
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from codegen.code_metadata.application.dtos.code_node_detail_dto import (
@@ -13,6 +13,7 @@ from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
 )
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
@@ -169,4 +170,91 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
         )
         with self.session_factory() as session:
             models = session.execute(stmt).scalars().unique().all()
+        return [orm_to_dto(m) for m in models]
+
+    @override
+    def find_empty_modules(
+        self,
+        fqns: Collection[Fqn] | None = None,
+    ) -> list[CodeNode]:
+        has_defines_outbound = exists().where(
+            CodeEdgeModel.source_id == CodeNodeModel.id,
+            CodeEdgeModel.type == EdgeType.DEFINES,
+        )
+        conditions: list[ColumnElement[bool]] = [
+            CodeNodeModel.kind == CodeNodeKind.MODULE,
+            not_(has_defines_outbound),
+        ]
+        if fqns:
+            conditions.append(CodeNodeModel.fqn.in_(fqns))
+
+        stmt = (
+            select(CodeNodeModel)
+            .where(*conditions)
+            .options(
+                selectinload(CodeNodeModel.outbound_edges).joinedload(
+                    CodeEdgeModel.target_entity
+                )
+            )
+        )
+        with self.session_factory() as session:
+            models = session.execute(stmt).scalars().unique().all()
+        return [orm_to_dto(m) for m in models]
+
+    @override
+    def find_all_dead_nodes_cascading(
+        self,
+        kind: CodeNodeKind,
+    ) -> list[CodeNode]:
+        """
+        通过单条 SQL (Recursive CTE) 找出所有死节点，包含级联变成死代码的节点。
+        """
+        _USAGE_EDGE_TYPES = {
+            EdgeType.IMPORTS,
+            EdgeType.INHERITS,
+            EdgeType.CALLS,
+            EdgeType.RETURNS,
+            EdgeType.ACCEPTS,
+            EdgeType.TYPED_AS,
+        }
+
+        # 1. Base Case: 选出确定的起点（活着的节点）
+        base_stmt = select(CodeNodeModel.id).where(
+            or_(
+                CodeNodeModel.fqn.like("codegen.bootstrap%"),
+                CodeNodeModel.fqn.like("%interface%"),
+            )
+        )
+
+        # 将基础集声明为递归 CTE
+        alive_cte = base_stmt.cte(name="alive_nodes", recursive=True)
+
+        # 2. Recursive Step: 找出所有被存活节点连接的目标节点
+        # 这里联表查找: CodeEdgeModel.source_id 是存活的 -> target_id 也是存活的
+        recursive_stmt = (
+            select(CodeEdgeModel.target_id)
+            .join(alive_cte, alive_cte.c.id == CodeEdgeModel.source_id)
+            .where(CodeEdgeModel.type.in_(_USAGE_EDGE_TYPES))
+        )
+
+        # 将基础集和递归集联合起来
+        alive_cte = alive_cte.union_all(recursive_stmt)
+
+        # 3. 主查询: 查出所有不在 "存活列表" 中的节点，即为全部的（包含级联的）死节点
+        stmt = (
+            select(CodeNodeModel)
+            .where(
+                CodeNodeModel.id.not_in(select(alive_cte.c.id)),
+                CodeNodeModel.kind == kind,
+            )
+            .options(
+                selectinload(CodeNodeModel.outbound_edges).joinedload(
+                    CodeEdgeModel.target_entity
+                )
+            )
+        )
+
+        with self.session_factory() as session:
+            models = session.execute(stmt).scalars().unique().all()
+
         return [orm_to_dto(m) for m in models]

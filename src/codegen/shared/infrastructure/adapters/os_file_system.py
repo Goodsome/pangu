@@ -51,3 +51,10 @@ class OSFileSystem(FileSystemPort):
 
     def exists(self, path: Path) -> bool:
         return (self.root / path).exists()
+
+    def delete_file(self, path: Path) -> bool:
+        full_path = self.root / path
+        if not full_path.is_file():
+            return False
+        full_path.unlink()
+        return True

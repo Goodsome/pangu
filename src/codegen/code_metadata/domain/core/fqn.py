@@ -12,22 +12,27 @@ class Fqn(str):
         r"^[a-zA-Z0-9_.]+(?:::[a-zA-Z0-9_]+(?:<[a-zA-Z0-9_]+>)?)*$"
     )
 
+    def __new__(cls, value: str) -> Fqn:
+        if not cls._FQN_PATTERN.match(value):
+            raise ValueError(f"Invalid FQN format: {value}")
+        return super().__new__(cls, value)
+        
     @property
-    def module_path(self) -> str:
+    def module_fqn(self) -> Fqn:
         """获取纯模块路径（第一个 :: 之前的部分）"""
-        return self.split("::")[0]
+        return Fqn(self.split("::")[0])
 
     @property
-    def parent_path(self) -> str | None:
+    def parent_fqn(self) -> Fqn | None:
         """
         获取上一层路径。
         逻辑：优先从右侧查找 `::` 进行拆分；如果没有 `::`，则从右侧查找 `.` 进行拆分。
         如果是顶级模块（如 "codegen"），没有父级，返回 None。
         """
         if "::" in self:
-            return self.rsplit("::", 1)[0]
+            return Fqn(self.rsplit("::", 1)[0])
         if "." in self:
-            return self.rsplit(".", 1)[0]
+            return Fqn(self.rsplit(".", 1)[0])
         return None
 
     @property

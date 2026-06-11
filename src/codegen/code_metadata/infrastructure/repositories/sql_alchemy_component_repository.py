@@ -75,9 +75,9 @@ class SqlAlchemyComponentRepository(ComponentRepository):
             self.session.merge(orm_model)
 
     @override
-    def _delete(self, id: ComponentId) -> None:
+    def _delete(self, aggregate: Component) -> None:
         """删除 Component 聚合根及其所有下属实体。"""
-        model = self.session.get(ComponentModel, id.value)
+        model = self.session.get(ComponentModel, aggregate.id.value)
         if model:
             self.session.delete(model)
 

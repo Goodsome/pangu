@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 
 if TYPE_CHECKING:
@@ -14,7 +15,7 @@ class BaseEdgeMapper:
     """所有边类型 Mapper 的公共基类。"""
 
     @staticmethod
-    def _get_target_fqn(edge_model: CodeEdgeModel, direction: EdgeDirection) -> str:
+    def _get_target_fqn(edge_model: CodeEdgeModel, direction: EdgeDirection) -> Fqn:
         """根据方向取对端 FQN。"""
         if direction == EdgeDirection.OUT:
             return edge_model.target_entity.fqn

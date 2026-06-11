@@ -3,6 +3,7 @@ import typer
 from codegen.bootstrap.logging import setup_cli_logging
 from codegen.bootstrap.setup import create_container
 from codegen.code_dom.interfaces.cli.get_file_document import get_file_document
+from codegen.code_metadata.interfaces.cli.clean_node import clean_node
 from codegen.code_metadata.interfaces.cli.delete_component import delete_component
 from codegen.code_metadata.interfaces.cli.generate_code import generate_code
 from codegen.code_metadata.interfaces.cli.get_code_node import get_code_node
@@ -31,6 +32,7 @@ app.command()(list_components)
 app.command()(get_component)
 app.command()(get_module)
 app.command()(list_modules)
+app.command()(clean_node)
 app.command()(delete_component)
 app.command()(ingest_project)
 app.command()(get_file_document)

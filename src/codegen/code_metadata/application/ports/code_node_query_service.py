@@ -6,6 +6,7 @@ from codegen.code_metadata.application.dtos.code_node_detail_dto import (
     CodeNodeDetailDto,
 )
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 
 
@@ -50,3 +51,22 @@ class CodeNodeQueryService(ABC):
         "未被使用"的判定逻辑：不存在类型为 IMPORTS 的入边。
         """
         pass
+
+    @abstractmethod
+    def find_all_dead_nodes_cascading(
+        self,
+        kind: CodeNodeKind,
+    ) -> list[CodeNode]:
+        ...
+
+    @abstractmethod
+    def find_empty_modules(
+        self,
+        fqns: Collection[Fqn] | None = None,
+    ) -> list[CodeNode]:
+        """查找没有 DEFINES 出边的 MODULE 节点。
+
+        Args:
+            fqns: 可选的 FQN 集合，用于限定搜索范围。
+        """
+        ...

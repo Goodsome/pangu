@@ -34,8 +34,9 @@ class Repository[T_AR: AggregateRoot[Any], T_ID](ABC):
         self._save_all(aggregates=aggregates)
         self._seens.update(aggregates)
 
-    def delete(self, id: T_ID) -> None:
-        self._delete(id)
+    def delete(self, aggregate: T_AR) -> None:
+        self._delete(aggregate)
+        self._seens.add(aggregate)
 
     @abstractmethod
     def _add(self, aggregate: T_AR) -> None: ...
@@ -50,7 +51,7 @@ class Repository[T_AR: AggregateRoot[Any], T_ID](ABC):
     def _save(self, aggregate: T_AR) -> None: ...
 
     @abstractmethod
-    def _delete(self, id: T_ID) -> None: ...
+    def _delete(self, aggregate: T_AR) -> None: ...
 
     @abstractmethod
     def _save_all(self, aggregates: list[T_AR]) -> None: ...

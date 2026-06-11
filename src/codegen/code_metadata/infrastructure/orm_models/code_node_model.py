@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import ColumnElement
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.shared.infrastructure.orm_models.base import BaseORM
 
@@ -26,7 +27,7 @@ class CodeNodeModel(BaseORM):
     __tablename__: str = "code_nodes"
     __mapper_args__: dict[str, str] = {"polymorphic_on": "kind"}
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    fqn: Mapped[str] = mapped_column(String(1024), unique=True, index=True)
+    fqn: Mapped[Fqn] = mapped_column(String(1024), unique=True, index=True)
     kind: Mapped[str] = mapped_column(String(50), index=True)
     name: Mapped[str] = mapped_column(String(255), index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

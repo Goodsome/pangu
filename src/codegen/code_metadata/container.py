@@ -6,6 +6,7 @@ from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
 from event_hub import EventHub
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
+from codegen.code_metadata.application.commands.clean_node import CleanNodeHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
 from codegen.code_metadata.application.commands.generate_code import GenerateCode
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
@@ -40,6 +41,7 @@ from codegen.code_metadata.application.services.project_sync_service import (
 from codegen.code_metadata.domain.factories.component_policy_factory import (
     ComponentPolicyFactory,
 )
+from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.code_metadata.domain.ports.component_repository import ComponentRepository
 from codegen.code_metadata.domain.ports.module_repository import ModuleRepository
 from codegen.code_metadata.domain.services.path_parser import PathParser
@@ -51,6 +53,9 @@ from codegen.code_metadata.infrastructure.gateways.file_system_file_differ impor
 )
 from codegen.code_metadata.infrastructure.repositories.sql_alchemy_code_node_query_service import (
     SqlAlchemyCodeNodeQueryService,
+)
+from codegen.code_metadata.infrastructure.repositories.sql_alchemy_code_node_repository import (
+    SqlAlchemyCodeNodeRepository,
 )
 from codegen.code_metadata.infrastructure.repositories.sql_alchemy_code_node_sync_service import (
     SqlAlchemyCodeNodeSyncService,
@@ -110,6 +115,9 @@ class Container(DeclarativeContainer):
     module_repository_factory: Factory[SqlAlchemyModuleRepository] = Factory(
         SqlAlchemyModuleRepository
     )
+    code_node_repository_factory: Factory[SqlAlchemyCodeNodeRepository] = Factory(
+        SqlAlchemyCodeNodeRepository
+    )
     component_query_service: Factory[SqlAlchemyComponentQueryService] = Factory(
         SqlAlchemyComponentQueryService,
         session_factory=database.provided.session_factory,
@@ -127,6 +135,12 @@ class Container(DeclarativeContainer):
         SqlAlchemyUnitOfWork,
         session_factory=database.provided.session_factory,
         repository_factory=module_repository_factory.provider,
+        event_publisher_factory=event_publisher_factory,
+    )
+    code_node_unit_of_work: Factory[SqlAlchemyUnitOfWork[CodeNodeRepository]] = Factory(
+        SqlAlchemyUnitOfWork,
+        session_factory=database.provided.session_factory,
+        repository_factory=code_node_repository_factory.provider,
         event_publisher_factory=event_publisher_factory,
     )
     component_policy_factory: Singleton[ComponentPolicyFactory] = Singleton(
@@ -162,6 +176,11 @@ class Container(DeclarativeContainer):
     )
     delete_component: Factory[DeleteComponent] = Factory(
         DeleteComponent, uow=unit_of_work
+    )
+    clean_node: Factory[CleanNodeHandler] = Factory(
+        CleanNodeHandler,
+        query_service=code_node_query_service,
+        uow=code_node_unit_of_work,
     )
     ingest_project: Factory[IngestProject] = Factory(
         IngestProject,

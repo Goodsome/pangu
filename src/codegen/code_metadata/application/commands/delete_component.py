@@ -14,5 +14,6 @@ class DeleteComponent:
     def execute(self, cmd: DeleteComponentCommand) -> None:
         c_id = ComponentId.reconstitute(cmd.component_id)
         with self.uow:
-            self.uow.repository.delete(c_id)
+            component = self.uow.repository.get(c_id)
+            self.uow.repository.delete(component)
             self.uow.commit()

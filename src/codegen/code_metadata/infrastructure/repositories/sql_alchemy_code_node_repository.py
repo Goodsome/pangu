@@ -1,0 +1,107 @@
+"""CodeNodeRepository 的 SQLAlchemy 实现。传入的 ID (Fqn) 对应数据库中的 fqn 字段。"""
+
+from dataclasses import dataclass
+from typing import Any, override
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.core.fqn import Fqn
+from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
+from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
+    dto_to_upsert_dict,
+    orm_to_dto,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
+    ClassNodeModel,
+    CodeNodeModel,
+    DirectoryNodeModel,
+    ExternalNodeModel,
+    FileNodeModel,
+    FunctionNodeModel,
+    MethodNodeModel,
+    ModuleNodeModel,
+    VariableNodeModel,
+)
+
+_KIND_TO_MODEL: dict[CodeNodeKind, type[CodeNodeModel]] = {
+    CodeNodeKind.DIRECTORY: DirectoryNodeModel,
+    CodeNodeKind.FILE: FileNodeModel,
+    CodeNodeKind.MODULE: ModuleNodeModel,
+    CodeNodeKind.CLASS: ClassNodeModel,
+    CodeNodeKind.FUNCTION: FunctionNodeModel,
+    CodeNodeKind.METHOD: MethodNodeModel,
+    CodeNodeKind.VARIABLE: VariableNodeModel,
+    CodeNodeKind.EXTERNAL: ExternalNodeModel,
+}
+
+
+def _create_orm_model(dto: CodeNode, sync_id: str | None = None) -> CodeNodeModel:
+    """从领域聚合根创建一个新的 ORM 模型实例。"""
+    upsert_dict = dto_to_upsert_dict(dto, sync_id or "")
+    model_cls = _KIND_TO_MODEL[dto.kind]
+    return model_cls(**upsert_dict)
+
+
+@dataclass
+class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
+    """CodeNode 仓储的 SQLAlchemy 实现。
+
+    所有通过 Fqn 的查询均对应数据库的 fqn 字段（非主键 id）。
+    """
+
+    session: Session
+
+    @override
+    def _add(self, aggregate: CodeNode) -> None:
+        orm_model = _create_orm_model(aggregate)
+        self.session.add(orm_model)
+
+    @override
+    def _add_all(self, aggregates: list[CodeNode]) -> None:
+        orm_models = [_create_orm_model(a) for a in aggregates]
+        self.session.add_all(orm_models)
+
+    @override
+    def _get(self, id: Fqn) -> CodeNode:
+        stmt = select(CodeNodeModel).where(CodeNodeModel.fqn == id)
+        orm_model = self.session.execute(stmt).scalar_one_or_none()
+        if orm_model is None:
+            raise ValueError(f"CodeNode with fqn '{id}' not found")
+        return orm_to_dto(orm_model)
+
+    @override
+    def _save(self, aggregate: CodeNode) -> None:
+        stmt = select(CodeNodeModel).where(CodeNodeModel.fqn == aggregate.id)
+        orm_model = self.session.execute(stmt).scalar_one_or_none()
+        if orm_model is None:
+            raise ValueError(f"CodeNode with fqn '{aggregate.id}' not found")
+        upsert_dict = dto_to_upsert_dict(aggregate, orm_model.last_sync_id or "")
+        for key, value in upsert_dict.items():
+            setattr(orm_model, key, value)
+
+    @override
+    def _save_all(self, aggregates: list[CodeNode]) -> None:
+        if not aggregates:
+            return
+        fqns = [a.id for a in aggregates]
+        stmt = select(CodeNodeModel).where(CodeNodeModel.fqn.in_(fqns))
+        existing_models = {
+            m.fqn: m for m in self.session.execute(stmt).scalars().all()
+        }
+        for aggregate in aggregates:
+            orm_model = existing_models.get(aggregate.id)
+            if orm_model is None:
+                raise ValueError(f"CodeNode with fqn '{aggregate.id}' not found")
+            upsert_dict = dto_to_upsert_dict(aggregate, orm_model.last_sync_id or "")
+            for key, value in upsert_dict.items():
+                setattr(orm_model, key, value)
+
+    @override
+    def _delete(self, aggregate: CodeNode) -> None:
+        stmt = select(CodeNodeModel).where(CodeNodeModel.fqn == aggregate.id)
+        orm_model = self.session.execute(stmt).scalar_one_or_none()
+        if orm_model:
+            self.session.delete(orm_model)

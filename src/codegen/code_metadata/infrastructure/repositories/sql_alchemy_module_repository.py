@@ -59,8 +59,8 @@ class SqlAlchemyModuleRepository(ModuleRepository):
             self.session.merge(orm_model)
 
     @override
-    def _delete(self, id: ModuleId) -> None:
-        model = self.session.get(ModuleModel, id.value)
+    def _delete(self, aggregate: Module) -> None:
+        model = self.session.get(ModuleModel, aggregate.id.value)
         if model:
             self.session.delete(model)
 
