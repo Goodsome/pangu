@@ -6,11 +6,20 @@ from uuid import UUID
 from uuid import uuid4
 from codegen.shared.domain.core.value_object import ValueObject
 
+class Identifier[T](ValueObject):
+    
+    value: T
 
-class Identifier(ValueObject):
+    @override
+    def __str__(self):
+        return str(self.value)
+
+    @override
+    def __hash__(self) -> int:
+        return hash(self.value)
+
+class UuidIdentifier(Identifier[UUID]):
     """Unique identifier."""
-
-    value: UUID
 
     @classmethod
     def create(cls):
@@ -21,14 +30,6 @@ class Identifier(ValueObject):
         if isinstance(value, str):
             value = UUID(value)
         return cls(value=value)
-
-    @override
-    def __str__(self):
-        return str(self.value)
-
-    @override
-    def __hash__(self) -> int:
-        return hash(self.value)
 
     @model_serializer
     def serialize(self) -> str:

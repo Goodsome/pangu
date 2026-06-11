@@ -2,25 +2,21 @@ from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
 from uuid import UUID
-from sqlalchemy import exists
-from sqlalchemy import not_
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import selectinload
-from sqlalchemy.orm import sessionmaker
+
+from sqlalchemy import ColumnElement, exists, not_, select
+from sqlalchemy.orm import Session, selectinload, sessionmaker
+
 from codegen.code_metadata.application.dtos.code_node_detail_dto import (
     CodeNodeDetailDto,
 )
-from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
 )
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     orm_to_detail_dto,
-)
-from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     orm_to_dto,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
@@ -132,12 +128,16 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
         return orm_to_detail_dto(model)
 
     @override
-    def find_unused_nodes(self, kind: CodeNodeKind) -> list[CodeNode]:
-        _SUPPORTED = {CodeNodeKind.CLASS, CodeNodeKind.FUNCTION, CodeNodeKind.VARIABLE}
-        if kind not in _SUPPORTED:
-            raise ValueError(
-                f"Unsupported node kind for unused query: {kind}. Supported: {', '.join((k.value.lower() for k in sorted(_SUPPORTED)))}"
-            )
+    def find_unused_nodes(
+        self,
+        kind: CodeNodeKind | None = None,
+        fqns: Collection[str] | None = None,
+    ) -> list[CodeNode]:
+        _SUPPORTED = {
+            CodeNodeKind.CLASS,
+            CodeNodeKind.FUNCTION,
+            CodeNodeKind.VARIABLE,
+        }
         _USAGE_EDGE_TYPES = {
             EdgeType.IMPORTS,
             EdgeType.INHERITS,
@@ -150,9 +150,17 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
             CodeEdgeModel.target_id == CodeNodeModel.id,
             CodeEdgeModel.type.in_(_USAGE_EDGE_TYPES),
         )
+        conditions: list[ColumnElement[bool]] = [not_(has_usage_inbound)]
+        if kind:
+            conditions.append(CodeNodeModel.kind == kind)
+        else:
+            conditions.append(CodeNodeModel.kind.in_(_SUPPORTED))
+        if fqns:
+            conditions.append(CodeNodeModel.fqn.in_(fqns))
+
         stmt = (
             select(CodeNodeModel)
-            .where(CodeNodeModel.kind == kind, not_(has_usage_inbound))
+            .where(*conditions)
             .options(
                 selectinload(CodeNodeModel.outbound_edges).joinedload(
                     CodeEdgeModel.target_entity

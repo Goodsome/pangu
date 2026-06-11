@@ -1,5 +1,5 @@
-from codegen.shared.domain.value_objects.identifier import Identifier
+from codegen.shared.domain.value_objects.identifier import UuidIdentifier
 
 
-class BehaviorId(Identifier):
+class BehaviorId(UuidIdentifier):
     pass

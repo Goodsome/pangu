@@ -1,5 +1,5 @@
-from codegen.shared.domain.value_objects.identifier import Identifier
+from codegen.shared.domain.value_objects.identifier import UuidIdentifier
 
 
-class InstanceId(Identifier):
+class InstanceId(UuidIdentifier):
     pass

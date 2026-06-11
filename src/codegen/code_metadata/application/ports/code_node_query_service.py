@@ -1,7 +1,7 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Collection
 from uuid import UUID
+
 from codegen.code_metadata.application.dtos.code_node_detail_dto import (
     CodeNodeDetailDto,
 )
@@ -40,7 +40,11 @@ class CodeNodeQueryService(ABC):
         pass
 
     @abstractmethod
-    def find_unused_nodes(self, kind: CodeNodeKind) -> list[CodeNode]:
+    def find_unused_nodes(
+        self,
+        kind: CodeNodeKind | None = None,
+        fqns: Collection[str] | None = None,
+    ) -> list[CodeNode]:
         """查询指定类型下未被使用的节点（支持 CLASS、FUNCTION、VARIABLE）。
 
         "未被使用"的判定逻辑：不存在类型为 IMPORTS 的入边。

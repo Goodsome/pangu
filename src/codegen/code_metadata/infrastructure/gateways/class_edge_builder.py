@@ -108,6 +108,10 @@ class ClassEdgeBuilder:
         self.scope_stack.append(func_node)
         self._empty_function_local_aliases()
         self._visit_return(func_def.returns)
+        
+        for body in func_def.body:
+            self._visit_stmt(body)
+            
         self.scope_stack.pop()
 
     def _visit_assign(self, assign: AstAssign):
