@@ -337,6 +337,7 @@ class StmtToAst:
     @staticmethod
     def from_function_def(stmt: AstFunctionDef) -> ast.FunctionDef:
         args = StmtToAst._assigns_to_arguments(stmt.arguments)
+        returns=ExprToAst.to_node(stmt.returns) if stmt.returns else None
         return ast.FunctionDef(
             name=stmt.name,
             args=args,
