@@ -4,7 +4,6 @@ from typing import Literal
 from pydantic import Field
 from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
-from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_name import AstName

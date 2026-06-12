@@ -1,7 +1,7 @@
 """CodeNodeRepository 的 SQLAlchemy 实现。传入的 ID (Fqn) 对应数据库中的 fqn 字段。"""
 
 from dataclasses import dataclass
-from typing import Any, override
+from typing import override
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session

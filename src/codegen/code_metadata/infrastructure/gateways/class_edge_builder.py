@@ -2,9 +2,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from codegen.code_metadata.domain.aggregates.code_node import ClassNode
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
 from codegen.code_metadata.domain.aggregates.code_node import MethodNode
-from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign

@@ -1,4 +1,3 @@
-from typing import Annotated
 from typing import Literal
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.shared.domain.core.value_object import ValueObject

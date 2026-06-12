@@ -17,6 +17,7 @@ from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
 from codegen.code_metadata.domain.aggregates.code_node import MethodNode
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_node import VariableNode
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
@@ -141,7 +142,7 @@ class CodeGraphAcl:
             case AstClassDef():
                 assert isinstance(
                     parent_node, ModuleNode
-                ), "parent node need to be module"
+                ), f"{parent_node=} is not ModuleNode"
                 self._parse_class_def(stmt, parent_node)
             case AstFunctionDef():
                 self._parse_function_def(stmt, parent_node)
@@ -152,7 +153,7 @@ class CodeGraphAcl:
             ):
                 assert isinstance(
                     parent_node, ModuleNode
-                ), "parent node need to be module"
+                ), f"{parent_node=} is not ModuleNode"
                 self._parse_ast_imports(stmt, parent_node)
             case AstExprStmt(value=AstConstant()):
                 pass
@@ -191,7 +192,7 @@ class CodeGraphAcl:
     def _parse_class_def(
         self, class_def: AstClassDef, module_node: ModuleNode
     ) -> ClassNode:
-        class_fqn = f"{module_node.id}::{class_def.name}"
+        class_fqn = Fqn(f"{module_node.id}::{class_def.name}")
         node = ClassNode(
             id=class_fqn,
             name=class_def.name,
@@ -209,19 +210,20 @@ class CodeGraphAcl:
     def _parse_function_def(
         self, func_def: AstFunctionDef, parent_node: ModuleNode | ClassNode
     ) -> FunctionNode | MethodNode:
-        func_fqn = f"{parent_node.id}::{func_def.name}"
+        _func_fqn = f"{parent_node.id}::{func_def.name}"
         if func_def.is_overload:
-            func_fqn = f"{func_fqn}<overload_{func_def.lineno}>"
+            _func_fqn = f"{_func_fqn}<overload_{func_def.lineno}>"
         elif func_def.is_setter_property:
-            func_fqn = f"{func_fqn}<setter>"
+            _func_fqn = f"{_func_fqn}<setter>"
         elif func_def.is_deleter_property:
-            func_fqn = f"{func_fqn}<deleter>"
+            _func_fqn = f"{_func_fqn}<deleter>"
         elif func_def.is_expression_property:
-            func_fqn = f"{func_fqn}<expression>"
+            _func_fqn = f"{_func_fqn}<expression>"
+        fqn = Fqn(_func_fqn)
         match parent_node:
             case ClassNode():
                 func_node = MethodNode(
-                    id=func_fqn,
+                    id=fqn,
                     name=func_def.name,
                     decorator_list=func_def.decorator_list,
                     returns=func_def.returns,
@@ -230,7 +232,7 @@ class CodeGraphAcl:
                 parent_node.defines(func_node)
             case ModuleNode():
                 func_node = FunctionNode(
-                    id=func_fqn,
+                    id=fqn,
                     name=func_def.name,
                     decorator_list=func_def.decorator_list,
                     returns=func_def.returns,
@@ -264,7 +266,7 @@ class CodeGraphAcl:
         annotation: AstExpr | None = None,
         value: AstExpr | None = None,
     ) -> VariableNode:
-        var_fqn = f"{parent_node.id}::{name}"
+        var_fqn = Fqn(f"{parent_node.id}::{name}")
         node = VariableNode(id=var_fqn, name=name, annotation=annotation, value=value)
         parent_node.defines(node)
         self._add_node(node)

@@ -15,7 +15,6 @@ from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
-from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
 from codegen.code_metadata.infrastructure.gateways.class_edge_builder import (
     ClassEdgeBuilder,
 )
@@ -118,9 +117,6 @@ class ModuleBuildContext:
         else:
             local_alias_key = node.name
         self.local_aliases[local_alias_key] = node.id
-
-    def _add_node(self, dto: CodeNode) -> None:
-        self.node_registry.add_node(dto)
 
     def _get_internel_node(self, import_name: str, from_name: str | None) -> CodeNode:
         name = import_name
