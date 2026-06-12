@@ -101,7 +101,6 @@ class Container(DeclarativeContainer):
     config: Configuration = Configuration()
     database: Dependency[Database] = Dependency(instance_of=Database)
     event_hub: Dependency[EventHub] = Dependency(instance_of=EventHub)
-    event_publisher_factory = Dependency()
     file_system_port: Dependency[FileSystemPort] = Dependency(
         instance_of=FileSystemPort
     )
@@ -135,19 +134,16 @@ class Container(DeclarativeContainer):
         SqlAlchemyUnitOfWork,
         session_factory=database.provided.session_factory,
         repository_factory=component_repository_factory.provider,
-        event_publisher_factory=event_publisher_factory,
     )
     module_unit_of_work: Factory[SqlAlchemyUnitOfWork[ModuleRepository]] = Factory(
         SqlAlchemyUnitOfWork,
         session_factory=database.provided.session_factory,
         repository_factory=module_repository_factory.provider,
-        event_publisher_factory=event_publisher_factory,
     )
     code_node_unit_of_work: Factory[SqlAlchemyUnitOfWork[CodeNodeRepository]] = Factory(
         SqlAlchemyUnitOfWork,
         session_factory=database.provided.session_factory,
         repository_factory=code_node_repository_factory.provider,
-        event_publisher_factory=event_publisher_factory,
     )
     component_policy_factory: Singleton[ComponentPolicyFactory] = Singleton(
         ComponentPolicyFactory

@@ -5,7 +5,6 @@ from abc import abstractmethod
 from typing import Self
 from typing import Any
 from codegen.shared.domain.ports.repository import Repository
-from codegen.shared.application.ports.event_publisher import EventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +14,6 @@ class UnitOfWork[T_Repo: Repository[Any, Any]](ABC):
     @property
     @abstractmethod
     def repository(self) -> T_Repo:
-        pass
-
-    @property
-    @abstractmethod
-    def event_publisher(self) -> EventPublisher:
         pass
 
     @abstractmethod
