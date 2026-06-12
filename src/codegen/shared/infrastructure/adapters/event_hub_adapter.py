@@ -21,7 +21,4 @@ class EventHubAdapter(EventPublisher):
     @staticmethod
     def build_factory(hub: EventHub) -> Callable[[Session], EventPublisher]:
 
-        def factory(session: Session) -> EventPublisher:
-            return EventHubAdapter(session=session, hub=hub)
-
-        return factory
+        return None

@@ -5,4 +5,4 @@ from codegen.shared.domain.ports.repository import Repository
 
 
 class CodeNodeRepository(Repository[CodeNode, Fqn], ABC):
-    ...
+    pass

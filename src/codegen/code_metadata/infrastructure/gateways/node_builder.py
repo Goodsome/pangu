@@ -172,6 +172,8 @@ class NodeBuilder(AstVisitor):
                     body=node.body,
                 )
                 parent_node.defines(func_node)
+            case MethodNode():
+                return
             case _:
                 raise NotImplementedError(f"{parent_node=}")
 

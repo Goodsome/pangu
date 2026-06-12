@@ -12,10 +12,10 @@ from codegen.code_metadata.application.ports.code_graph_builder import CodeGraph
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
-from codegen.code_metadata.infrastructure.gateways.module_build_context import (
-    ModuleBuildContext,
+from codegen.code_metadata.infrastructure.gateways.edge_builder import (
+    EdgeBuilder,
 )
-from codegen.code_metadata.infrastructure.gateways.node_building_visitor import NodeBuilder
+from codegen.code_metadata.infrastructure.gateways.node_builder import NodeBuilder
 
 
 @dataclass
@@ -54,14 +54,14 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
             module_fqn = fqn_factory.build_module_fqn(code_document.physical_path)
             module = node_registry.get_node(module_fqn)
             assert isinstance(module, ModuleNode)
-            module_builder = ModuleBuildContext(module, code_document, node_registry)
-            module_builder.build()
+            module_builder = EdgeBuilder(module, node_registry)
+            module_builder.build(code_document)
         for code_document in code_documents:
             if code_document.is_init_file:
                 continue
             module_fqn = fqn_factory.build_module_fqn(code_document.physical_path)
             module = node_registry.get_node(module_fqn)
             assert isinstance(module, ModuleNode)
-            module_builder = ModuleBuildContext(module, code_document, node_registry)
-            module_builder.build()
+            module_builder = EdgeBuilder(module, node_registry)
+            module_builder.build(code_document)
 

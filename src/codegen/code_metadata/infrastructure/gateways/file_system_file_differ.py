@@ -65,7 +65,7 @@ def module_node_dto_to_code_document(
     body: list[AstStmt] = []
     for edge in module.outbound_edges:
         match edge:
-            case ContainsEdge():
+            case ContainsEdge() | InheritsEdge():
                 continue
             case ImportsEdge(is_type_checking=True):
                 if_imports.append(edge_to_ast_stmt(edge, node_registry))

@@ -69,7 +69,10 @@ class AstVisitor:
         | Arg
         | list[AstStmt]
         | list[AstExpr]
+        | None
     ):
+        if node is None:
+            return
         match node:
             # Statements
             case AstReturn():
