@@ -67,9 +67,6 @@ class SqlAlchemyUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
     def commit(self):
         if self.session:
             self.session.commit()
-        for aggregate in self.repository.collect_seens():
-            for event in aggregate.collect_events():
-                self.event_publisher.publish(event)
 
     @override
     def rollback(self):

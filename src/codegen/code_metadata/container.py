@@ -1,16 +1,19 @@
 from pathlib import Path
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import Configuration
+from dependency_injector.providers import Configuration, Dict, List
 from dependency_injector.providers import Dependency
 from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
 from event_hub import EventHub
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
-from codegen.code_metadata.application.commands.clean_node import CleanNodeHandler
+from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand, CleanNodeHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
+from codegen.code_metadata.application.commands.delete_module_in_physical import DeleteModuleInPhysicalCommand, DeleteModuleInPhysicalHandler
 from codegen.code_metadata.application.commands.sync_module import SyncModuleHandler
 from codegen.code_metadata.application.commands.generate_code import GenerateCode
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
+from codegen.code_metadata.application.dtos.generate_code_command import GenerateCodeCommand
+from codegen.code_metadata.application.event_handlers.on_node_deleted import OnNodeDeleted
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
@@ -39,6 +42,7 @@ from codegen.code_metadata.application.services.dev_progress_service import (
 from codegen.code_metadata.application.services.project_sync_service import (
     ProjectSyncService,
 )
+from codegen.code_metadata.domain.events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.factories.component_policy_factory import (
     ComponentPolicyFactory,
 )
@@ -52,6 +56,7 @@ from codegen.code_metadata.infrastructure.gateways.file_system_code_graph_builde
 from codegen.code_metadata.infrastructure.gateways.file_system_file_differ import (
     FileSystemFileDiffer,
 )
+from codegen.code_metadata.infrastructure.message_bus import MessageBus
 from codegen.code_metadata.infrastructure.repositories.sql_alchemy_code_node_query_service import (
     SqlAlchemyCodeNodeQueryService,
 )
@@ -181,7 +186,6 @@ class Container(DeclarativeContainer):
     clean_node: Factory[CleanNodeHandler] = Factory(
         CleanNodeHandler,
         query_service=code_node_query_service,
-        uow=code_node_unit_of_work,
     )
     sync_module: Factory[SyncModuleHandler] = Factory(
         SyncModuleHandler,
@@ -230,4 +234,29 @@ class Container(DeclarativeContainer):
         uow=unit_of_work,
         path_parser=path_parser,
         module_uow=module_unit_of_work,
+    )
+
+    delete_module_in_physical_handler: Factory[DeleteModuleInPhysicalHandler] = Factory(
+        DeleteModuleInPhysicalHandler,
+        file_system=file_system_port,
+    )
+
+    on_node_deleted_handler: Factory[OnNodeDeleted] = Factory(
+        OnNodeDeleted,
+        query_service=code_node_query_service,
+    )
+
+    message_bus: Factory[MessageBus] = Factory(
+        MessageBus,
+        uow=code_node_unit_of_work,
+        command_handlers=Dict({
+            CleanNodeCommand: clean_node.provided.execute,
+            GenerateCodeCommand: generate_code.provided.execute,
+            DeleteModuleInPhysicalCommand: delete_module_in_physical_handler.provided.execute,
+        }),
+        sync_event_handlers=Dict({
+            NodeDeleted: List(
+                on_node_deleted_handler.provided.handle_clean_node
+            )
+        })
     )

@@ -10,6 +10,8 @@ from codegen.code_metadata.application.ports.code_node_query_service import (
 )
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.ports.code_generator import CodeGenerator
+from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
+from codegen.shared.application.ports.unit_of_work import UnitOfWork
 
 
 @dataclass
@@ -17,7 +19,7 @@ class GenerateCode:
     query_service: CodeNodeQueryService
     code_generator: CodeGenerator
 
-    def execute(self, cmd: GenerateCodeCommand) -> GenerateCodeResult:
+    def execute(self, cmd: GenerateCodeCommand, _uow: UnitOfWork[CodeNodeRepository]) -> GenerateCodeResult:
         nodes = self.query_service.find_by_fqn_prefix(cmd.fqn)
         registry = NodeRegistry.create(nodes=nodes)
         self.code_generator.generate_code_by_nodes(nodes=nodes, node_registry=registry)

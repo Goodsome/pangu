@@ -1,5 +1,5 @@
-from pydantic import BaseModel
+from codegen.shared.domain.core.command import Command
 
 
-class GenerateCodeCommand(BaseModel):
+class GenerateCodeCommand(Command):
     fqn: str

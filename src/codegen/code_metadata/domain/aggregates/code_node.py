@@ -1,24 +1,28 @@
 from __future__ import annotations
-from pathlib import Path
+
+from abc import ABC
 import re
-from typing import Annotated
-from typing import Any
-from typing import Literal
-from pydantic import BaseModel
-from pydantic import Field
+from pathlib import Path
+from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Literal, cast
+
+from pydantic import BaseModel, Field
+
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
+from codegen.code_metadata.domain.events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
-from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
-from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
-from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
-from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
-from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
-from codegen.code_metadata.domain.value_objects.code_edge import create_edge
+from codegen.code_metadata.domain.value_objects.code_edge import (
+    CodeEdge,
+    ContainsEdge,
+    DefinesEdge,
+    ImportsEdge,
+    InheritsEdge,
+    create_edge,
+)
 from codegen.shared.domain.core.aggregate_root import AggregateRoot
 
 
@@ -43,6 +47,13 @@ class _BaseNode(AggregateRoot[Fqn]):
     def parent_fqn(self) -> str:
         splits = re.split("[.|::]", self.id)
         return ".".join(splits[:-1])
+
+    def mark_deleted(self) -> None:
+        event = NodeDeleted(
+            node_id=self.id,
+            node_kind=self.kind,
+        )
+        self.add_domain_event(event)
 
 
 class DirectoryNode(_BaseNode):

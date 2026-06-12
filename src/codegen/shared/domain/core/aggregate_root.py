@@ -2,7 +2,7 @@ from typing import Hashable, override
 from pydantic import BaseModel
 from pydantic import PrivateAttr
 from pydantic import ConfigDict
-from codegen.shared.domain.core.domain_event import DomainEvent
+from codegen.shared.domain.core.event import DomainEvent
 
 
 class AggregateRoot[T_ID: Hashable](BaseModel):

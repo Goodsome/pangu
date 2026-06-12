@@ -6,8 +6,8 @@ from rich.console import Console
 
 from codegen.code_metadata.application.commands.clean_node import (
     CleanNodeCommand,
-    CleanNodeHandler,
 )
+from codegen.code_metadata.infrastructure.message_bus import MessageBus
 
 console = Console()
 
@@ -15,9 +15,9 @@ console = Console()
 @inject
 def _clean_node(
     cmd: CleanNodeCommand,
-    handler: CleanNodeHandler = Provide["code_metadata_container.clean_node"],
+    message_bus: MessageBus = Provide["code_metadata_container.message_bus"],
 ) -> None:
-    handler.execute(cmd)
+    message_bus.handle(cmd)
 
 
 def clean_node(
@@ -25,9 +25,5 @@ def clean_node(
 ) -> None:
     """Clean an unused CodeNode and its orphaned module from the graph."""
     cmd = CleanNodeCommand(fqn=fqn)
-    try:
-        _clean_node(cmd)
-    except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
+    _clean_node(cmd)
     console.print(f"[green]Node '{fqn}' cleaned successfully.[/green]")
