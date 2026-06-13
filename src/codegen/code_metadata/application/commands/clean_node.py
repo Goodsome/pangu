@@ -1,8 +1,5 @@
 from dataclasses import dataclass
 
-from codegen.code_metadata.application.ports.code_node_query_service import (
-    CodeNodeQueryService,
-)
 from codegen.code_metadata.domain.aggregates.code_node import (
     ClassNode,
     ModuleNode,

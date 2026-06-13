@@ -14,3 +14,4 @@ class AstWith(ValueObject):
     kind: Literal[AstStmtKind.WITH] = AstStmtKind.WITH
     items: list[AstWithItem] = Field(default_factory=list)
     body: list[AstStmt] = Field(default_factory=list)
+    is_async: bool = False

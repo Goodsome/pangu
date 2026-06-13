@@ -1,4 +1,3 @@
-from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Generator
@@ -28,6 +27,43 @@ class TraversalContext:
             return None
         return self.edge_stack[-1]
 
+    @contextmanager
+    def visit_node(self, node: CodeNode) -> Generator[None, None, None]:
+        """安全地将节点压入栈中，并在退出上下文时弹出"""
+        self.node_stack.append(node)
+        try:
+            yield
+        finally:
+            self.node_stack.pop()
+
+    @contextmanager
+    def visit_edge(self, edge: EdgeType) -> Generator[None, None, None]:
+        """安全地将边类型压入栈中，并在退出上下文时弹出"""
+        self.edge_stack.append(edge)
+        try:
+            yield
+        finally:
+            self.edge_stack.pop()
+
+    @contextmanager
+    def visit_attribute(self, attribute: str) -> Generator[None, None, None]:
+        """安全地将属性压入栈中，并在退出上下文时弹出"""
+        self.attribute_stack.append(attribute)
+        try:
+            yield
+        finally:
+            self.attribute_stack.pop()
+
+    @contextmanager
+    def enter_function(self) -> Generator[None, None, None]:
+        """管理是否在函数体内的状态"""
+        previous_in_function_body = self.in_function_body
+        self.in_function_body = True
+        try:
+            yield
+        finally:
+            self.in_function_body = previous_in_function_body
+
     def stack_node(self, node: CodeNode):
         self.node_stack.append(node)
 
@@ -49,12 +85,3 @@ class TraversalContext:
     def empty_attribute(self):
         self.attribute_stack.clear()
     
-    @contextmanager
-    def enter_function(self) -> Generator[None, None, None]:
-        previous_in_function_body = self.in_function_body
-        self.in_function_body = True
-        try:
-            yield
-        finally:
-            self.in_function_body = previous_in_function_body
-        

@@ -142,6 +142,7 @@ class FunctionNode(_BaseNode):
     """函数节点：kind 固定为 FUNCTION，由模块节点的 AST 函数定义派生。"""
 
     kind: Literal[CodeNodeKind.FUNCTION] = CodeNodeKind.FUNCTION
+    is_async: bool = False
     decorator_list: list[AstExpr] = Field(default_factory=list)
     returns: AstExpr | None = None
     body: list[AstStmt] = Field(default_factory=list)
@@ -158,6 +159,7 @@ class MethodNode(_BaseNode):
     """方法节点：kind 固定为 METHOD，由类节点的 AST 函数定义派生。"""
 
     kind: Literal[CodeNodeKind.METHOD] = CodeNodeKind.METHOD
+    is_async: bool = False
     decorator_list: list[AstExpr] = Field(default_factory=list)
     returns: AstExpr | None = None
     body: list[AstStmt] = Field(default_factory=list)

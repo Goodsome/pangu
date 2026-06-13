@@ -161,6 +161,7 @@ class NodeBuilder(AstVisitor):
                     decorator_list=node.decorator_list,
                     returns=node.returns,
                     body=node.body,
+                    is_async=node.is_async,
                 )
                 parent_node.defines(func_node)
             case ModuleNode():
@@ -170,6 +171,7 @@ class NodeBuilder(AstVisitor):
                     decorator_list=node.decorator_list,
                     returns=node.returns,
                     body=node.body,
+                    is_async=node.is_async,
                 )
                 parent_node.defines(func_node)
             case MethodNode():

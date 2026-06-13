@@ -4,9 +4,6 @@ from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssi
 from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_async_function_def import (
-    AstAsyncFunctionDef,
-)
 from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssign
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
@@ -62,6 +59,8 @@ class AstToStmt:
                 return AstToStmt.to_ast_continue(node)
             case ast.With():
                 return AstToStmt.to_ast_with(node)
+            case ast.AsyncWith():
+                return AstToStmt.to_ast_async_with(node)
             case ast.Assign():
                 return AstToStmt.to_ast_assign(node)
             case ast.AnnAssign():
@@ -81,7 +80,7 @@ class AstToStmt:
             case ast.FunctionDef():
                 return AstToStmt.to_ast_function_def(node)
             case ast.AsyncFunctionDef():
-                return AstToStmt.to_ast_async_function_def(node)
+                return AstToStmt.to_ast_function_def(node)
             case ast.Import():
                 return AstToStmt.to_ast_import(node)
             case ast.ImportFrom():
@@ -134,6 +133,18 @@ class AstToStmt:
         ]
         body = [AstToStmt.to_stmt(stmt) for stmt in node.body]
         return AstWith(items=items, body=body)
+
+    @staticmethod
+    def to_ast_async_with(node: ast.AsyncWith) -> AstWith:
+        items = [
+            AstWithItem(
+                context_expr=AstToExpr.to_expr(item.context_expr),
+                optional_vars=AstToExpr.to_expr(item.optional_vars),
+            )
+            for item in node.items
+        ]
+        body = [AstToStmt.to_stmt(stmt) for stmt in node.body]
+        return AstWith(items=items, body=body, is_async=True)
 
     @staticmethod
     def to_ast_assign(node: ast.Assign) -> AstAssign:
@@ -269,10 +280,11 @@ class AstToStmt:
         return result
 
     @staticmethod
-    def to_ast_function_def(node: ast.FunctionDef) -> AstFunctionDef:
+    def to_ast_function_def(node: ast.FunctionDef | ast.AsyncFunctionDef) -> AstFunctionDef:
         arguments = AstToStmt.arguments_to_assigns(node.args)
         return AstFunctionDef(
             lineno=node.lineno,
+            is_async=isinstance(node, ast.AsyncFunctionDef),
             name=node.name,
             type_params=[AstToStmt.to_type_param(tp) for tp in node.type_params],
             body=[AstToStmt.to_stmt(stmt) for stmt in node.body],
@@ -280,18 +292,6 @@ class AstToStmt:
             returns=AstToExpr.to_expr(node.returns) if node.returns else None,
             type_comment=node.type_comment,
             arguments=arguments,
-        )
-
-    @staticmethod
-    def to_ast_async_function_def(node: ast.AsyncFunctionDef) -> AstAsyncFunctionDef:
-        return AstAsyncFunctionDef(
-            name=node.name,
-            type_params=[AstToStmt.to_type_param(tp) for tp in node.type_params],
-            args=AstToStmt._to_arguments(node.args),
-            body=[AstToStmt.to_stmt(stmt) for stmt in node.body],
-            decorator_list=[AstToExpr.to_expr(dec) for dec in node.decorator_list],
-            returns=AstToExpr.to_expr(node.returns) if node.returns else None,
-            type_comment=node.type_comment,
         )
 
     @staticmethod

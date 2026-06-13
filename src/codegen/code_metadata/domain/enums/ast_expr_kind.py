@@ -28,3 +28,4 @@ class AstExprKind(StrEnum):
     DICT = auto()
     YIELD = auto()
     YIELD_FROM = auto()
+    AWAIT = auto()

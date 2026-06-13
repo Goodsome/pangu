@@ -1,5 +1,5 @@
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import Configuration, Factory, Singleton
+from dependency_injector.providers import Configuration, Singleton
 from dependency_injector.providers import Resource
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker

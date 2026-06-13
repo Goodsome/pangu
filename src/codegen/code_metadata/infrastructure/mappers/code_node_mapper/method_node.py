@@ -32,6 +32,7 @@ class MethodNodeMapper:
             id=orm_model.fqn,
             name=orm_model.name,
             outbound_edges=to_outbound_edges(orm_model.outbound_edges),
+            is_async=orm_model.is_async,
             decorator_list=decorator_list,
             returns=returns,
             body=body,
@@ -49,4 +50,9 @@ class MethodNodeMapper:
             else None
         )
         body = [ast_stmt_adapter.dump_python(stmt, mode="json") for stmt in dto.body]
-        return {"decorator_list": decorator_list, "returns": returns, "body": body}
+        return {
+            "is_async": dto.is_async,
+            "decorator_list": decorator_list,
+            "returns": returns,
+            "body": body,
+        }

@@ -18,13 +18,14 @@ if TYPE_CHECKING:
 class AstFunctionDef(ValueObject):
     lineno: int
     kind: Literal[AstStmtKind.FUNCTION_DEF] = AstStmtKind.FUNCTION_DEF
+    is_async: bool = False
     name: str
     type_params: list[AstTypeParam] = Field(default_factory=list)
+    arguments: list[AstAssign | AstAnnAssign] = Field(default_factory=list)
     body: list[AstStmt] = Field(default_factory=list)
     decorator_list: list[AstExpr] = Field(default_factory=list)
     returns: AstExpr | None = None
     type_comment: str | None = None
-    arguments: list[AstAssign | AstAnnAssign] = Field(default_factory=list)
 
     @property
     def is_overload(self) -> bool:

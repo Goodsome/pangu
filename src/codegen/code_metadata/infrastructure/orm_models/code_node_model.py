@@ -117,6 +117,14 @@ class FunctionNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.FUNCTION}
 
     @hybrid_property
+    def is_async(self) -> bool:
+        return self.properties.get("is_async", False)
+
+    @is_async.setter
+    def _is_async_setter(self, value: bool) -> None:
+        self.properties = {**self.properties, "is_async": value}
+
+    @hybrid_property
     def decorator_list(self) -> list[dict[str, object]]:
         return self.properties.get("decorator_list", [])
 
@@ -145,6 +153,14 @@ class FunctionNodeModel(CodeNodeModel):
 
 class MethodNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.METHOD}
+
+    @hybrid_property
+    def is_async(self) -> bool:
+        return self.properties.get("is_async", False)
+
+    @is_async.setter
+    def _is_async_setter(self, value: bool) -> None:
+        self.properties = {**self.properties, "is_async": value}
 
     @hybrid_property
     def decorator_list(self) -> list[dict[str, object]]:

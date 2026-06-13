@@ -1,9 +1,6 @@
 import ast
 from typing import cast
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
-from codegen.code_metadata.domain.value_objects.ast_async_function_def import (
-    AstAsyncFunctionDef,
-)
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
@@ -35,7 +32,6 @@ from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVar
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstParamSpec
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.infrastructure.mappers._convert import binop_to_ast
-from codegen.code_metadata.infrastructure.mappers.arguments_to_ast import ArgumentsToAst
 from codegen.code_metadata.infrastructure.mappers.match_pattern_to_ast import (
     MatchPatternToAst,
 )
@@ -85,8 +81,6 @@ class StmtToAst:
                 node = StmtToAst.from_try(stmt)
             case AstFunctionDef():
                 node = StmtToAst.from_function_def(stmt)
-            case AstAsyncFunctionDef():
-                node = StmtToAst.from_async_function_def(stmt)
             case AstClassDef():
                 node = StmtToAst.from_class_def(stmt)
             case AstImport():
@@ -126,7 +120,7 @@ class StmtToAst:
     @staticmethod
     def from_type_param(
         tp: AstTypeVar | AstTypeVarTuple | AstParamSpec,
-    ) -> ast.TypeVar | ast.TypeVarTuple | ast.ParamSpec:
+    ) -> ast.type_param:
         match tp:
             case AstTypeVar():
                 return ast.TypeVar(
@@ -224,11 +218,12 @@ class StmtToAst:
         return ast.Break()
 
     @staticmethod
-    def from_with(stmt: AstWith) -> ast.With:
-        return ast.With(
-            items=[StmtToAst._to_with_item(item) for item in stmt.items],
-            body=StmtToAst._to_body(stmt.body),
-        )
+    def from_with(stmt: AstWith) -> ast.With | ast.AsyncWith:
+        items = [StmtToAst._to_with_item(item) for item in stmt.items]
+        body = StmtToAst._to_body(stmt.body)
+        if stmt.is_async:
+            return ast.AsyncWith(items=items, body=body)
+        return ast.With(items=items, body=body)
 
     @staticmethod
     def from_assign(stmt: AstAssign) -> ast.Assign:
@@ -335,27 +330,22 @@ class StmtToAst:
         )
 
     @staticmethod
-    def from_function_def(stmt: AstFunctionDef) -> ast.FunctionDef:
+    def from_function_def(stmt: AstFunctionDef) -> ast.FunctionDef | ast.AsyncFunctionDef:
         args = StmtToAst._assigns_to_arguments(stmt.arguments)
-        returns=ExprToAst.to_node(stmt.returns) if stmt.returns else None
-        return ast.FunctionDef(
+        body = StmtToAst._to_body(stmt.body)
+        decorator_list = [ExprToAst.to_node(d) for d in stmt.decorator_list]
+        returns = ExprToAst.to_node(stmt.returns) if stmt.returns else None
+        type_params = [StmtToAst.from_type_param(tp) for tp in stmt.type_params]
+        if stmt.is_async:
+            cls = ast.AsyncFunctionDef
+        else:
+            cls = ast.FunctionDef
+        return cls(
             name=stmt.name,
             args=args,
-            type_params=[StmtToAst.from_type_param(tp) for tp in stmt.type_params],
-            body=StmtToAst._to_body(stmt.body),
-            decorator_list=[ExprToAst.to_node(d) for d in stmt.decorator_list],
-            returns=ExprToAst.to_node(stmt.returns) if stmt.returns else None,
-            type_comment=stmt.type_comment,
-        )
-
-    @staticmethod
-    def from_async_function_def(stmt: AstAsyncFunctionDef) -> ast.AsyncFunctionDef:
-        return ast.AsyncFunctionDef(
-            name=stmt.name,
-            args=ArgumentsToAst.to_node(stmt.args),
-            type_params=[StmtToAst.from_type_param(tp) for tp in stmt.type_params],
-            body=StmtToAst._to_body(stmt.body),
-            decorator_list=[ExprToAst.to_node(d) for d in stmt.decorator_list],
-            returns=ExprToAst.to_node(stmt.returns) if stmt.returns else None,
+            type_params=type_params,
+            body=body,
+            decorator_list=decorator_list,
+            returns=returns,
             type_comment=stmt.type_comment,
         )

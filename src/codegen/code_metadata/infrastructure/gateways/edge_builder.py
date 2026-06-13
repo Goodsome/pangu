@@ -1,6 +1,8 @@
+from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
+from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
+from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
 from codegen.shared.domain.enums import PythonBuiltinType
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
-from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from dataclasses import dataclass, field
 from typing import override
 
@@ -25,7 +27,6 @@ from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
@@ -145,17 +146,14 @@ class EdgeBuilder(AstVisitor):
         class_node = self.node_registry.get_node(class_fqn)
         assert isinstance(class_node, ClassNode)
 
-        self.context.stack_node(class_node)
-        self._visit_class_bases(node.bases)
-        self.visit(node.decorator_list)
-        self.visit(node.body)
-        self.context.pop_node()
+        with self.context.visit_node(class_node):
+            self._visit_class_bases(node.bases)
+            self.visit(node.decorator_list)
+            self.visit(node.body)
         
     def _visit_class_bases(self, bases: list[AstExpr]):
-        self.context.stack_edge(EdgeType.INHERITS)
-        self.visit(bases)
-        self.context.pop_edge
-
+        with self.context.visit_edge(EdgeType.INHERITS):
+            self.visit(bases)
     
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
@@ -170,14 +168,13 @@ class EdgeBuilder(AstVisitor):
             func_fqn = f"{func_fqn}<expression>"
         func_node = self.node_registry.get_node(func_fqn)
         assert isinstance(func_node, (MethodNode, FunctionNode)), func_node
-        self.context.stack_node(func_node)
-        self._empty_function_local_aliases()
-        for arg in node.arguments:
-            self.visit(arg)
-        with self.context.enter_function():
-            self.visit(node.body)
-        self._visit_return(node.returns)
-        self.context.pop_node()
+        with self.context.visit_node(func_node):
+            self._empty_function_local_aliases()
+            for arg in node.arguments:
+                self.visit(arg)
+            with self.context.enter_function():
+                self.visit(node.body)
+            self._visit_return(node.returns)
         
     def _find_fqn(self, alias: str):
         if alias in self.function_local_aliases:
@@ -190,9 +187,28 @@ class EdgeBuilder(AstVisitor):
         self.function_local_aliases = {}
         
     def _visit_return(self, returns: AstExpr | None):
-        self.context.stack_edge(EdgeType.RETURNS)
-        self.visit(returns)
-        self.context.pop_edge()
+        with self.context.visit_edge(EdgeType.RETURNS):
+            self.visit(returns)
+
+    @override
+    def visit_ast_assign(self, node: AstAssign):
+        target = node.target
+        if isinstance(target, AstName) and not self.context.in_function_body:
+            fqn = f"{self.current_node.id}::{target.id}"
+            variable_node = self.node_registry.get_node(fqn)
+            with self.context.visit_node(variable_node):
+                self._visit_annotated_value(node.value)
+        else:
+            super().visit_ast_assign(node)
+
+    def _visit_annotated_value(self, node: AstExpr | None):
+        match node:
+            case AstSubscript(value=AstName(id="Annotated"), slice=AstTuple(elts=elts)):
+                with self.context.visit_edge(EdgeType.TYPED_AS):
+                    self.visit(elts[0])
+                self.visit(elts[:1])
+            case _:
+                self.visit(node)
     
     @override
     def visit_ast_ann_assign(self, node: AstAnnAssign):
@@ -200,10 +216,10 @@ class EdgeBuilder(AstVisitor):
         if isinstance(target, AstName) and not self.context.in_function_body:
             fqn = f"{self.current_node.id}::{target.id}"
             variable_node = self.node_registry.get_node(fqn)
-            self.context.stack_node(variable_node)
-            self.visit(node.annotation)
-            self.visit(node.value)
-            self.context.pop_node()
+            with self.context.visit_node(variable_node):
+                with self.context.visit_edge(EdgeType.TYPED_AS):
+                    self.visit(node.annotation)
+                self.visit(node.value)
         else:
             super().visit_ast_ann_assign(node)
 

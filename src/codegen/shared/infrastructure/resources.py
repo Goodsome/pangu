@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from redis.asyncio import Redis
 import logging
 

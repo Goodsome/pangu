@@ -9,8 +9,8 @@ from alembic import context
 
 from codegen.shared.config import Settings
 from codegen.shared.infrastructure.orm_models.base import BaseORM
-from codegen.shared.infrastructure import orm_models  # noqa: F401
-from codegen.code_metadata.infrastructure import orm_models  # noqa: F401
+from codegen.shared.infrastructure import orm_models as shared_models  # noqa: F401
+from codegen.code_metadata.infrastructure import orm_models as code_metadata_models  # noqa: F401
 
 
 # this is the Alembic Config object, which provides

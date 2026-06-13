@@ -1,5 +1,6 @@
 import ast
 from typing import overload
+from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
@@ -105,6 +106,8 @@ class ExprToAst:
                 return ExprToAst.from_yield(expr)
             case AstYieldFrom():
                 return ExprToAst.from_yield_from(expr)
+            case AstAwait():
+                return ExprToAst.from_await(expr)
             case _:
                 raise NotImplementedError(f"Unsupported AstExpr type: {type(expr)}")
 
@@ -299,3 +302,7 @@ class ExprToAst:
     @staticmethod
     def from_yield_from(expr: AstYieldFrom) -> ast.YieldFrom:
         return ast.YieldFrom(value=ExprToAst.to_node(expr.value))
+
+    @staticmethod
+    def from_await(expr: AstAwait) -> ast.Await:
+        return ast.Await(value=ExprToAst.to_node(expr.value))

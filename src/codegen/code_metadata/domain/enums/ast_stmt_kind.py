@@ -20,7 +20,6 @@ class AstStmtKind(StrEnum):
     ASSERT = auto()
     TRY = auto()
     FUNCTION_DEF = auto()
-    ASYNC_FUNCTION_DEF = auto()
     IMPORT = auto()
     IMPORT_FROM = auto()
     CLASS_DEF = auto()

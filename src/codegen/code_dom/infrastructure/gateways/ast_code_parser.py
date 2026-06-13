@@ -2,6 +2,7 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
+
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.ports.code_parser import CodeParser
 from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt
@@ -17,9 +18,10 @@ class ASTCodeParser(CodeParser):
         code = self.file_system.read_file(path)
         ast_module = ast.parse(code)
         body = [AstToStmt.to_stmt(node) for node in ast_module.body]
-        return CodeDocument(
-            physical_path=path, body=body, description=ast.get_docstring(ast_module)
-        )
+        description = ast.get_docstring(ast_module)
+        if description:
+            body = body[1:]
+        return CodeDocument(physical_path=path, body=body, description=description)
 
     @override
     def parse_directory(self, path: Path) -> list[CodeDocument]:

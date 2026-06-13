@@ -3,10 +3,8 @@ from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssi
 from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_async_function_def import (
-    AstAsyncFunctionDef,
-)
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssign
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
@@ -87,8 +85,8 @@ __all__ = [
     "AstArguments",
     "AstAssert",
     "AstAssign",
-    "AstAsyncFunctionDef",
     "AstAttribute",
+    "AstAwait",
     "AstAugAssign",
     "AstBinOp",
     "AstBoolOp",
@@ -177,7 +175,6 @@ AstExceptHandler.model_rebuild()
 AstTry.model_rebuild()
 AstArguments.model_rebuild()
 AstFunctionDef.model_rebuild()
-AstAsyncFunctionDef.model_rebuild()
 AstAttribute.model_rebuild()
 AstCall.model_rebuild()
 AstBinOp.model_rebuild()
@@ -205,6 +202,7 @@ AstReturn.model_rebuild()
 AstUnaryOp.model_rebuild()
 AstYield.model_rebuild()
 AstYieldFrom.model_rebuild()
+AstAwait.model_rebuild()
 AstRaise.model_rebuild()
 AstImport.model_rebuild()
 AstImportFrom.model_rebuild()

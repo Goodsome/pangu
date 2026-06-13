@@ -151,6 +151,7 @@ def method_node_dto_to_ast(
         lineno=0,
         arguments=arguments,
         returns=method_node.returns,
+        is_async=method_node.is_async,
     )
 
 

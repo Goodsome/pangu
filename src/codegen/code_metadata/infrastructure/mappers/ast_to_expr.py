@@ -31,6 +31,7 @@ from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscrip
 from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
 from codegen.code_metadata.domain.value_objects.ast_unary_op import AstUnaryOp
 from codegen.code_metadata.domain.value_objects.ast_yield import AstYield
+from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_yield_from import AstYieldFrom
 from codegen.code_metadata.domain.value_objects.arg import Arg
 from codegen.code_metadata.domain.value_objects.lambda_args import LambdaArgs
@@ -106,6 +107,8 @@ class AstToExpr:
                 return AstToExpr.to_ast_yield(node)
             case ast.YieldFrom():
                 return AstToExpr.to_ast_yield_from(node)
+            case ast.Await():
+                return AstToExpr.to_ast_await(node)
             case _:
                 raise NotImplementedError(
                     f"Unsupported node type: {type(node)}, ast.unparse(node)={ast.unparse(node)!r}"
@@ -314,3 +317,7 @@ class AstToExpr:
     @staticmethod
     def to_ast_yield_from(node: ast.YieldFrom) -> AstYieldFrom:
         return AstYieldFrom(value=AstToExpr.to_expr(node.value))
+
+    @staticmethod
+    def to_ast_await(node: ast.Await) -> AstAwait:
+        return AstAwait(value=AstToExpr.to_expr(node.value))

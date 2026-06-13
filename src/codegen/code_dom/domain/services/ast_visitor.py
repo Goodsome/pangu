@@ -4,8 +4,8 @@ from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssi
 from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_async_function_def import AstAsyncFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssign
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
@@ -109,8 +109,6 @@ class AstVisitor:
                 self.visit_ast_try(node)
             case AstFunctionDef():
                 self.visit_ast_function_def(node)
-            case AstAsyncFunctionDef():
-                self.visit_ast_async_function_def(node)
             case AstImport():
                 self.visit_ast_import(node)
             case AstImportFrom():
@@ -168,6 +166,8 @@ class AstVisitor:
                 self.visit_ast_yield(node)
             case AstYieldFrom():
                 self.visit_ast_yield_from(node)
+            case AstAwait():
+                self.visit_ast_await(node)
             # Helpers
             case AstKeyword():
                 self.visit_ast_keyword(node)
@@ -275,13 +275,6 @@ class AstVisitor:
         if node.returns is not None:
             self.visit(node.returns)
 
-    def visit_ast_async_function_def(self, node: AstAsyncFunctionDef):
-        # self.visit(node.type_params)
-        self.visit(node.decorator_list)
-        self.visit(node.args)
-        self.visit(node.body)
-        if node.returns is not None:
-            self.visit(node.returns)
 
     def visit_ast_import(self, node: AstImport):
         pass
@@ -405,6 +398,9 @@ class AstVisitor:
             self.visit(node.value)
 
     def visit_ast_yield_from(self, node: AstYieldFrom):
+        self.visit(node.value)
+
+    def visit_ast_await(self, node: AstAwait):
         self.visit(node.value)
 
     # ── Helper visitors ─────────────────────────────────────────

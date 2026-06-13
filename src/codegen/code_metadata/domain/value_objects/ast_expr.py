@@ -1,6 +1,7 @@
 from typing import Annotated
 from pydantic import Field
 from pydantic.type_adapter import TypeAdapter
+from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
@@ -54,7 +55,8 @@ AstExpr = Annotated[
     | AstSet
     | AstDict
     | AstYield
-    | AstYieldFrom,
+    | AstYieldFrom
+    | AstAwait,
     Field(discriminator="kind"),
 ]
 ast_expr_adapter: TypeAdapter[AstExpr] = TypeAdapter(AstExpr)
