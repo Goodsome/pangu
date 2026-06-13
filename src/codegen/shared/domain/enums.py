@@ -3,18 +3,6 @@ from enum import StrEnum
 from enum import auto
 
 
-class ContainerType(StrEnum):
-    NONE = auto()
-    LIST = auto()
-    SET = auto()
-    MAP = auto()
-    ITERABLE = auto()
-    CALLABLE = auto()
-    TYPE = auto()
-    CLASS_VAR = auto()
-    UNION = auto()
-
-
 class PrimitiveType(StrEnum):
     """通用原语类型，不依赖具体语言。"""
 
