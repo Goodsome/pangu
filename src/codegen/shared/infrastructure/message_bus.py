@@ -24,8 +24,7 @@ class EventHanlder[T_Event: Event, T_UnitOfWork](Protocol):
 class BaseMessageBus[T: UnitOfWork[Any]]:
     uow: T
     command_handlers: dict[type[Command], CommandHandler[Command, T]]
-    sync_event_handlers: dict[type[Event], list[EventHanlder[Event, T]]]
-    # async_event_handlers: dict[type[Event], list[EventHanlder[Event]]]
+    event_handlers: dict[type[Event], list[EventHanlder[Event, T]]]
 
     def handle(self, message: Command | Event) -> None:
         queue = [message]
@@ -60,17 +59,9 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
 
         
     def _handle_event(self, event: Event) -> Iterable[Command]:
-        for handler in self.sync_event_handlers.get(type(event), []):
+        for handler in self.event_handlers.get(type(event), []):
             try:
                 yield from handler(event, self.uow)
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
                 raise
-
-        # 2. 路由给异步处理器（最终一致性要求 / Outbox 模式）
-        # 只要事件类型注册了异步 Handler，或者明确标记为 IntegrationEvent，就落库发件箱
-        # requires_async = type(event) in self.async_event_handlers
-        # is_integration = isinstance(event, IntegrationEvent)
-        # 
-        # if requires_async or is_integration:
-        #     self.uow.save_outbox_message(event)

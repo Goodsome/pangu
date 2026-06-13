@@ -9,7 +9,9 @@ from typing import Self
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
+from codegen.shared.domain.core.event import IntegrationEvent
 from codegen.shared.domain.ports.repository import Repository
+from codegen.shared.infrastructure.orm_models.outbox_message_module import OutboxMessageModel
 
 logger = logging.getLogger(__name__)
 
@@ -60,3 +62,15 @@ class SqlAlchemyUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
     def rollback(self):
         if self.session:
             self.session.rollback()
+
+    @override
+    def save_outbox_message(self, message: IntegrationEvent):
+        if not self.session:
+            raise RuntimeError("Session is not active")
+        payload = message.model_dump(mode="json")
+        record = OutboxMessageModel(
+            event_type=type(message).__name__,
+            payload=payload,
+        )
+        self.session.add(record)
+        

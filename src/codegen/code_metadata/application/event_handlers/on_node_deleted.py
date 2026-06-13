@@ -1,22 +1,41 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from codegen.code_metadata.application import integration_events
 from codegen.code_metadata.application.commands.clean_node import (
     CleanNodeCommand,
 )
-from codegen.code_metadata.application.commands.delete_module_in_physical import DeleteModuleInPhysicalCommand
-from codegen.code_metadata.application.dtos.generate_code_command import GenerateCodeCommand
+from codegen.code_metadata.application.commands.delete_module_in_physical import (
+    DeleteModuleInPhysicalCommand,
+)
+from codegen.code_metadata.application.dtos.generate_code_command import (
+    GenerateCodeCommand,
+)
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
-from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
+from codegen.code_metadata.domain import domain_events
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
-from codegen.code_metadata.domain.events.node_deleted import NodeDeleted
 from codegen.shared.domain.core.command import Command
 
 
 @dataclass
 class OnNodeDeleted:
+    def send_to_outbox(
+        self,
+        event: domain_events.NodeDeleted,
+        uow: UnitOfWork,
+    ) -> Iterable[Command]:
+        integration_event = integration_events.NodeDeleted(
+            node_id=event.node_id,
+            node_kind=event.node_kind,
+        )
+        uow.save_outbox_message(integration_event)
+        yield from []
 
-    def handle_clean_node(self, event: NodeDeleted, uow: UnitOfWork) -> Iterable[Command]:
+    def handle_clean_node(
+        self,
+        event: integration_events.NodeDeleted,
+        uow: UnitOfWork,
+    ) -> Iterable[Command]:
         match event.node_kind:
             case CodeNodeKind.CLASS:
                 module_fqn = event.node_id.module_fqn

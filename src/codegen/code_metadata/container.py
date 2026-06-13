@@ -5,6 +5,7 @@ from dependency_injector.providers import Dependency
 from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
+from codegen.code_metadata.application import integration_events
 from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand, CleanNodeHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
 from codegen.code_metadata.application.commands.delete_module_in_physical import DeleteModuleInPhysicalCommand, DeleteModuleInPhysicalHandler
@@ -41,7 +42,8 @@ from codegen.code_metadata.application.services.dev_progress_service import (
 from codegen.code_metadata.application.services.project_sync_service import (
     ProjectSyncService,
 )
-from codegen.code_metadata.domain.events.node_deleted import NodeDeleted
+from codegen.code_metadata.domain import domain_events
+from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.factories.component_policy_factory import (
     ComponentPolicyFactory,
 )
@@ -247,7 +249,10 @@ class Container(DeclarativeContainer):
             DeleteModuleInPhysicalCommand: delete_module_in_physical_handler.provided.execute,
         }),
         sync_event_handlers=Dict({
-            NodeDeleted: List(
+            domain_events.NodeDeleted: List(
+                on_node_deleted_handler.provided.send_to_outbox
+            ),
+            integration_events.NodeDeleted: List(
                 on_node_deleted_handler.provided.handle_clean_node
             )
         })

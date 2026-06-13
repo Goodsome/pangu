@@ -4,6 +4,7 @@ from abc import ABC
 from abc import abstractmethod
 from typing import Self
 from typing import Any
+from codegen.shared.domain.core.event import IntegrationEvent
 from codegen.shared.domain.ports.repository import Repository
 
 logger = logging.getLogger(__name__)
@@ -35,4 +36,8 @@ class UnitOfWork[T_Repo: Repository[Any, Any]](ABC):
 
     @abstractmethod
     def rollback(self):
+        pass
+
+    @abstractmethod
+    def save_outbox_message(self, message: IntegrationEvent):
         pass

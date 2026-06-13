@@ -180,6 +180,5 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
                 )
             )
         )
-        with self.session_factory() as session:
-            models = session.execute(stmt).scalars().unique().all()
+        models = self.session.execute(stmt).scalars().unique().all()
         return [orm_to_dto(m) for m in models]
