@@ -17,6 +17,10 @@ class CodeNodeQueryService(ABC):
     def find_by_fqn_prefix(self, fqn_prefix: str) -> list[CodeNode]:
         """查询 fqn 以指定前缀开头的所有 CodeNode（含根节点自身）。"""
         pass
+        
+    @abstractmethod
+    def find_by_fqn_prefixs(self, fqn_prefixs: Collection[str]) -> list[CodeNode]:
+        pass
 
     @abstractmethod
     def find_by_fqns(

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import override
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, exists, not_, or_, select
+from sqlalchemy import ColumnElement, any_, exists, not_, or_, select
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from codegen.code_metadata.application.dtos.code_node_detail_dto import (
@@ -37,6 +37,23 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
         stmt = (
             select(CodeNodeModel)
             .where(CodeNodeModel.fqn.like(f"{fqn_prefix}%"))
+            .options(
+                selectinload(CodeNodeModel.outbound_edges).joinedload(
+                    CodeEdgeModel.target_entity
+                )
+            )
+        )
+        with self.session_factory() as session:
+            models = session.execute(stmt).scalars().unique().all()
+        return [orm_to_dto(m) for m in models]
+        
+    @override
+    def find_by_fqn_prefixs(self, fqn_prefixs: Collection[str]) -> list[CodeNode]:
+        
+        conditions = [CodeNodeModel.fqn.startswith(p) for p in fqn_prefixs]
+        stmt = (
+            select(CodeNodeModel)
+            .where(*conditions)
             .options(
                 selectinload(CodeNodeModel.outbound_edges).joinedload(
                     CodeEdgeModel.target_entity

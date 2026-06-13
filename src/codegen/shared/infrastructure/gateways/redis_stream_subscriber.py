@@ -13,7 +13,7 @@ import redis.asyncio as aioredis
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.infrastructure.message_bus import BaseMessageBus
 
-logger = logging.getLogger("event_hub.subscriber")
+logger = logging.getLogger(__name__)
 
 @dataclass
 class RedisStreamSubscriber:

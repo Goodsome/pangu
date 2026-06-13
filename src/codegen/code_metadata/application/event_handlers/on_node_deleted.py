@@ -10,10 +10,12 @@ from codegen.code_metadata.application.commands.delete_module_in_physical import
 from codegen.code_metadata.application.dtos.generate_code_command import (
     GenerateCodeCommand,
 )
-from codegen.shared.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
+from codegen.shared.application.integration_events.node_deleted import (
+    NodeDeletedIntegrationEvent,
+)
 from codegen.shared.domain.core.command import Command
 
 
@@ -43,8 +45,8 @@ class OnNodeDeleted:
                 if empty_modules:
                     yield CleanNodeCommand(fqn=module_fqn)
                 else:
-                    yield GenerateCodeCommand(fqn=module_fqn)
+                    yield GenerateCodeCommand(fqns=[module_fqn])
             case CodeNodeKind.MODULE:
-                yield DeleteModuleInPhysicalCommand(fqn=event.node_id)
+                yield DeleteModuleInPhysicalCommand(fqns=[event.node_id])
             case _:
                 raise NotImplementedError(f"{event.node_kind=}")

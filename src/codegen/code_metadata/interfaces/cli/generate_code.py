@@ -21,5 +21,5 @@ def _generate_code(
 
 def generate_code(fqn: Annotated[str, typer.Argument()]) -> None:
     """Generate Python code from a stored component."""
-    cmd = GenerateCodeCommand(fqn=fqn)
+    cmd = GenerateCodeCommand(fqns=[fqn])
     _generate_code(cmd)

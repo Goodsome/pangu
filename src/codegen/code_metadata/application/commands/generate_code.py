@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from codegen.code_metadata.application.dtos.generate_code_command import (
     GenerateCodeCommand,
 )
@@ -19,8 +20,10 @@ class GenerateCode:
     query_service: CodeNodeQueryService
     code_generator: CodeGenerator
 
-    def execute(self, cmd: GenerateCodeCommand, _uow: UnitOfWork[CodeNodeRepository]) -> GenerateCodeResult:
-        nodes = self.query_service.find_by_fqn_prefix(cmd.fqn)
+    def execute(
+        self, cmd: GenerateCodeCommand, _uow: UnitOfWork[CodeNodeRepository]
+    ) -> GenerateCodeResult:
+        nodes = self.query_service.find_by_fqn_prefixs(cmd.fqns)
         registry = NodeRegistry.create(nodes=nodes)
         self.code_generator.generate_code_by_nodes(nodes=nodes, node_registry=registry)
         return GenerateCodeResult(code="success")

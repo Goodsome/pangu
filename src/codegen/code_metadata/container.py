@@ -7,13 +7,16 @@ from dependency_injector.providers import Singleton
 from redis.asyncio import Redis
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
 from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand, CleanNodeHandler
+from codegen.code_metadata.application.commands.clean_unused_nodes import CleanUnusedNodesCommand, CleanUnusedNodesHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
 from codegen.code_metadata.application.commands.delete_module_in_physical import DeleteModuleInPhysicalCommand, DeleteModuleInPhysicalHandler
 from codegen.code_metadata.application.commands.sync_module import SyncModuleHandler
 from codegen.code_metadata.application.commands.generate_code import GenerateCode
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
 from codegen.code_metadata.application.dtos.generate_code_command import GenerateCodeCommand
+from codegen.code_metadata.application.event_handlers.on_batch_nodes_deleted import OnBatchNodesDeleted
 from codegen.code_metadata.application.event_handlers.on_node_deleted import OnNodeDeleted
+from codegen.shared.application.integration_events.batch_nodes_deleted import BatchNodesDeletedIntegrationEvent
 from codegen.shared.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.ports.code_node_query_service import (
@@ -186,6 +189,9 @@ class Container(DeclarativeContainer):
     clean_node: Factory[CleanNodeHandler] = Factory(
         CleanNodeHandler,
     )
+    clean_unused_nodes: Factory[CleanUnusedNodesHandler] = Factory(
+        CleanUnusedNodesHandler
+    )
     sync_module: Factory[SyncModuleHandler] = Factory(
         SyncModuleHandler,
         query_service=code_node_query_service,
@@ -240,8 +246,12 @@ class Container(DeclarativeContainer):
         file_system=file_system_port,
     )
 
-    on_node_deleted_handler: Factory[OnNodeDeleted] = Factory(
+    on_node_deleted_handler: Singleton[OnNodeDeleted] = Singleton(
         OnNodeDeleted,
+    )
+
+    on_batch_nodes_deleted: Singleton[OnBatchNodesDeleted] = Singleton(
+        OnBatchNodesDeleted
     )
 
     message_bus: Factory[MessageBus] = Factory(
@@ -249,6 +259,7 @@ class Container(DeclarativeContainer):
         uow=code_node_unit_of_work,
         command_handlers=Dict({
             CleanNodeCommand: clean_node.provided.execute,
+            CleanUnusedNodesCommand: clean_unused_nodes.provided.execute,
             GenerateCodeCommand: generate_code.provided.execute,
             DeleteModuleInPhysicalCommand: delete_module_in_physical_handler.provided.execute,
         }),
@@ -258,6 +269,9 @@ class Container(DeclarativeContainer):
             ),
             NodeDeletedIntegrationEvent: List(
                 on_node_deleted_handler.provided.handle_clean_node
+            ),
+            BatchNodesDeletedIntegrationEvent: List(
+                on_batch_nodes_deleted.provided.handle_nodes_deleted
             )
         })
     )

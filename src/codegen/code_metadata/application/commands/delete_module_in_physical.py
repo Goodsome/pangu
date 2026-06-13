@@ -10,7 +10,7 @@ from codegen.shared.domain.ports.file_system_port import FileSystemPort
 logger = logging.getLogger(__name__)
 
 class DeleteModuleInPhysicalCommand(Command):
-    fqn: Fqn
+    fqns: list[Fqn]
 
 
 @dataclass
@@ -18,10 +18,11 @@ class DeleteModuleInPhysicalHandler:
     file_system: FileSystemPort
 
     def execute(self, cmd: DeleteModuleInPhysicalCommand, uow: UnitOfWork[CodeNodeRepository]):
-        module_path = (Path("src") / str(cmd.fqn).replace(".", "/")).with_suffix(".py")
-        if module_path.is_file():
-            self.file_system.delete_file(module_path)
-        else:
-            logger.info(f"{module_path=} is not file")
+        for fqn in cmd.fqns:
+            module_path = (Path("src") / str(fqn).replace(".", "/")).with_suffix(".py")
+            if module_path.is_file():
+                self.file_system.delete_file(module_path)
+            else:
+                logger.info(f"{module_path=} is not file")
             
     

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import logging
 
 
+from codegen.shared.application.integration_events.batch_nodes_deleted import BatchNodesDeletedIntegrationEvent
 from codegen.shared.domain.core.event import IntegrationEvent
 from codegen.shared.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
 
@@ -44,4 +45,5 @@ class EventRegistry:
     def init(cls) -> EventRegistry:
         registry = cls()
         registry.register(NodeDeletedIntegrationEvent)
+        registry.register(BatchNodesDeletedIntegrationEvent)
         return registry
