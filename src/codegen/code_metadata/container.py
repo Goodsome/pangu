@@ -247,7 +247,7 @@ class Container(DeclarativeContainer):
             GenerateCodeCommand: generate_code.provided.execute,
             DeleteModuleInPhysicalCommand: delete_module_in_physical_handler.provided.execute,
         }),
-        sync_event_handlers=Dict({
+        event_handlers=Dict({
             NodeDeleted: List(
                 on_node_deleted_handler.provided.send_to_outbox
             ),
