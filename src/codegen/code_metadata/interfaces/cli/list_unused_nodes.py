@@ -10,6 +10,8 @@ from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 
 console = Console()
 SUPPORTED_KINDS: set[CodeNodeKind] = {
+    CodeNodeKind.MODULE,
+    CodeNodeKind.METHOD,
     CodeNodeKind.CLASS,
     CodeNodeKind.FUNCTION,
     CodeNodeKind.VARIABLE,

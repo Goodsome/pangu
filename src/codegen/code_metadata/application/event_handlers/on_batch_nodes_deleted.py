@@ -28,6 +28,7 @@ class OnBatchNodesDeleted:
                 if empty_modules:
                     yield CleanUnusedNodesCommand(
                         kind=CodeNodeKind.MODULE,
+                        fqns=list(empty_module_fqns),
                     )
                 refresh_module_fqns = module_fqns - empty_module_fqns
                 if refresh_module_fqns:

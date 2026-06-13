@@ -196,7 +196,7 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
     ) -> list[CodeNode]:
         has_defines_outbound = exists().where(
             CodeEdgeModel.source_id == CodeNodeModel.id,
-            CodeEdgeModel.type == EdgeType.DEFINES,
+            CodeEdgeModel.type.in_((EdgeType.DEFINES, EdgeType.CONTAINS)),
         )
         conditions: list[ColumnElement[bool]] = [
             CodeNodeModel.kind == CodeNodeKind.MODULE,

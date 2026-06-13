@@ -13,4 +13,8 @@ class FindUnusedNodes:
     query_service: CodeNodeQueryService
 
     def execute(self, kind: CodeNodeKind) -> list[CodeNode]:
-        return self.query_service.find_unused_nodes(kind)
+        match kind:
+            case CodeNodeKind.MODULE:
+                return self.query_service.find_empty_modules()
+            case _:
+                return self.query_service.find_unused_nodes(kind)
