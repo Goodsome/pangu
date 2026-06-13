@@ -4,7 +4,7 @@ from codegen.bootstrap.config import AppConfig
 from codegen.bootstrap.config import load_all_configurations
 
 
-def create_container(
+async def create_container(
     config_override: AppConfig | None = None, init_resources: bool = True
 ) -> AppContainer:
     """Bootstrap the DI container with configuration."""
@@ -16,5 +16,5 @@ def create_container(
     app_config = config_override or load_all_configurations()
     container.config.from_pydantic(app_config)
     if init_resources:
-        container.init_resources()
+        await container.init_resources()
     return container

@@ -1,3 +1,4 @@
+import asyncio
 import typer
 
 from codegen.bootstrap.logging import setup_cli_logging
@@ -15,9 +16,11 @@ from codegen.code_metadata.interfaces.cli.ingest_project import ingest_project
 from codegen.code_metadata.interfaces.cli.list_components import list_components
 from codegen.code_metadata.interfaces.cli.list_modules import list_modules
 from codegen.code_metadata.interfaces.cli.list_unused_nodes import list_unused_nodes
+from codegen.code_metadata.interfaces.cli.listen import listen
 from codegen.code_metadata.interfaces.cli.reverse_code import reverse_code
 from codegen.code_metadata.interfaces.cli.sync_module import sync_module
 from codegen.code_metadata.interfaces.cli.trace import trace
+from codegen.shared.interfaces.cli.run_outbox_worker import run_worker
 
 app = typer.Typer(
     name="pangu",
@@ -42,18 +45,33 @@ app.command()(get_code_node)
 app.command()(list_unused_nodes)
 app.command(name="tree")(get_directory_tree)
 app.command(name="trace")(trace)
+app.command()(run_worker)
+app.command()(listen)
 
 def main():
     """Bootstrap the DI container and run the CLI app."""
     setup_cli_logging()
-    container = create_container()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        
+    container = loop.run_until_complete(create_container())
+    
     container.wire(
         packages=[
             "codegen.code_metadata.interfaces.cli",
             "codegen.code_dom.interfaces.cli",
+            "codegen.shared.interfaces.cli",
         ]
     )
-    app()
+    try:
+        app()
+    finally:
+        loop.run_until_complete(container.shutdown_resources())
+        loop.close()
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from dependency_injector.providers import Configuration, Dict, List
 from dependency_injector.providers import Dependency
 from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
+from redis.asyncio import Redis
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
 from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand, CleanNodeHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
@@ -13,7 +14,7 @@ from codegen.code_metadata.application.commands.generate_code import GenerateCod
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
 from codegen.code_metadata.application.dtos.generate_code_command import GenerateCodeCommand
 from codegen.code_metadata.application.event_handlers.on_node_deleted import OnNodeDeleted
-from codegen.code_metadata.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
+from codegen.shared.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
@@ -90,16 +91,20 @@ from codegen.code_dom.application.queries.get_code_document_diff import (
 from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
 )
+from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.database import Database
 from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
     SqlAlchemyUnitOfWork,
 )
+from codegen.shared.infrastructure.gateways.redis_stream_subscriber import RedisStreamSubscriber
 
 
 class Container(DeclarativeContainer):
     config: Configuration = Configuration()
     database: Dependency[Database] = Dependency(instance_of=Database)
+    redis_client: Dependency[Redis] = Dependency(instance_of=Redis)
+    
     file_system_port: Dependency[FileSystemPort] = Dependency(
         instance_of=FileSystemPort
     )
@@ -255,4 +260,18 @@ class Container(DeclarativeContainer):
                 on_node_deleted_handler.provided.handle_clean_node
             )
         })
+    )
+
+    
+    event_registry: Singleton[EventRegistry] = Singleton(
+        EventRegistry.init,
+    )
+
+    redis_subscriber: Singleton[RedisStreamSubscriber] = Singleton(
+        RedisStreamSubscriber,
+        client=redis_client,
+        message_bus_factory=message_bus.provider,
+        registry=event_registry,
+        service_name="code_metadata",
+        subscriptions=List("code_node_events")
     )
