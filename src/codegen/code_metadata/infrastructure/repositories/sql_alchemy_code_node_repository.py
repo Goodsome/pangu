@@ -1,18 +1,23 @@
 """CodeNodeRepository 的 SQLAlchemy 实现。传入的 ID (Fqn) 对应数据库中的 fqn 字段。"""
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import ColumnElement, exists, not_, select
+from sqlalchemy.orm import Session, selectinload
 
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
+from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     dto_to_upsert_dict,
     orm_to_dto,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
+    CodeEdgeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ClassNodeModel,
@@ -88,9 +93,7 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             return
         fqns = [a.id for a in aggregates]
         stmt = select(CodeNodeModel).where(CodeNodeModel.fqn.in_(fqns))
-        existing_models = {
-            m.fqn: m for m in self.session.execute(stmt).scalars().all()
-        }
+        existing_models = {m.fqn: m for m in self.session.execute(stmt).scalars().all()}
         for aggregate in aggregates:
             orm_model = existing_models.get(aggregate.id)
             if orm_model is None:
@@ -105,3 +108,78 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         orm_model = self.session.execute(stmt).scalar_one_or_none()
         if orm_model:
             self.session.delete(orm_model)
+
+    @override
+    def find_empty_modules(
+        self,
+        fqns: Collection[Fqn] | None = None,
+    ) -> list[CodeNode]:
+        self.session.flush()
+        
+        has_defines_outbound = exists().where(
+            CodeEdgeModel.source_id == CodeNodeModel.id,
+            CodeEdgeModel.type.in_((EdgeType.DEFINES, EdgeType.CONTAINS)),
+        )
+        conditions: list[ColumnElement[bool]] = [
+            CodeNodeModel.kind == CodeNodeKind.MODULE,
+            not_(has_defines_outbound),
+        ]
+        if fqns:
+            conditions.append(CodeNodeModel.fqn.in_(fqns))
+
+        stmt = (
+            select(CodeNodeModel)
+            .where(*conditions)
+            .options(
+                selectinload(CodeNodeModel.outbound_edges).joinedload(
+                    CodeEdgeModel.target_entity
+                )
+            )
+        )
+        models = self.session.execute(stmt).scalars().unique().all()
+        return [orm_to_dto(m) for m in models]
+
+
+    @override
+    def find_unused_nodes(
+        self,
+        kind: CodeNodeKind | None = None,
+        fqns: Collection[str] | None = None,
+    ) -> list[CodeNode]:
+        _SUPPORTED = {
+            CodeNodeKind.CLASS,
+            CodeNodeKind.FUNCTION,
+            CodeNodeKind.VARIABLE,
+        }
+        _USAGE_EDGE_TYPES = {
+            EdgeType.IMPORTS,
+            EdgeType.INHERITS,
+            EdgeType.CALLS,
+            EdgeType.RETURNS,
+            EdgeType.ACCEPTS,
+            EdgeType.TYPED_AS,
+        }
+        has_usage_inbound = exists().where(
+            CodeEdgeModel.target_id == CodeNodeModel.id,
+            CodeEdgeModel.type.in_(_USAGE_EDGE_TYPES),
+        )
+        conditions: list[ColumnElement[bool]] = [not_(has_usage_inbound)]
+        if kind:
+            conditions.append(CodeNodeModel.kind == kind)
+        else:
+            conditions.append(CodeNodeModel.kind.in_(_SUPPORTED))
+        if fqns:
+            conditions.append(CodeNodeModel.fqn.in_(fqns))
+
+        stmt = (
+            select(CodeNodeModel)
+            .where(*conditions)
+            .options(
+                selectinload(CodeNodeModel.outbound_edges).joinedload(
+                    CodeEdgeModel.target_entity
+                )
+            )
+        )
+        with self.session_factory() as session:
+            models = session.execute(stmt).scalars().unique().all()
+        return [orm_to_dto(m) for m in models]

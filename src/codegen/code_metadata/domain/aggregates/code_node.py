@@ -74,6 +74,14 @@ class ModuleNode(_BaseNode):
     is_package: bool = False
     exprs: list[AstExpr] = Field(default_factory=list)
 
+    @property
+    def is_empty(self):
+        return not any(
+            edge
+            for edge in self.outbound_edges
+            if isinstance(edge, (ContainsEdge, DefinesEdge))
+        )
+
     def contains(self, node: ModuleNode):
         edge = ContainsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)

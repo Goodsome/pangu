@@ -4,7 +4,6 @@ from dependency_injector.providers import Configuration, Dict, List
 from dependency_injector.providers import Dependency
 from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
-from event_hub import EventHub
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
 from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand, CleanNodeHandler
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
@@ -100,7 +99,6 @@ from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
 class Container(DeclarativeContainer):
     config: Configuration = Configuration()
     database: Dependency[Database] = Dependency(instance_of=Database)
-    event_hub: Dependency[EventHub] = Dependency(instance_of=EventHub)
     file_system_port: Dependency[FileSystemPort] = Dependency(
         instance_of=FileSystemPort
     )
@@ -181,7 +179,6 @@ class Container(DeclarativeContainer):
     )
     clean_node: Factory[CleanNodeHandler] = Factory(
         CleanNodeHandler,
-        query_service=code_node_query_service,
     )
     sync_module: Factory[SyncModuleHandler] = Factory(
         SyncModuleHandler,
@@ -239,7 +236,6 @@ class Container(DeclarativeContainer):
 
     on_node_deleted_handler: Factory[OnNodeDeleted] = Factory(
         OnNodeDeleted,
-        query_service=code_node_query_service,
     )
 
     message_bus: Factory[MessageBus] = Factory(
