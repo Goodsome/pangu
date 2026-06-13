@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from codegen.code_metadata.application import integration_events
 from codegen.code_metadata.application.commands.clean_node import (
     CleanNodeCommand,
 )
@@ -11,8 +10,9 @@ from codegen.code_metadata.application.commands.delete_module_in_physical import
 from codegen.code_metadata.application.dtos.generate_code_command import (
     GenerateCodeCommand,
 )
+from codegen.code_metadata.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
-from codegen.code_metadata.domain import domain_events
+from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.shared.domain.core.command import Command
 
@@ -21,10 +21,10 @@ from codegen.shared.domain.core.command import Command
 class OnNodeDeleted:
     def send_to_outbox(
         self,
-        event: domain_events.NodeDeleted,
+        event: NodeDeleted,
         uow: UnitOfWork,
     ) -> Iterable[Command]:
-        integration_event = integration_events.NodeDeleted(
+        integration_event = NodeDeletedIntegrationEvent(
             node_id=event.node_id,
             node_kind=event.node_kind,
         )
@@ -33,7 +33,7 @@ class OnNodeDeleted:
 
     def handle_clean_node(
         self,
-        event: integration_events.NodeDeleted,
+        event: NodeDeletedIntegrationEvent,
         uow: UnitOfWork,
     ) -> Iterable[Command]:
         match event.node_kind:

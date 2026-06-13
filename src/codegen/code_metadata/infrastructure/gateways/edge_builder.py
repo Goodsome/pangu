@@ -119,7 +119,7 @@ class EdgeBuilder(AstVisitor):
             node = self.node_registry.get_node(external_fqn)
         else:
             node = self._get_internel_node(import_name=import_name, from_name=from_name)
-        assert isinstance(node, ExternalNode | ClassNode | FunctionNode | VariableNode)
+        assert isinstance(node, ExternalNode | ClassNode | FunctionNode | VariableNode), f"{node=}"
         self.module.imports(node, is_type_checking=is_type_checking, asname=asname)
         if asname:
             local_alias_key = asname
