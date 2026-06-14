@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import override
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, any_, exists, not_, or_, select
+from sqlalchemy import ColumnElement, exists, not_, or_, select
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from codegen.code_metadata.application.dtos.code_node_detail_dto import (
@@ -168,7 +168,10 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
             CodeEdgeModel.target_id == CodeNodeModel.id,
             CodeEdgeModel.type.in_(_USAGE_EDGE_TYPES),
         )
-        conditions: list[ColumnElement[bool]] = [not_(has_usage_inbound)]
+        conditions: list[ColumnElement[bool]] = [
+            not_(has_usage_inbound),
+            not_(CodeNodeModel.fqn.startswith("apps"))
+        ]
         if kind:
             conditions.append(CodeNodeModel.kind == kind)
         else:

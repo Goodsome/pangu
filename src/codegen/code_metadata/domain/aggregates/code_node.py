@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+import logging
 import re
 from pathlib import Path
 from typing import Annotated, Literal
@@ -23,6 +22,8 @@ from codegen.code_metadata.domain.value_objects.code_edge import (
     create_edge,
 )
 from codegen.shared.domain.core.aggregate_root import AggregateRoot
+
+logger = logging.getLogger(__name__)
 
 
 class _BaseNode(AggregateRoot[Fqn]):

@@ -70,7 +70,9 @@ def main():
     try:
         app()
     finally:
-        loop.run_until_complete(container.shutdown_resources())
+        shutdown_resources =  container.shutdown_resources()
+        if shutdown_resources:
+            loop.run_until_complete(shutdown_resources)
         loop.close()
 
 

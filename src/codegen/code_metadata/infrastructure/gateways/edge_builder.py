@@ -1,4 +1,5 @@
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
+from codegen.code_metadata.domain.value_objects.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
 from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
 from codegen.shared.domain.enums import PythonBuiltinType
@@ -229,7 +230,6 @@ class EdgeBuilder(AstVisitor):
         self.visit(node.value)
         self.context.empty_attribute()
 
-
     @override
     def visit_ast_name(self, node: AstName):
         if node.id in PythonBuiltinType._value2member_map_:
@@ -244,3 +244,10 @@ class EdgeBuilder(AstVisitor):
             if self.context.attribute_stack:
                 self.current_node.add_edge(EdgeType.READS, fqn)
         self.current_node.add_edge(self.current_edge, fqn)
+
+    @override
+    def visit_ast_call(self, node: AstCall):
+        with self.context.visit_edge(EdgeType.CALLS):
+            self.visit(node.func)
+        self.visit(node.args)
+        self.visit(node.kwargs)

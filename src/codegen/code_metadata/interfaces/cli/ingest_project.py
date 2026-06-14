@@ -24,12 +24,12 @@ def _ingest_project(
 
 def ingest_project(
     prefix: Annotated[
-        str | None,
+        str,
         typer.Option(
             "--prefix", "-p",
             help="The prefix of the bounded context to ingest, e.g. src/codegen/code_metadata"
         ),
-    ]=None,
+    ]="",
 ) -> None:
     """Scan a bounded context's directory tree into the CodeNode graph."""
     cmd = IngestProjectCommand(prefix=prefix)

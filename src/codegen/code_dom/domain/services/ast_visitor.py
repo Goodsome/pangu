@@ -69,6 +69,7 @@ class AstVisitor:
         | Arg
         | list[AstStmt]
         | list[AstExpr]
+        | list[AstKeyword]
         | None
     ):
         if node is None:
@@ -301,6 +302,7 @@ class AstVisitor:
     def visit_ast_call(self, node: AstCall):
         self.visit(node.func)
         self.visit(node.args)
+        self.visit(node.kwargs)
 
     def visit_ast_bin_op(self, node: AstBinOp):
         self.visit(node.left)

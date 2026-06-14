@@ -23,7 +23,7 @@ dev = [
 ]
 
 [project.scripts]
-pangu = "apps.cli.main:main"
+pangu = "apps.pangu_cli.main:main"
 
 [build-system]
 requires = ["hatchling"]

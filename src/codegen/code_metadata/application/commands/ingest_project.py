@@ -15,6 +15,8 @@ from codegen.code_metadata.application.ports.code_node_sync_service import (
     CodeNodeSyncService,
 )
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
+from codegen.code_metadata.domain.core.fqn import Fqn
+from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 
 
 @dataclass
@@ -27,10 +29,13 @@ class IngestProject:
 
     def execute(self, cmd: IngestProjectCommand) -> IngestProjectResult:
         sync_id = uuid.uuid4().hex
-        fqn_prefix = "codegen."
-        if cmd.prefix:
-            fqn_prefix = f"codegen.{cmd.prefix}"
-        module_path = Path("src") / fqn_prefix.replace(".", "/")
+
+        if not cmd.prefix:
+            fqn = Fqn("codegen")
+        else:
+            fqn = Fqn(cmd.prefix)
+        module_path = FqnFactory.fqn_to_path(fqn)
+        
         code_documents = self.graph_builder.get_code_documents(module_path=module_path)
         node_reistry: NodeRegistry = NodeRegistry()
         imports = self.graph_builder.build_nodes(
@@ -51,9 +56,9 @@ class IngestProject:
             node_registry=node_reistry, code_documents=code_documents
         )
         bulk_result = self.sync_service.save_nodes_bulk(
-            node_reistry.upsert_nodes, sync_id, fqn_prefix
+            node_reistry.upsert_nodes, sync_id, fqn
         )
-        deleted_count = self.sync_service.delete_stale_nodes(fqn_prefix, sync_id)
+        deleted_count = self.sync_service.delete_stale_nodes(fqn, sync_id)
         return IngestProjectResult(
             nodes_created=bulk_result.nodes_upserted,
             edges_created=bulk_result.edges_created,
