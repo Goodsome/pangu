@@ -7,9 +7,7 @@ from codegen.code_metadata.application.commands.clean_node import (
 from codegen.code_metadata.application.commands.delete_module_in_physical import (
     DeleteModuleInPhysicalCommand,
 )
-from codegen.code_metadata.application.dtos.generate_code_command import (
-    GenerateCodeCommand,
-)
+from codegen.code_metadata.application.commands.generate_code import GenerateCodeCommand
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind

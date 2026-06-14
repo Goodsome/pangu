@@ -1,8 +1,6 @@
+import logging
 from dataclasses import dataclass
 
-from codegen.code_metadata.application.dtos.generate_code_command import (
-    GenerateCodeCommand,
-)
 from codegen.code_metadata.application.dtos.generate_code_result import (
     GenerateCodeResult,
 )
@@ -13,6 +11,12 @@ from codegen.code_metadata.application.registry.node_registry import NodeRegistr
 from codegen.code_metadata.domain.ports.code_generator import CodeGenerator
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
+from codegen.shared.domain.core.command import Command
+
+logger = logging.getLogger(__name__)
+
+class GenerateCodeCommand(Command):
+    fqns: list[str]
 
 
 @dataclass

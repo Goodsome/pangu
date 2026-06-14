@@ -11,9 +11,8 @@ from codegen.code_metadata.application.commands.clean_unused_nodes import CleanU
 from codegen.code_metadata.application.commands.delete_component import DeleteComponent
 from codegen.code_metadata.application.commands.delete_module_in_physical import DeleteModuleInPhysicalCommand, DeleteModuleInPhysicalHandler
 from codegen.code_metadata.application.commands.sync_module import SyncModuleHandler
-from codegen.code_metadata.application.commands.generate_code import GenerateCode
+from codegen.code_metadata.application.commands.generate_code import GenerateCode, GenerateCodeCommand
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
-from codegen.code_metadata.application.dtos.generate_code_command import GenerateCodeCommand
 from codegen.code_metadata.application.event_handlers.on_batch_nodes_deleted import OnBatchNodesDeleted
 from codegen.code_metadata.application.event_handlers.on_node_deleted import OnNodeDeleted
 from codegen.shared.application.integration_events.batch_nodes_deleted import BatchNodesDeletedIntegrationEvent

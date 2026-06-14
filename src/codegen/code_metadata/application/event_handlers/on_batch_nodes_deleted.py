@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from codegen.code_metadata.application.commands.clean_unused_nodes import CleanUnusedNodesCommand
 from codegen.code_metadata.application.commands.delete_module_in_physical import DeleteModuleInPhysicalCommand
-from codegen.code_metadata.application.dtos.generate_code_command import GenerateCodeCommand
+from codegen.code_metadata.application.commands.generate_code import GenerateCodeCommand
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.shared.application.integration_events.batch_nodes_deleted import (

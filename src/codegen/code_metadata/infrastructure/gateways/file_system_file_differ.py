@@ -104,14 +104,6 @@ def node_to_ast_stmt(node: CodeNode, node_registry: NodeRegistry) -> AstStmt:
             raise NotImplementedError(f"node.kind={node.kind!r}, node.fqn={node.id!r}")
 
 
-def edge_to_ast_expr(edge: CodeEdge, node_registry: NodeRegistry) -> AstExpr:
-    match edge:
-        case InheritsEdge():
-            return inherits_edge_to_ast_name(edge, node_registry)
-        case _:
-            raise NotImplementedError(f"edge={edge!r}")
-
-
 def class_node_dto_to_ast_class_def(
     class_node: ClassNode, node_registry: NodeRegistry
 ) -> AstClassDef:

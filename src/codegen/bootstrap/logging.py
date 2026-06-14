@@ -69,11 +69,6 @@ def setup_logging(
     return logger
 
 
-def setup_mcp_logging() -> logging.Logger:
-    """为MCP服务配置日志"""
-    return setup_logging(logger_name="codegen", log_file="mcp.log")
-
-
 def setup_cli_logging() -> logging.Logger:
     """为CLI服务配置日志"""
     logger = setup_logging(
