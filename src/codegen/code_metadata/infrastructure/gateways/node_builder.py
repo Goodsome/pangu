@@ -11,6 +11,7 @@ from codegen.code_metadata.domain.aggregates.code_node import (
     FunctionNode,
     MethodNode,
     ModuleNode,
+    ParameterNode,
     VariableNode,
 )
 from codegen.code_metadata.domain.core.fqn import Fqn
@@ -229,6 +230,15 @@ class NodeBuilder(AstVisitor):
         )
         name = target.id
         var_fqn = Fqn(f"{self.current_node.id}::{name}")
-        node = VariableNode(id=var_fqn, name=name, annotation=annotation, value=value)
-        self.current_node.defines(node)
+        match self.current_node:
+            case ModuleNode() | ClassNode():
+                node = VariableNode(
+                    id=var_fqn, name=name, annotation=annotation, value=value
+                )
+                self.current_node.defines(node)
+            case FunctionNode() | MethodNode():
+                node = ParameterNode(
+                    id=var_fqn, name=name, annotation=annotation, value=value
+                )
+                self.current_node.defines(node)
         self._add_node(node)

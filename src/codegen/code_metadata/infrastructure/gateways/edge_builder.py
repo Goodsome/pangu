@@ -147,10 +147,14 @@ class EdgeBuilder(AstVisitor):
         class_node = self.node_registry.get_node(class_fqn)
         assert isinstance(class_node, ClassNode)
 
+        self.local_aliases["self"] = class_fqn
+
         with self.context.visit_node(class_node):
             self._visit_class_bases(node.bases)
             self.visit(node.decorator_list)
             self.visit(node.body)
+
+        self.local_aliases.pop("self")
         
     def _visit_class_bases(self, bases: list[AstExpr]):
         with self.context.visit_edge(EdgeType.INHERITS):
@@ -170,9 +174,7 @@ class EdgeBuilder(AstVisitor):
         func_node = self.node_registry.get_node(func_fqn)
         assert isinstance(func_node, (MethodNode, FunctionNode)), func_node
         with self.context.visit_node(func_node):
-            self._empty_function_local_aliases()
-            for arg in node.arguments:
-                self.visit(arg)
+            self._visit_arguments(node.arguments)
             with self.context.enter_function():
                 self.visit(node.body)
             self._visit_return(node.returns)
@@ -184,8 +186,14 @@ class EdgeBuilder(AstVisitor):
             return self.local_aliases[alias]
         return alias
 
-    def _empty_function_local_aliases(self):
+    def _visit_arguments(self, arguments: list[AstAssign | AstAnnAssign]):
         self.function_local_aliases = {}
+        for arg in arguments:
+            if isinstance(arg, AstAnnAssign) and isinstance(arg.target, AstName):
+                target_fqn = self._resolve_expr_to_fqn(arg.annotation)
+                if target_fqn:
+                    self.function_local_aliases[arg.target.id] = target_fqn
+            self.visit(arg)
         
     def _visit_return(self, returns: AstExpr | None):
         with self.context.visit_edge(EdgeType.RETURNS):
@@ -226,23 +234,20 @@ class EdgeBuilder(AstVisitor):
 
     @override
     def visit_ast_attribute(self, node: AstAttribute):
-        self.context.stack_attribute(node.attr)
-        self.visit(node.value)
-        self.context.empty_attribute()
+        fqn = self._resolve_expr_to_fqn(node)
+        if fqn and self.current_edge:
+            self.current_node.add_edge(self.current_edge, fqn)
+            
+        with self.context.visit_edge(EdgeType.READS):
+            self.visit(node.value)
 
     @override
     def visit_ast_name(self, node: AstName):
         if node.id in PythonBuiltinType._value2member_map_:
             return
-        if not self.current_node or not self.current_edge:
+        if not self.current_edge:
             return
         fqn = self._find_fqn(node.id)
-        target_node = self.node_registry.get_node(fqn)
-        while self.context.attribute_stack:
-            attr = self.context.pop_attribute()
-            fqn = f"{target_node.id}::{attr}"
-            if self.context.attribute_stack:
-                self.current_node.add_edge(EdgeType.READS, fqn)
         self.current_node.add_edge(self.current_edge, fqn)
 
     @override
@@ -251,3 +256,15 @@ class EdgeBuilder(AstVisitor):
             self.visit(node.func)
         self.visit(node.args)
         self.visit(node.kwargs)
+
+    def _resolve_expr_to_fqn(self, node: AstExpr) -> str | None:
+        match node:
+            case AstName(id=name):
+                return self._find_fqn(name)
+            case AstAttribute(value=value, attr=attr):
+                base_fqn = self._resolve_expr_to_fqn(value)
+                if base_fqn:
+                    return f"{base_fqn}::{attr}"
+                return None
+            case _:
+                return None

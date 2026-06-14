@@ -1,14 +1,13 @@
 from typing import Annotated
+
+from dependency_injector.wiring import Provide, inject
 from rich.console import Console
-from dependency_injector.wiring import Provide
-from dependency_injector.wiring import inject
 from typer import Argument
+
 from codegen.code_metadata.application.dtos.dev_progress import DevProgress
 from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
 from codegen.code_metadata.application.queries.get_dev_progress import (
     GetDevProgressHandler,
-)
-from codegen.code_metadata.application.queries.get_dev_progress import (
     GetDevProgressQuery,
 )
 
@@ -25,7 +24,7 @@ def _get_dev_progress(
     return service.execute(query=GetDevProgressQuery(module_fqn=module_fqn))
 
 
-def get_dev_progress(fqn: Annotated[str, Argument()]) -> None:
+def get_dev_progress(fqn: Annotated[str, Argument()] = "codegen") -> None:
     """Show development progress: AST similarity and line diffs per file."""
     result = _get_dev_progress(module_fqn=fqn)
     result.order_by_type()

@@ -28,6 +28,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
     MethodNodeModel,
     ModuleNodeModel,
+    ParameterNodeModel,
     VariableNodeModel,
 )
 
@@ -39,6 +40,7 @@ _KIND_TO_MODEL: dict[CodeNodeKind, type[CodeNodeModel]] = {
     CodeNodeKind.FUNCTION: FunctionNodeModel,
     CodeNodeKind.METHOD: MethodNodeModel,
     CodeNodeKind.VARIABLE: VariableNodeModel,
+    CodeNodeKind.PARAMETER: ParameterNodeModel,
     CodeNodeKind.EXTERNAL: ExternalNodeModel,
 }
 
@@ -52,10 +54,7 @@ def _create_orm_model(dto: CodeNode, sync_id: str | None = None) -> CodeNodeMode
 
 @dataclass
 class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
-    """CodeNode 仓储的 SQLAlchemy 实现。
-
-    所有通过 Fqn 的查询均对应数据库的 fqn 字段（非主键 id）。
-    """
+    """CodeNode 仓储的 SQLAlchemy 实现。 所有通过 Fqn 的查询均对应数据库的 fqn 字段（非主键 id）。"""
 
     session: Session
 
@@ -115,7 +114,7 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         fqns: Collection[Fqn] | None = None,
     ) -> list[CodeNode]:
         self.session.flush()
-        
+
         has_defines_outbound = exists().where(
             CodeEdgeModel.source_id == CodeNodeModel.id,
             CodeEdgeModel.type.in_((EdgeType.DEFINES, EdgeType.CONTAINS)),
@@ -138,7 +137,6 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         )
         models = self.session.execute(stmt).scalars().unique().all()
         return [orm_to_dto(m) for m in models]
-
 
     @override
     def find_unused_nodes(

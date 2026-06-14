@@ -1,27 +1,31 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
+
 from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
-)
-from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffQuery,
 )
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
 from codegen.code_metadata.application.ports.file_differ import FileDiffer
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import ClassNode
-from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
-from codegen.code_metadata.domain.aggregates.code_node import MethodNode
-from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
-from codegen.code_metadata.domain.aggregates.code_node import VariableNode
+from codegen.code_metadata.domain.aggregates.code_node import (
+    ClassNode,
+    CodeNode,
+    FunctionNode,
+    MethodNode,
+    ModuleNode,
+    ParameterNode,
+    VariableNode,
+)
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
+from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
+from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_function_def import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
@@ -29,13 +33,14 @@ from codegen.code_metadata.domain.value_objects.ast_import_from import AstImport
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
-from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
-from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
-from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
-from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
-from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
-from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
-from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import (
+    CodeEdge,
+    ContainsEdge,
+    DefinesEdge,
+    ImportsEdge,
+    InheritsEdge,
+    ReadsEdge,
+)
 
 
 @dataclass
@@ -65,7 +70,7 @@ def module_node_dto_to_code_document(
     body: list[AstStmt] = []
     for edge in module.outbound_edges:
         match edge:
-            case ContainsEdge() | InheritsEdge():
+            case ContainsEdge() | InheritsEdge() | ReadsEdge():
                 continue
             case ImportsEdge(is_type_checking=True):
                 if_imports.append(edge_to_ast_stmt(edge, node_registry))
@@ -80,7 +85,6 @@ def module_node_dto_to_code_document(
     return CodeDocument(
         physical_path=physical_path, body=imports + body, description=module.description
     )
-
 
 def edge_to_ast_stmt(edge: CodeEdge, node_registry: NodeRegistry) -> AstStmt:
     match edge:
@@ -98,7 +102,7 @@ def node_to_ast_stmt(node: CodeNode, node_registry: NodeRegistry) -> AstStmt:
             return class_node_dto_to_ast_class_def(node, node_registry)
         case MethodNode() | FunctionNode():
             return method_node_dto_to_ast(node, node_registry)
-        case VariableNode():
+        case VariableNode() | ParameterNode():
             return variable_node_dto_to_ast(node, node_registry)
         case _:
             raise NotImplementedError(f"node.kind={node.kind!r}, node.fqn={node.id!r}")
@@ -110,7 +114,7 @@ def class_node_dto_to_ast_class_def(
     body: list[AstStmt] = []
     for edge in class_node.outbound_edges:
         match edge:
-            case InheritsEdge():
+            case InheritsEdge() | ReadsEdge():
                 continue
             case _:
                 body.append(edge_to_ast_stmt(edge, node_registry))
@@ -148,7 +152,7 @@ def method_node_dto_to_ast(
 
 
 def variable_node_dto_to_ast(
-    variable_node: VariableNode, node_registry: NodeRegistry
+    variable_node: VariableNode | ParameterNode, node_registry: NodeRegistry
 ) -> AstAssign | AstAnnAssign:
     target = AstName(id=variable_node.name)
     if variable_node.annotation:
@@ -164,16 +168,6 @@ def contains_edge_to_ast(edge: DefinesEdge, node_registry: NodeRegistry) -> AstS
     target_node = node_registry.get_node(edge.fqn)
     ast_stmt = node_to_ast_stmt(target_node, node_registry)
     return ast_stmt
-
-
-def inherits_edge_to_ast_name(
-    edge: InheritsEdge, node_registry: NodeRegistry
-) -> AstName:
-    if "::" in edge.fqn:
-        name = edge.fqn.rsplit("::", 1)[-1]
-    else:
-        name = edge.fqn.rsplit(".", 1)[-1]
-    return AstName(id=name)
 
 
 def imports_edge_to_ast(
@@ -202,7 +196,7 @@ def collect_arguments_from_outbound_edges(
         if edge.kind is not EdgeType.DEFINES:
             continue
         target_node = node_registry.get_node(edge.fqn)
-        if not isinstance(target_node, VariableNode):
+        if not isinstance(target_node, ParameterNode):
             continue
         ast_arg = variable_node_dto_to_ast(target_node, node_registry)
         arguments.append(ast_arg)

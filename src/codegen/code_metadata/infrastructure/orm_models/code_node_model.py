@@ -213,5 +213,29 @@ class VariableNodeModel(CodeNodeModel):
         self.properties = {**self.properties, "annotation": value}
 
 
+class ParameterNodeModel(CodeNodeModel):
+    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.PARAMETER}
+
+    @hybrid_property
+    def value(self) -> dict[str, Any] | None:
+        return self.properties.get("value")
+
+    @value.setter
+    def _value_setter(self, value: dict[str, Any] | None) -> None:
+        if value is None:
+            return
+        self.properties = {**self.properties, "value": value}
+
+    @hybrid_property
+    def annotation(self) -> dict[str, Any] | None:
+        return self.properties.get("annotation")
+
+    @annotation.setter
+    def _annotation_setter(self, value: dict[str, Any] | None) -> None:
+        if value is None:
+            return
+        self.properties = {**self.properties, "annotation": value}
+
+
 class ExternalNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.EXTERNAL}

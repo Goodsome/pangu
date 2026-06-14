@@ -148,7 +148,7 @@ class FunctionNode(_BaseNode):
     returns: AstExpr | None = None
     body: list[AstStmt] = Field(default_factory=list)
 
-    def defines(self, node: VariableNode):
+    def defines(self, node: ParameterNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
@@ -165,7 +165,7 @@ class MethodNode(_BaseNode):
     returns: AstExpr | None = None
     body: list[AstStmt] = Field(default_factory=list)
 
-    def defines(self, node: VariableNode):
+    def defines(self, node: ParameterNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
@@ -177,6 +177,14 @@ class VariableNode(_BaseNode):
     """变量节点：kind 固定为 VARIABLE，由模块节点的 AST 赋值语句派生。"""
 
     kind: Literal[CodeNodeKind.VARIABLE] = CodeNodeKind.VARIABLE
+    annotation: AstExpr | None = None
+    value: AstExpr | None = None
+
+
+class ParameterNode(_BaseNode):
+    """参数节点：kind 固定为 PARAMETER，由函数/方法的参数定义派生。"""
+
+    kind: Literal[CodeNodeKind.PARAMETER] = CodeNodeKind.PARAMETER
     annotation: AstExpr | None = None
     value: AstExpr | None = None
 
@@ -195,6 +203,7 @@ CodeNode = Annotated[
     | FunctionNode
     | MethodNode
     | VariableNode
+    | ParameterNode
     | ExternalNode,
     Field(discriminator="kind"),
 ]

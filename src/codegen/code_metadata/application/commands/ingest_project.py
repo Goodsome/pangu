@@ -29,13 +29,8 @@ class IngestProject:
 
     def execute(self, cmd: IngestProjectCommand) -> IngestProjectResult:
         sync_id = uuid.uuid4().hex
-
-        if not cmd.prefix:
-            fqn = Fqn("codegen")
-        else:
-            fqn = Fqn(cmd.prefix)
+        fqn = Fqn(cmd.prefix)
         module_path = FqnFactory.fqn_to_path(fqn)
-        
         code_documents = self.graph_builder.get_code_documents(module_path=module_path)
         node_reistry: NodeRegistry = NodeRegistry()
         imports = self.graph_builder.build_nodes(

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
 import logging
 import os
 import socket
 import traceback
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 import redis.asyncio as aioredis
@@ -15,27 +15,29 @@ from codegen.shared.infrastructure.message_bus import BaseMessageBus
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class RedisStreamSubscriber:
-    """Redis Stream 集成事件订阅器。 """
+    """Redis Stream 集成事件订阅器。"""
+
     client: aioredis.Redis
     message_bus_factory: Callable[[], BaseMessageBus[Any]]
     registry: EventRegistry
-    
+
     service_name: str = "default-service"
     consumer_name: str = f"{socket.gethostname()}-{os.getpid()}"
     block_ms: int = 2000
     batch_size: int = 10
-    
+
     subscriptions: list[str] = field(default_factory=list)
-    
+
     _running: bool = False
     _consume_task: asyncio.Task[None] | None = None
 
     async def start(self) -> None:
         """连接 Redis 并启动消费循环。"""
         await self.client.ping()
-        
+
         # 为每个 topic 创建 Consumer Group
         for topic in self.subscriptions:
             await self._ensure_consumer_group(topic)
@@ -73,13 +75,7 @@ class RedisStreamSubscriber:
         logger.info("✅ Subscriber 已完全停止")
 
     async def run_forever(self) -> None:
-        """阻塞式运行，直到接收到停止信号。
-
-        适合在 demo/脚本中使用：
-
-            await subscriber.start()
-            await subscriber.run_forever()
-        """
+        """阻塞式运行，直到接收到停止信号。"""
         if self._consume_task is None:
             raise RuntimeError("请先调用 start()")
 
@@ -119,7 +115,6 @@ class RedisStreamSubscriber:
         """消费主循环 —— 持续从所有订阅的 Stream 中读取消息。"""
         assert self.client is not None
 
-
         while self._running:
             streams = {topic: ">" for topic in self.subscriptions}
 
@@ -144,7 +139,7 @@ class RedisStreamSubscriber:
                     for msg_id, data in messages:
                         asyncio.create_task(
                             self._process_message(stream_name, msg_id, data),
-                            name=f"process_msg_{msg_id}"
+                            name=f"process_msg_{msg_id}",
                         )
 
             except asyncio.CancelledError:
@@ -209,7 +204,7 @@ class RedisStreamSubscriber:
             bus.handle(event)
         except Exception:
             logger.error(f"❌ 业务处理失败: {msg_id}\n{traceback.format_exc()}")
-            
+
         await self.client.xack(stream_name, self.service_name, msg_id)
         logger.info(
             "✅ [ACK] stream=%s, id=%s, type=%s",

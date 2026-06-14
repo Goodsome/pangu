@@ -17,7 +17,6 @@ from codegen.code_metadata.interfaces.cli.list_components import list_components
 from codegen.code_metadata.interfaces.cli.list_modules import list_modules
 from codegen.code_metadata.interfaces.cli.list_unused_nodes import list_unused_nodes
 from codegen.code_metadata.interfaces.cli.listen import listen
-from codegen.code_metadata.interfaces.cli.reverse_code import reverse_code
 from codegen.code_metadata.interfaces.cli.sync_module import sync_module
 from codegen.code_metadata.interfaces.cli.trace import trace
 from codegen.shared.interfaces.cli.run_outbox_worker import run_worker
@@ -31,7 +30,6 @@ app = typer.Typer(
 
 app.command()(generate_code)
 app.command()(get_dev_progress)
-app.command()(reverse_code)
 app.command()(sync_module)
 app.command()(list_components)
 app.command()(get_component)

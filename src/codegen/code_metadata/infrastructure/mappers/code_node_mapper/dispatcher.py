@@ -13,6 +13,7 @@ from codegen.code_metadata.domain.aggregates.code_node import FileNode
 from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
 from codegen.code_metadata.domain.aggregates.code_node import MethodNode
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
+from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
 from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.dispatcher import (
@@ -46,6 +47,9 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ModuleNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
+    ParameterNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     VariableNodeModel,
 )
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.class_node import (
@@ -68,6 +72,9 @@ from codegen.code_metadata.infrastructure.mappers.code_node_mapper.method_node i
 )
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.module_node import (
     ModuleNodeMapper,
+)
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.parameter_node import (
+    ParameterNodeMapper,
 )
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.variable_node import (
     VariableNodeMapper,
@@ -92,6 +99,8 @@ def orm_to_dto(orm_model: CodeNodeModel) -> CodeNode:
             return MethodNodeMapper.to_dto(cast(MethodNodeModel, orm_model))
         case CodeNodeKind.VARIABLE:
             return VariableNodeMapper.to_dto(cast(VariableNodeModel, orm_model))
+        case CodeNodeKind.PARAMETER:
+            return ParameterNodeMapper.to_dto(cast(ParameterNodeModel, orm_model))
         case CodeNodeKind.EXTERNAL:
             return ExternalNodeMapper.to_dto(cast(ExternalNodeModel, orm_model))
         case _:
@@ -130,6 +139,8 @@ def dto_to_upsert_dict(dto: CodeNode, sync_id: str) -> dict[str, Any]:
             properties = MethodNodeMapper.to_properties(dto)
         case VariableNode():
             properties = VariableNodeMapper.to_properties(dto)
+        case ParameterNode():
+            properties = ParameterNodeMapper.to_properties(dto)
         case ExternalNode():
             properties = ExternalNodeMapper.to_properties(dto)
         case _:

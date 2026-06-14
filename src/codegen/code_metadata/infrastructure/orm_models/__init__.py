@@ -30,6 +30,9 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ModuleNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
+    ParameterNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     VariableNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.component_model import (
@@ -81,5 +84,6 @@ __all__ = [
     "UnionComponentModel",
     "UnionComponentV2Model",
     "ModuleNodeModel",
+    "ParameterNodeModel",
     "VariableNodeModel",
 ]
