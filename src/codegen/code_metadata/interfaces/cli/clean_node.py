@@ -28,11 +28,17 @@ def clean_node(
     fqn: Annotated[
         str | None, typer.Option("--fqn", "-f", help="The FQN of the node to clean")
     ] = None,
+    kind: Annotated[
+        CodeNodeKind | None, typer.Option("--kind", "-k", help="The kind of the nodes to clean")
+    ] = None,
 ) -> None:
     """Clean an unused CodeNode and its orphaned module from the graph."""
     if fqn:
         cmd = CleanNodeCommand(fqn=fqn)
+    elif kind:
+        cmd = CleanUnusedNodesCommand(kind=kind)
     else:
-        cmd = CleanUnusedNodesCommand(kind=CodeNodeKind.CLASS)
+        console.print("[red] node fqn or kind is needed[/red]")
+        exit(1)
+        
     _clean_node(cmd)
-    console.print(f"[green]Node '{fqn}' cleaned successfully.[/green]")

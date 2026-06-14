@@ -21,7 +21,7 @@ class OnBatchNodesDeleted:
         uow: UnitOfWork,
     ) -> Iterable[Command]:
         match event.node_kind:
-            case CodeNodeKind.CLASS:
+            case CodeNodeKind.CLASS | CodeNodeKind.FUNCTION:
                 module_fqns = {node_id.module_fqn for node_id in event.node_ids}
                 empty_modules = uow.repository.find_empty_modules(fqns=module_fqns)
                 empty_module_fqns = {m.id for m in empty_modules}
@@ -35,7 +35,12 @@ class OnBatchNodesDeleted:
                     yield GenerateCodeCommand(fqns=list(refresh_module_fqns))
             case CodeNodeKind.MODULE:
                 yield DeleteModuleInPhysicalCommand(fqns=event.node_ids)
+            case CodeNodeKind.EXTERNAL:
+                pass
+            case CodeNodeKind.METHOD | CodeNodeKind.VARIABLE:
+                module_fqns = {node_id.module_fqn for node_id in event.node_ids}
+                yield GenerateCodeCommand(fqns=list(module_fqns))
             case _:
-                raise NotImplementedError(f"{event.node_kind=}")
+                pass
 
 

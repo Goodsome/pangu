@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from pydantic import Field
-
+from codegen.code_metadata.application.ports.code_node_query_service import CodeNodeQueryService
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
@@ -18,17 +17,16 @@ class CleanUnusedNodesCommand(Command):
 
 @dataclass
 class CleanUnusedNodesHandler:
+    query_service: CodeNodeQueryService
+    
     def execute(self, cmd: CleanUnusedNodesCommand, uow: UnitOfWork):
         match cmd.kind:
-            case CodeNodeKind.CLASS:
-                nodes = uow.repository.find_unused_nodes(
-                    kind=CodeNodeKind.CLASS, fqns=cmd.fqns
-                )
             case CodeNodeKind.MODULE:
-                nodes = uow.repository.find_empty_modules(fqns=cmd.fqns)
+                nodes = self.query_service.find_empty_modules(fqns=cmd.fqns)
             case _:
-                raise NotImplementedError(f"{cmd.kind=}")
-
+                nodes = self.query_service.find_unused_nodes(
+                    kind=cmd.kind, fqns=cmd.fqns
+                )
         if not nodes:
             return
         for node in nodes:
