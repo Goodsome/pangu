@@ -29,9 +29,16 @@ class AstFunctionDef(ValueObject):
 
     @property
     def is_overload(self) -> bool:
+        return self.check_something_in_decorator_list("overload")
+
+    @property
+    def is_override(self) -> bool:
+        return self.check_something_in_decorator_list("override")
+
+    def check_something_in_decorator_list(self, something: str):
         return any(
             (
-                isinstance(decorator, AstName) and decorator.id == "overload"
+                isinstance(decorator, AstName) and decorator.id == something
                 for decorator in self.decorator_list
             )
         )

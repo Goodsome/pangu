@@ -1,6 +1,6 @@
-from pathlib import Path
 import uuid
 from dataclasses import dataclass
+
 from codegen.code_metadata.application.dtos.ingest_project_command import (
     IngestProjectCommand,
 )
@@ -47,11 +47,14 @@ class IngestProject:
             query_imports, with_outbounds=True
         )
         node_reistry.registry_nodes(query_nodes)
-        self.graph_builder.build_edges(
+        edges = self.graph_builder.build_edges(
             node_registry=node_reistry, code_documents=code_documents
         )
         bulk_result = self.sync_service.save_nodes_bulk(
-            node_reistry.upsert_nodes, sync_id, fqn
+            node_reistry.upsert_nodes,
+            sync_id=sync_id,
+            fqn_prefix=fqn,
+            code_edges=edges,
         )
         deleted_count = self.sync_service.delete_stale_nodes(fqn, sync_id)
         return IngestProjectResult(

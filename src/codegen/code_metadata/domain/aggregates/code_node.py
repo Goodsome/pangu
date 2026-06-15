@@ -6,10 +6,10 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from codegen.code_metadata.domain.core.fqn import Fqn
+from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
-from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
@@ -19,6 +19,7 @@ from codegen.code_metadata.domain.value_objects.code_edge import (
     DefinesEdge,
     ImportsEdge,
     InheritsEdge,
+    OverridesEdge,
     create_edge,
 )
 from codegen.shared.domain.core.aggregate_root import AggregateRoot
@@ -138,6 +139,9 @@ class ClassNode(_BaseNode):
         edge = InheritsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
+    def get_inherits_edges(self) -> list[InheritsEdge]:
+        return [e for e in self.outbound_edges if isinstance(e, InheritsEdge)]
+
 
 class FunctionNode(_BaseNode):
     """函数节点：kind 固定为 FUNCTION，由模块节点的 AST 函数定义派生。"""
@@ -164,6 +168,7 @@ class MethodNode(_BaseNode):
     decorator_list: list[AstExpr] = Field(default_factory=list)
     returns: AstExpr | None = None
     body: list[AstStmt] = Field(default_factory=list)
+    check_reachable: bool = True
 
     def defines(self, node: ParameterNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
@@ -171,6 +176,10 @@ class MethodNode(_BaseNode):
 
     def add_returns(self, node: ClassNode | ExternalNode | VariableNode):
         self._add_edge_by_type(EdgeType.RETURNS, node.id)
+
+    def overriden_by(self, node: MethodNode):
+        edge = OverridesEdge(fqn=node.id, direction=EdgeDirection.OUT)
+        self._add_edge(edge)
 
 
 class VariableNode(_BaseNode):

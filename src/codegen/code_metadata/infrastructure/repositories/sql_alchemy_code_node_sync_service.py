@@ -1,19 +1,19 @@
+from collections.abc import Collection
 from dataclasses import dataclass
-from typing import cast
-from typing import override
+from typing import cast, override
 from uuid import UUID
-from sqlalchemy import delete
-from sqlalchemy import select
-from sqlalchemy import or_
-from sqlalchemy.engine import CursorResult
+
+from sqlalchemy import delete, or_, select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine import CursorResult
+from sqlalchemy.orm import Session, sessionmaker
+
 from codegen.code_metadata.application.dtos.bulk_save_result import BulkSaveResult
-from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.application.ports.code_node_sync_service import (
     CodeNodeSyncService,
 )
+from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.dispatcher import (
     code_edge_to_upsert_dict as edge_to_upsert_dict,
 )
@@ -36,7 +36,11 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
 
     @override
     def save_nodes_bulk(
-        self, node_dtos: list[CodeNode], sync_id: str, fqn_prefix: str
+        self,
+        node_dtos: list[CodeNode],
+        sync_id: str,
+        fqn_prefix: str,
+        code_edges: Collection[CodeEdgeAggregate],
     ) -> BulkSaveResult:
         if not node_dtos:
             return BulkSaveResult(nodes_upserted=0, edges_created=0)
@@ -59,6 +63,13 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                 for edge in dto.outbound_edges:
                     if not edge.fqn.startswith(fqn_prefix):
                         external_fqns.add(edge.fqn)
+                        
+            for code_edge in code_edges:
+                if not code_edge.source_id.startswith(fqn_prefix):
+                    external_fqns.add(code_edge.source_id)
+                if not code_edge.target_id.startswith(fqn_prefix):
+                    external_fqns.add(code_edge.target_id)
+                    
             conditions = [CodeNodeModel.fqn.startswith(fqn_prefix)]
             if external_fqns:
                 conditions.append(CodeNodeModel.fqn.in_(external_fqns))
@@ -88,8 +99,29 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                     edge_dict["target_id"] = target_id
                     edge_dict["position"] = idx
                     edge_values.append(edge_dict)
+            for code_edge in code_edges:
+                source_id = fqn_to_id.get(code_edge.source_id)
+                target_id = fqn_to_id.get(code_edge.target_id)
+                if not source_id or not target_id:
+                    continue
+                edge_dict: dict[str, object] = {
+                    "source_id": source_id,
+                    "target_id": target_id,
+                    "type": code_edge.edge_type,
+                    "position": None,
+                    "properties": {}
+                }
+                edge_values.append(edge_dict)
             if edge_values:
-                session.execute(insert(CodeEdgeModel), edge_values)
+                insert_edge_stmt = insert(CodeEdgeModel)
+                insert_edge_stmt = insert_edge_stmt.on_conflict_do_update(
+                    constraint="uq_entity_edge",
+                    set_={
+                        "position": insert_edge_stmt.excluded.position, 
+                        "properties": insert_edge_stmt.excluded.properties,
+                    }
+                )
+                session.execute(insert_edge_stmt, edge_values)
             session.commit()
         return BulkSaveResult(
             nodes_upserted=len(node_values), edges_created=len(edge_values)

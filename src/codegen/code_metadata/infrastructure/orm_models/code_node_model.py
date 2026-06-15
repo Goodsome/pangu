@@ -188,6 +188,18 @@ class MethodNodeModel(CodeNodeModel):
     def _body_setter(self, value: list[dict[str, object]]):
         self.properties = {**self.properties, "body": value}
 
+    @hybrid_property
+    def check_reachable(self) -> bool:
+        return self.properties.get("check_reachable", True)
+
+    @check_reachable.expression
+    def check_reachable(cls) -> ColumnElement[bool]:
+        return cls.properties["check_reachable"].as_boolean()
+
+    @check_reachable.setter
+    def _check_reachable_setter(self, value: bool) -> None:
+        self.properties = {**self.properties, "check_reachable": value}
+
 
 class VariableNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.VARIABLE}

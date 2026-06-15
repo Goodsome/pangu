@@ -25,6 +25,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     CodeNodeModel,
+    MethodNodeModel,
 )
 
 
@@ -163,6 +164,7 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
             EdgeType.RETURNS,
             EdgeType.ACCEPTS,
             EdgeType.TYPED_AS,
+            EdgeType.OVERRIDDES,
         }
         has_usage_inbound = exists().where(
             CodeEdgeModel.target_id == CodeNodeModel.id,
@@ -174,6 +176,8 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
         ]
         if kind:
             conditions.append(CodeNodeModel.kind == kind)
+            if kind == CodeNodeKind.METHOD:
+                conditions.append(MethodNodeModel.check_reachable.is_(True))
         else:
             conditions.append(CodeNodeModel.kind.in_(_SUPPORTED))
         if fqns:

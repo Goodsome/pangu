@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 
 class FileSystemPort(ABC):

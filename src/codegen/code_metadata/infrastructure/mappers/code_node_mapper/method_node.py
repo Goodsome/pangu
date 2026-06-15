@@ -36,6 +36,7 @@ class MethodNodeMapper:
             decorator_list=decorator_list,
             returns=returns,
             body=body,
+            check_reachable=orm_model.check_reachable,
         )
 
     @classmethod
@@ -55,4 +56,5 @@ class MethodNodeMapper:
             "decorator_list": decorator_list,
             "returns": returns,
             "body": body,
+            "check_reachable": dto.check_reachable,
         }

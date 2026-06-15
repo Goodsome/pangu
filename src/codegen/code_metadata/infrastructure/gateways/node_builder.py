@@ -145,14 +145,23 @@ class NodeBuilder(AstVisitor):
     def visit_ast_function_def(self, node: AstFunctionDef):
         parent_node = self.current_node
         _func_fqn = f"{parent_node.id}::{node.name}"
+        check_reachable = True
         if node.is_overload:
             _func_fqn = f"{_func_fqn}<overload_{node.lineno}>"
+            check_reachable = False
         elif node.is_setter_property:
             _func_fqn = f"{_func_fqn}<setter>"
+            check_reachable = False
         elif node.is_deleter_property:
             _func_fqn = f"{_func_fqn}<deleter>"
+            check_reachable = False
         elif node.is_expression_property:
             _func_fqn = f"{_func_fqn}<expression>"
+            check_reachable = False
+        elif node.is_override:
+            check_reachable = False
+        if node.name.startswith("__"):
+            check_reachable = False
         fqn = Fqn(_func_fqn)
         match parent_node:
             case ClassNode():
@@ -163,6 +172,7 @@ class NodeBuilder(AstVisitor):
                     returns=node.returns,
                     body=node.body,
                     is_async=node.is_async,
+                    check_reachable=check_reachable,
                 )
                 parent_node.defines(func_node)
             case ModuleNode():

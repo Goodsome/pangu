@@ -76,6 +76,9 @@ class ReturnsEdge(_BaseEdge):
 class AcceptsEdge(_BaseEdge):
     kind: Literal[EdgeType.ACCEPTS] = EdgeType.ACCEPTS
 
+class OverridesEdge(_BaseEdge):
+    kind: Literal[EdgeType.OVERRIDDES] = EdgeType.OVERRIDDES
+
 
 CodeEdge = Annotated[
     ImportsEdge
@@ -90,7 +93,8 @@ CodeEdge = Annotated[
     | WritesEdge
     | TypedAsEdge
     | ReturnsEdge
-    | AcceptsEdge,
+    | AcceptsEdge
+    | OverridesEdge,
     Field(discriminator="kind"),
 ]
 _edge_adapter: TypeAdapter[CodeEdge] = TypeAdapter(CodeEdge)

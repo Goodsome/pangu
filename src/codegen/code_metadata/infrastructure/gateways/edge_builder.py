@@ -1,15 +1,10 @@
-from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
-from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
-from codegen.shared.domain.enums import PythonBuiltinType
-from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from dataclasses import dataclass, field
 from typing import override
 
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
+from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import (
     ClassNode,
     CodeNode,
@@ -17,10 +12,15 @@ from codegen.code_metadata.domain.aggregates.code_node import (
     FunctionNode,
     MethodNode,
     ModuleNode,
+    ParameterNode,
     VariableNode,
 )
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
+from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
+from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_function_def import AstFunctionDef
@@ -28,9 +28,12 @@ from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
+from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
 from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
+from codegen.shared.domain.enums import PythonBuiltinType
 
 
 @dataclass
@@ -39,8 +42,10 @@ class EdgeBuilder(AstVisitor):
     node_registry: NodeRegistry
     local_aliases: dict[str, str] = field(init=False)
     context: TraversalContext = field(default_factory=TraversalContext)
-    
+
     function_local_aliases: dict[str, str] = field(default_factory=dict)
+
+    edges: set[CodeEdgeAggregate] = field(default_factory=set)
 
     def __post_init__(self):
         self.local_aliases = {}
@@ -49,15 +54,15 @@ class EdgeBuilder(AstVisitor):
                 continue
             target_name = edge.fqn.split("::")[-1]
             self.local_aliases[target_name] = edge.fqn
-    
+
     @property
     def current_node(self) -> CodeNode:
         return self.context.current_node
-    
+
     @property
     def current_edge(self) -> EdgeType | None:
         return self.context.current_edge
-    
+
     def build(self, code_document: CodeDocument):
         self.context.stack_node(self.module)
         self.visit(code_document.body)
@@ -121,7 +126,9 @@ class EdgeBuilder(AstVisitor):
             node = self.node_registry.get_node(external_fqn)
         else:
             node = self._get_internel_node(import_name=import_name, from_name=from_name)
-        assert isinstance(node, ExternalNode | ClassNode | FunctionNode | VariableNode), f"{node=}"
+        assert isinstance(
+            node, ExternalNode | ClassNode | FunctionNode | VariableNode
+        ), f"{node=}"
         self.module.imports(node, is_type_checking=is_type_checking, asname=asname)
         if asname:
             local_alias_key = asname
@@ -142,7 +149,7 @@ class EdgeBuilder(AstVisitor):
 
     @override
     def visit_ast_class_def(self, node: AstClassDef):
-        
+
         class_fqn = f"{self.context.current_node.id}::{node.name}"
         class_node = self.node_registry.get_node(class_fqn)
         assert isinstance(class_node, ClassNode)
@@ -155,11 +162,11 @@ class EdgeBuilder(AstVisitor):
             self.visit(node.body)
 
         self.local_aliases.pop("self")
-        
+
     def _visit_class_bases(self, bases: list[AstExpr]):
         with self.context.visit_edge(EdgeType.INHERITS):
             self.visit(bases)
-    
+
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
         func_fqn = f"{self.context.current_node.id}::{node.name}"
@@ -173,12 +180,33 @@ class EdgeBuilder(AstVisitor):
             func_fqn = f"{func_fqn}<expression>"
         func_node = self.node_registry.get_node(func_fqn)
         assert isinstance(func_node, (MethodNode, FunctionNode)), func_node
+
+        self._build_overriden_edge(func_node=func_node, ast_node=node)
         with self.context.visit_node(func_node):
             self._visit_arguments(node.arguments)
             with self.context.enter_function():
                 self.visit(node.body)
             self._visit_return(node.returns)
-        
+
+    def _build_overriden_edge(
+        self, func_node: MethodNode | FunctionNode, ast_node: AstFunctionDef
+    ):
+        if not isinstance(func_node, MethodNode):
+            return
+        if not ast_node.is_override:
+            return
+        class_node = self.context.current_node
+        assert isinstance(class_node, ClassNode), class_node
+        for edge in class_node.get_inherits_edges():
+            target_fqn = Fqn(f"{edge.fqn}::{func_node.name}")
+            self.edges.add(
+                CodeEdgeAggregate(
+                    source_id=func_node.id,
+                    target_id=target_fqn,
+                    edge_type=EdgeType.OVERRIDDES,
+                )
+            )
+
     def _find_fqn(self, alias: str):
         if alias in self.function_local_aliases:
             return self.function_local_aliases[alias]
@@ -194,7 +222,7 @@ class EdgeBuilder(AstVisitor):
                 if target_fqn:
                     self.function_local_aliases[arg.target.id] = target_fqn
             self.visit(arg)
-        
+
     def _visit_return(self, returns: AstExpr | None):
         with self.context.visit_edge(EdgeType.RETURNS):
             self.visit(returns)
@@ -218,7 +246,7 @@ class EdgeBuilder(AstVisitor):
                 self.visit(elts[:1])
             case _:
                 self.visit(node)
-    
+
     @override
     def visit_ast_ann_assign(self, node: AstAnnAssign):
         target = node.target
@@ -237,7 +265,7 @@ class EdgeBuilder(AstVisitor):
         fqn = self._resolve_expr_to_fqn(node)
         if fqn and self.current_edge:
             self.current_node.add_edge(self.current_edge, fqn)
-            
+
         with self.context.visit_edge(EdgeType.READS):
             self.visit(node.value)
 
@@ -263,8 +291,21 @@ class EdgeBuilder(AstVisitor):
                 return self._find_fqn(name)
             case AstAttribute(value=value, attr=attr):
                 base_fqn = self._resolve_expr_to_fqn(value)
-                if base_fqn:
+                if not base_fqn:
+                    return None
+                base_node = self.node_registry.find_node(base_fqn)
+                if base_node is None:
                     return f"{base_fqn}::{attr}"
-                return None
+                match base_node:
+                    case ModuleNode() | ClassNode() | ExternalNode():
+                        return f"{base_fqn}::{attr}"
+                    case VariableNode() | ParameterNode():
+                        for edge in base_node.outbound_edges:
+                            if edge.kind == EdgeType.TYPED_AS:
+                                return f"{edge.fqn}::{attr}"
+                    case _:
+                        # raise NotImplementedError(f"{base_fqn=}, {self.current_node.id=}")
+                        return None
             case _:
-                return None
+                return
+                # raise NotImplementedError(f"{node=}")

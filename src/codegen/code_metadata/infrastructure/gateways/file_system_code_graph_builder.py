@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
+
 from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
-)
-from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsQuery,
 )
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
+from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 from codegen.code_metadata.infrastructure.gateways.edge_builder import (
@@ -46,22 +46,16 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
     @override
     def build_edges(
         self, node_registry: NodeRegistry, code_documents: list[CodeDocument]
-    ) -> None:
+    ) -> set[CodeEdgeAggregate]:
         fqn_factory = FqnFactory()
-        for code_document in code_documents:
-            if not code_document.is_init_file:
-                continue
+        sorted_docs = sorted(code_documents, key=lambda d: not d.is_init_file)
+        edges: set[CodeEdgeAggregate] = set()
+        for code_document in sorted_docs:
             module_fqn = fqn_factory.build_module_fqn(code_document.physical_path)
             module = node_registry.get_node(module_fqn)
             assert isinstance(module, ModuleNode)
             module_builder = EdgeBuilder(module, node_registry)
             module_builder.build(code_document)
-        for code_document in code_documents:
-            if code_document.is_init_file:
-                continue
-            module_fqn = fqn_factory.build_module_fqn(code_document.physical_path)
-            module = node_registry.get_node(module_fqn)
-            assert isinstance(module, ModuleNode)
-            module_builder = EdgeBuilder(module, node_registry)
-            module_builder.build(code_document)
+            edges.update(module_builder.edges)
 
+        return edges

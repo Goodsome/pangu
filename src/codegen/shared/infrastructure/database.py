@@ -1,18 +1,26 @@
 import logging
 from collections.abc import Iterator
+from dataclasses import dataclass, field
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+
 from codegen.shared.infrastructure.orm_models.base import BaseORM
 
 
+@dataclass
 class Database:
     """Database connection handling using SQLAlchemy."""
 
-    def __init__(self, connection_string: str) -> None:
-        self._engine: Engine = create_engine(connection_string, pool_pre_ping=True)
-        self._session_factory: sessionmaker[Session] = sessionmaker(
+    connection_string: str
+
+    _engine: Engine = field(init=False)
+    _session_factory: sessionmaker[Session] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self._engine = create_engine(self.connection_string, pool_pre_ping=True)
+        self._session_factory = sessionmaker(
             bind=self._engine, expire_on_commit=False, autoflush=False
         )
 

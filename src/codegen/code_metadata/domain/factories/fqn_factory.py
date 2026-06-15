@@ -28,7 +28,7 @@ class FqnFactory:
 
     @staticmethod
     def fqn_to_path(fqn: Fqn) -> Path:
-        module_path = ".".join(fqn.module_fqn.parts)
+        module_path = "/".join(fqn.module_fqn.parts)
         if module_path.startswith("pangu_cli"):
             return Path("apps") / module_path
         elif module_path.startswith("codegen"):

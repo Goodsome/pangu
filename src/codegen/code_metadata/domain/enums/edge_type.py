@@ -16,3 +16,4 @@ class EdgeType(StrEnum):
     TYPED_AS = auto()
     RETURNS = auto()
     ACCEPTS = auto()
+    OVERRIDDES = auto()
