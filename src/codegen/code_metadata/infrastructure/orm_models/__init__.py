@@ -41,9 +41,6 @@ from codegen.code_metadata.infrastructure.orm_models.component_model import (
 from codegen.code_metadata.infrastructure.orm_models.component_model import (
     ComponentModel,
 )
-from codegen.code_metadata.infrastructure.orm_models.component_v2_model import (
-    ComponentV2Model,
-)
 
 __all__ = [
     "AttributeModel",
@@ -61,5 +58,4 @@ __all__ = [
     "VariableNodeModel",
     "ClassComponentModel",
     "ComponentModel",
-    "ComponentV2Model",
 ]

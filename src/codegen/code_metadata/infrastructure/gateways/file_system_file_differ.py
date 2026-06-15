@@ -118,6 +118,8 @@ def build_package_dom(module: ModuleNode) -> CodeDocument:
             value=AstList(elts=all_values)
         )
     )
+    for expr in module.exprs:
+        body.append(AstExprStmt(value=expr))
     return CodeDocument(
         physical_path=physical_path,
         body=body,

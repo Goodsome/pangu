@@ -76,6 +76,7 @@ class ReturnsEdge(_BaseEdge):
 class AcceptsEdge(_BaseEdge):
     kind: Literal[EdgeType.ACCEPTS] = EdgeType.ACCEPTS
 
+
 class OverridesEdge(_BaseEdge):
     kind: Literal[EdgeType.OVERRIDDES] = EdgeType.OVERRIDDES
 
