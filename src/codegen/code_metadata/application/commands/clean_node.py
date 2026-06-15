@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
-from codegen.code_metadata.application.ports.code_node_query_service import CodeNodeQueryService
+from codegen.code_metadata.application.ports.code_node_query_service import (
+    CodeNodeQueryService,
+)
 from codegen.code_metadata.domain.aggregates.code_node import (
     ClassNode,
     ModuleNode,
@@ -24,18 +26,14 @@ class CleanNodeHandler:
     ) -> None:
         node = uow.repository.get(id=Fqn(cmd.fqn))
         match node:
-            case ClassNode():
-                unused_nodes = self.query_service.find_unused_nodes(fqns={node.id})
-                if not unused_nodes:
-                    return
             case ModuleNode():
-                empty_modules = self.query_service.find_empty_modules(
-                    fqns={node.id}
-                )
+                empty_modules = self.query_service.find_empty_modules(fqns={node.id})
                 if not empty_modules:
                     return
             case _:
-                raise NotImplementedError(f"{node.kind=}")
+                unused_nodes = self.query_service.find_unused_nodes(fqns={node.id})
+                if not unused_nodes:
+                    return
 
         node.mark_deleted()
         uow.repository.delete(node)

@@ -37,7 +37,7 @@ class OnNodeDeleted:
         uow: UnitOfWork,
     ) -> Iterable[Command]:
         match event.node_kind:
-            case CodeNodeKind.CLASS:
+            case CodeNodeKind.CLASS | CodeNodeKind.FUNCTION:
                 module_fqn = event.node_id.module_fqn
                 empty_modules = uow.repository.find_empty_modules(fqns={module_fqn})
                 if empty_modules:
@@ -46,5 +46,10 @@ class OnNodeDeleted:
                     yield GenerateCodeCommand(fqns=[module_fqn])
             case CodeNodeKind.MODULE:
                 yield DeleteModuleInPhysicalCommand(fqns=[event.node_id])
+            case CodeNodeKind.EXTERNAL:
+                pass
+            case CodeNodeKind.METHOD | CodeNodeKind.VARIABLE:
+                module_fqn = event.node_id.module_fqn
+                yield GenerateCodeCommand(fqns=[module_fqn])
             case _:
                 raise NotImplementedError(f"{event.node_kind=}")

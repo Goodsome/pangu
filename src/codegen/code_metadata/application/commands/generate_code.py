@@ -28,6 +28,8 @@ class GenerateCode:
         self, cmd: GenerateCodeCommand, _uow: UnitOfWork[CodeNodeRepository]
     ) -> GenerateCodeResult:
         nodes = self.query_service.find_by_fqn_prefixs(cmd.fqns)
+        for node in nodes:
+            logger.info(node.id)
         registry = NodeRegistry.create(nodes=nodes)
         self.code_generator.generate_code_by_nodes(nodes=nodes, node_registry=registry)
         return GenerateCodeResult(code="success")

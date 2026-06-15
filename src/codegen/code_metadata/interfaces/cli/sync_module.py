@@ -1,13 +1,10 @@
 from typing import Annotated
-
 import typer
-from dependency_injector.wiring import Provide, inject
+from dependency_injector.wiring import Provide
+from dependency_injector.wiring import inject
 from rich.console import Console
-
-from codegen.code_metadata.application.commands.sync_module import (
-    SyncModuleCommand,
-    SyncModuleHandler,
-)
+from codegen.code_metadata.application.commands.sync_module import SyncModuleCommand
+from codegen.code_metadata.application.commands.sync_module import SyncModuleHandler
 
 console = Console()
 
@@ -21,9 +18,7 @@ def _sync_module(
 
 
 def sync_module(
-    module_fqn: Annotated[
-        str, typer.Argument(help="The FQN of the module to sync")
-    ],
+    module_fqn: Annotated[str, typer.Argument(help="The FQN of the module to sync")],
 ) -> None:
     """Sync a module: regenerate code or delete empty modules."""
     cmd = SyncModuleCommand(module_fqn=module_fqn)
