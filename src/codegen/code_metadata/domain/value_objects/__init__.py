@@ -68,7 +68,6 @@ from codegen.code_metadata.domain.value_objects.dict_expr import DictExpr
 from codegen.code_metadata.domain.value_objects.dict_item import DictItem
 from codegen.code_metadata.domain.value_objects.expr_def import ExprDef
 from codegen.code_metadata.domain.value_objects.lambda_expr import LambdaExpr
-from codegen.code_metadata.domain.value_objects.parsed_path import ParsedPath
 from codegen.code_metadata.domain.value_objects.reference_expr import ReferenceExpr
 from codegen.code_metadata.domain.value_objects.sequence_expr import SequenceExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
@@ -145,7 +144,6 @@ __all__ = [
     "DictItem",
     "ExprDef",
     "LambdaExpr",
-    "ParsedPath",
     "ReferenceExpr",
     "SequenceExpr",
     "AstStmt",
