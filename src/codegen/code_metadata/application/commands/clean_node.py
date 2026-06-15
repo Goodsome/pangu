@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
 )
+from codegen.code_metadata.application.ports.code_node_sync_service import CodeNodeSyncService
 from codegen.code_metadata.domain.aggregates.code_node import (
     ModuleNode,
 )
@@ -19,6 +20,7 @@ class CleanNodeCommand(Command):
 @dataclass
 class CleanNodeHandler:
     query_service: CodeNodeQueryService
+    sync_service: CodeNodeSyncService
 
     def execute(
         self, cmd: CleanNodeCommand, uow: UnitOfWork[CodeNodeRepository]
@@ -36,3 +38,6 @@ class CleanNodeHandler:
 
         node.mark_deleted()
         uow.repository.delete(node)
+        self.sync_service.delete_stale_nodes(
+            fqn_prefixes=[node.id],
+        )

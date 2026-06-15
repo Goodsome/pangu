@@ -127,10 +127,12 @@ class Container(DeclarativeContainer):
     clean_node: Factory[CleanNodeHandler] = Factory(
         CleanNodeHandler,
         query_service=code_node_query_service,
+        sync_service=code_node_sync_service,
     )
     clean_unused_nodes: Factory[CleanUnusedNodesHandler] = Factory(
         CleanUnusedNodesHandler,
         query_service=code_node_query_service,
+        sync_service=code_node_sync_service,
     )
     ingest_project: Factory[IngestProject] = Factory(
         IngestProject,

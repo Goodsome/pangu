@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import cast, override
 from uuid import UUID
 
-from sqlalchemy import delete, or_, select
+from sqlalchemy import ColumnElement, delete, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session, sessionmaker
@@ -63,13 +63,13 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                 for edge in dto.outbound_edges:
                     if not edge.fqn.startswith(fqn_prefix):
                         external_fqns.add(edge.fqn)
-                        
+
             for code_edge in code_edges:
                 if not code_edge.source_id.startswith(fqn_prefix):
                     external_fqns.add(code_edge.source_id)
                 if not code_edge.target_id.startswith(fqn_prefix):
                     external_fqns.add(code_edge.target_id)
-                    
+
             conditions = [CodeNodeModel.fqn.startswith(fqn_prefix)]
             if external_fqns:
                 conditions.append(CodeNodeModel.fqn.in_(external_fqns))
@@ -109,7 +109,7 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                     "target_id": target_id,
                     "type": code_edge.edge_type,
                     "position": None,
-                    "properties": {}
+                    "properties": {},
                 }
                 edge_values.append(edge_dict)
             if edge_values:
@@ -117,9 +117,9 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                 insert_edge_stmt = insert_edge_stmt.on_conflict_do_update(
                     constraint="uq_entity_edge",
                     set_={
-                        "position": insert_edge_stmt.excluded.position, 
+                        "position": insert_edge_stmt.excluded.position,
                         "properties": insert_edge_stmt.excluded.properties,
-                    }
+                    },
                 )
                 session.execute(insert_edge_stmt, edge_values)
             session.commit()
@@ -128,12 +128,22 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
         )
 
     @override
-    def delete_stale_nodes(self, fqn_prefix: str, current_sync_id: str) -> int:
+    def delete_stale_nodes(
+        self,
+        fqn_prefixes: Collection[str],
+        current_sync_id: str | None = None,
+    ) -> int:
+        if not fqn_prefixes:
+            return 0
+
         with self.session_factory() as session:
-            stmt = delete(CodeNodeModel).where(
-                CodeNodeModel.fqn.startswith(fqn_prefix),
-                CodeNodeModel.last_sync_id != current_sync_id,
-            )
+            prefix_conditions = [
+                CodeNodeModel.fqn.startswith(prefix) for prefix in fqn_prefixes
+            ]
+            conditions: list[ColumnElement[bool]] = [or_(*prefix_conditions)]
+            if current_sync_id:
+                conditions.append(CodeNodeModel.last_sync_id != current_sync_id)
+            stmt = delete(CodeNodeModel).where(*conditions)
             result = session.execute(stmt)
             session.commit()
             return cast(CursorResult[int], result).rowcount

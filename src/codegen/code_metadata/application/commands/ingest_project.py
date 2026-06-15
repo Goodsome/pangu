@@ -56,7 +56,9 @@ class IngestProject:
             fqn_prefix=fqn,
             code_edges=edges,
         )
-        deleted_count = self.sync_service.delete_stale_nodes(fqn, sync_id)
+        deleted_count = self.sync_service.delete_stale_nodes(
+            fqn_prefixes={fqn}, current_sync_id=sync_id
+        )
         return IngestProjectResult(
             nodes_created=bulk_result.nodes_upserted,
             edges_created=bulk_result.edges_created,
