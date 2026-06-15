@@ -112,12 +112,13 @@ def build_package_dom(module: ModuleNode) -> CodeDocument:
                 body.append(import_from)
             case _:
                 pass
-    body.append(
-        AstAssign(
-            targets=[AstName(id="__all__")],
-            value=AstList(elts=all_values)
+    if all_values:
+        body.append(
+            AstAssign(
+                targets=[AstName(id="__all__")],
+                value=AstList(elts=all_values)
+            )
         )
-    )
     for expr in module.exprs:
         body.append(AstExprStmt(value=expr))
     return CodeDocument(
