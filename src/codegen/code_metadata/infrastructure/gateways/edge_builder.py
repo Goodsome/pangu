@@ -59,10 +59,6 @@ class EdgeBuilder(AstVisitor):
     def current_node(self) -> CodeNode:
         return self.context.current_node
 
-    @property
-    def current_edge(self) -> EdgeType | None:
-        return self.context.current_edge
-
     def build(self, code_document: CodeDocument):
         self.context.stack_node(self.module)
         self.visit(code_document.body)
@@ -176,8 +172,11 @@ class EdgeBuilder(AstVisitor):
         self.local_aliases.pop("self")
 
     def _visit_class_bases(self, bases: list[AstExpr]):
-        with self.context.visit_edge(EdgeType.INHERITS):
-            self.visit(bases)
+        for base in bases:
+            fqn = self._resolve_expr_to_fqn(base)
+            if not fqn:
+                continue
+            self.current_node.add_edge(EdgeType.INHERITS, fqn=fqn)
 
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
@@ -236,8 +235,10 @@ class EdgeBuilder(AstVisitor):
             self.visit(arg)
 
     def _visit_return(self, returns: AstExpr | None):
-        with self.context.visit_edge(EdgeType.RETURNS):
-            self.visit(returns)
+        fqn = self._resolve_expr_to_fqn(returns)
+        if fqn:
+            self.current_node.add_edge(EdgeType.RETURNS, fqn)
+        self.visit(returns)
 
     @override
     def visit_ast_assign(self, node: AstAssign):
@@ -253,8 +254,9 @@ class EdgeBuilder(AstVisitor):
     def _visit_annotated_value(self, node: AstExpr | None):
         match node:
             case AstSubscript(value=AstName(id="Annotated"), slice=AstTuple(elts=elts)):
-                with self.context.visit_edge(EdgeType.TYPED_AS):
-                    self.visit(elts[0])
+                fqn = self._resolve_expr_to_fqn(elts[0])
+                if fqn:
+                    self.current_node.add_edge(EdgeType.TYPED_AS, fqn)
                 self.visit(elts[:1])
             case _:
                 self.visit(node)
@@ -266,8 +268,10 @@ class EdgeBuilder(AstVisitor):
             fqn = f"{self.current_node.id}::{target.id}"
             variable_node = self.node_registry.get_node(fqn)
             with self.context.visit_node(variable_node):
-                with self.context.visit_edge(EdgeType.TYPED_AS):
-                    self.visit(node.annotation)
+                fqn = self._resolve_expr_to_fqn(node.annotation)
+                if fqn:
+                    self.current_node.add_edge(EdgeType.TYPED_AS, fqn)
+                self.visit(node.annotation)
                 self.visit(node.value)
         else:
             super().visit_ast_ann_assign(node)
@@ -276,28 +280,25 @@ class EdgeBuilder(AstVisitor):
     def visit_ast_attribute(self, node: AstAttribute):
         fqn = self._resolve_expr_to_fqn(node)
         if fqn:
-            edge = self.current_edge or EdgeType.READS
-            self.current_node.add_edge(edge, fqn)
+            self.current_node.add_edge(EdgeType.READS, fqn)
         
         self.visit(node.value)
 
     @override
     def visit_ast_name(self, node: AstName):
-        if node.id in PythonBuiltinType._value2member_map_:
-            return
-        if not self.current_edge:
-            return
-        fqn = self._find_fqn(node.id)
-        self.current_node.add_edge(self.current_edge, fqn)
-
+        return
+        
     @override
     def visit_ast_call(self, node: AstCall):
-        with self.context.visit_edge(EdgeType.CALLS):
-            self.visit(node.func)
+        fqn = self._resolve_expr_to_fqn(node.func)
+        if fqn:
+            self.current_node.add_edge(EdgeType.CALLS, fqn)
+            
+        self.visit(node.func)
         self.visit(node.args)
         self.visit(node.kwargs)
 
-    def _resolve_expr_to_fqn(self, node: AstExpr) -> Fqn | None:
+    def _resolve_expr_to_fqn(self, node: AstExpr | None) -> Fqn | None:
         match node:
             case AstName(id=name):
                 return self._find_fqn(name)

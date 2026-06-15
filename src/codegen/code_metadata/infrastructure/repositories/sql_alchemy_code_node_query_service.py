@@ -165,6 +165,7 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
             EdgeType.ACCEPTS,
             EdgeType.TYPED_AS,
             EdgeType.OVERRIDDES,
+            EdgeType.READS,
         }
         has_usage_inbound = exists().where(
             CodeEdgeModel.target_id == CodeNodeModel.id,

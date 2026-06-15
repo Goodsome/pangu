@@ -21,12 +21,6 @@ class TraversalContext:
             raise ValueError(f"{self.node_stack} is None")
         return self.node_stack[-1]
 
-    @property
-    def current_edge(self) -> EdgeType | None:
-        if not self.edge_stack:
-            return None
-        return self.edge_stack[-1]
-
     @contextmanager
     def visit_node(self, node: CodeNode) -> Generator[None, None, None]:
         """安全地将节点压入栈中，并在退出上下文时弹出"""
@@ -35,15 +29,6 @@ class TraversalContext:
             yield
         finally:
             self.node_stack.pop()
-
-    @contextmanager
-    def visit_edge(self, edge: EdgeType) -> Generator[None, None, None]:
-        """安全地将边类型压入栈中，并在退出上下文时弹出"""
-        self.edge_stack.append(edge)
-        try:
-            yield
-        finally:
-            self.edge_stack.pop()
 
     @contextmanager
     def visit_attribute(self, attribute: str) -> Generator[None, None, None]:
@@ -70,12 +55,6 @@ class TraversalContext:
     def pop_node(self) -> CodeNode:
         return self.node_stack.pop()
         
-    def stack_edge(self, edge: EdgeType):
-        self.edge_stack.append(edge)
-
-    def pop_edge(self):
-        self.edge_stack.pop()
-
     def stack_attribute(self, attribute: str):
         self.attribute_stack.append(attribute)
     
