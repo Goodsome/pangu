@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import override
-from codegen.code_dom.domain.ports.code_formatter import CodeFormatter
 from codegen.code_dom.domain.ports.code_similarity_calculator import (
     CodeSimilarityCalculator,
 )

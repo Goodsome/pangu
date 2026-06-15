@@ -42,9 +42,6 @@ from codegen.code_metadata.application.queries.trace_symbol_dependencies import 
 from codegen.code_metadata.application.services.dev_progress_service import (
     DevProgressService,
 )
-from codegen.code_metadata.application.services.project_sync_service import (
-    ProjectSyncService,
-)
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.factories.component_policy_factory import (
     ComponentPolicyFactory,
@@ -231,15 +228,6 @@ class Container(DeclarativeContainer):
         GetDevProgressHandler,
         query_service=code_node_query_service,
         file_differ=file_differ,
-    )
-    project_sync_service: Factory[ProjectSyncService] = Factory(
-        ProjectSyncService,
-        parser=python_code_parser,
-        file_system_port=file_system_port,
-        component_policy_factory=component_policy_factory,
-        uow=unit_of_work,
-        path_parser=path_parser,
-        module_uow=module_unit_of_work,
     )
 
     delete_module_in_physical_handler: Factory[DeleteModuleInPhysicalHandler] = Factory(
