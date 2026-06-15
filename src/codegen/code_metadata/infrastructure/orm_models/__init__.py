@@ -1,7 +1,3 @@
-from codegen.code_metadata.infrastructure.orm_models.attribute_model import (
-    AttributeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.behavior_model import BehaviorModel
 from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
     CodeEdgeModel,
 )
@@ -35,12 +31,6 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     VariableNodeModel,
 )
-from codegen.code_metadata.infrastructure.orm_models.component_model import (
-    ClassComponentModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.component_model import (
-    ComponentModel,
-)
 
 __all__ = [
     "AttributeModel",
@@ -56,6 +46,4 @@ __all__ = [
     "ModuleNodeModel",
     "ParameterNodeModel",
     "VariableNodeModel",
-    "ClassComponentModel",
-    "ComponentModel",
 ]

@@ -7,9 +7,6 @@ from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
 from codegen.code_metadata.domain.aggregates.code_node import MethodNode
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_node import VariableNode
-from codegen.code_metadata.domain.aggregates.component import Component
-from codegen.code_metadata.domain.aggregates.component import UnionComponent
-from codegen.code_metadata.domain.aggregates.component import ClassComponent
 
 __all__ = [
     "CodeNode",
@@ -21,7 +18,4 @@ __all__ = [
     "MethodNode",
     "ModuleNode",
     "VariableNode",
-    "Component",
-    "UnionComponent",
-    "ClassComponent",
 ]
