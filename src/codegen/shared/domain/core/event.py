@@ -1,7 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone
 from typing import ClassVar
-from uuid import UUID, uuid4
-from pydantic import BaseModel, Field
+from uuid import UUID
+from uuid import uuid4
+from pydantic import BaseModel
+from pydantic import Field
 from pydantic import ConfigDict
 
 
@@ -14,9 +17,7 @@ class DomainEvent(Event):
 
 
 class IntegrationEvent(Event):
-    
     __domain_entity__: ClassVar[str]
-
     event_id: UUID = Field(default_factory=uuid4)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

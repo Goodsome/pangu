@@ -62,14 +62,6 @@ from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVar
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVarTuple
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstParamSpec
 from codegen.code_metadata.domain.value_objects.ast_type_param import type_param_adapter
-from codegen.code_metadata.domain.value_objects.call_expr import CallExpr
-from codegen.code_metadata.domain.value_objects.constant_expr import ConstantExpr
-from codegen.code_metadata.domain.value_objects.dict_expr import DictExpr
-from codegen.code_metadata.domain.value_objects.dict_item import DictItem
-from codegen.code_metadata.domain.value_objects.expr_def import ExprDef
-from codegen.code_metadata.domain.value_objects.lambda_expr import LambdaExpr
-from codegen.code_metadata.domain.value_objects.reference_expr import ReferenceExpr
-from codegen.code_metadata.domain.value_objects.sequence_expr import SequenceExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_stmt import ast_stmt_adapter
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
@@ -138,14 +130,6 @@ __all__ = [
     "AstTypeVarTuple",
     "AstParamSpec",
     "type_param_adapter",
-    "CallExpr",
-    "ConstantExpr",
-    "DictExpr",
-    "DictItem",
-    "ExprDef",
-    "LambdaExpr",
-    "ReferenceExpr",
-    "SequenceExpr",
     "AstStmt",
     "ast_stmt_adapter",
     "AstExpr",
@@ -153,12 +137,6 @@ __all__ = [
     "MatchPattern",
     "match_pattern_adapter",
 ]
-CallExpr.model_rebuild()
-DictItem.model_rebuild()
-DictExpr.model_rebuild()
-LambdaExpr.model_rebuild()
-SequenceExpr.model_rebuild()
-ReferenceExpr.model_rebuild()
 AstKeyword.model_rebuild()
 Arg.model_rebuild()
 AstAnnAssign.model_rebuild()

@@ -1,4 +1,5 @@
-from typing import Hashable, override
+from typing import Hashable
+from typing import override
 from pydantic import BaseModel
 from pydantic import PrivateAttr
 from pydantic import ConfigDict
