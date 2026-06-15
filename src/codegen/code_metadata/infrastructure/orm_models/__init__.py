@@ -33,8 +33,6 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
 )
 
 __all__ = [
-    "AttributeModel",
-    "BehaviorModel",
     "CodeEdgeModel",
     "ClassNodeModel",
     "CodeNodeModel",
