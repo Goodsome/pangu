@@ -37,9 +37,6 @@ from codegen.code_metadata.application.queries.trace_symbol_dependencies import 
     TraceSymbolDependenciesQueryHandler,
 )
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
-from codegen.code_metadata.domain.factories.component_policy_factory import (
-    ComponentPolicyFactory,
-)
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.code_metadata.infrastructure.gateways.file_system_code_graph_builder import (
     FileSystemCodeGraphBuilder,
@@ -101,12 +98,8 @@ class Container(DeclarativeContainer):
         session_factory=database.provided.session_factory,
         repository_factory=code_node_repository_factory.provider,
     )
-    component_policy_factory: Singleton[ComponentPolicyFactory] = Singleton(
-        ComponentPolicyFactory
-    )
     python_code_generator: Factory[PythonCodeGenerator] = Factory(
         PythonCodeGenerator,
-        component_policy_factory=component_policy_factory,
         generate_code_handler=generate_code_handler,
     )
     code_graph_builder: Factory[CodeGraphBuilder] = Factory(
