@@ -44,24 +44,22 @@ from codegen.code_metadata.infrastructure.orm_models.component_model import (
 from codegen.code_metadata.infrastructure.orm_models.component_v2_model import (
     ComponentV2Model,
 )
-from codegen.code_metadata.infrastructure.orm_models.module_model import ModuleModel
 
 __all__ = [
     "AttributeModel",
     "BehaviorModel",
-    "ClassComponentModel",
-    "ClassNodeModel",
     "CodeEdgeModel",
+    "ClassNodeModel",
     "CodeNodeModel",
-    "ComponentModel",
-    "ComponentV2Model",
     "DirectoryNodeModel",
     "ExternalNodeModel",
     "FileNodeModel",
     "FunctionNodeModel",
     "MethodNodeModel",
-    "ModuleModel",
     "ModuleNodeModel",
     "ParameterNodeModel",
     "VariableNodeModel",
+    "ClassComponentModel",
+    "ComponentModel",
+    "ComponentV2Model",
 ]

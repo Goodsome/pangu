@@ -6,8 +6,8 @@ from uuid import UUID
 from uuid import uuid4
 from codegen.shared.domain.core.value_object import ValueObject
 
+
 class Identifier[T](ValueObject):
-    
     value: T
 
     @override
@@ -17,6 +17,7 @@ class Identifier[T](ValueObject):
     @override
     def __hash__(self) -> int:
         return hash(self.value)
+
 
 class UuidIdentifier(Identifier[UUID]):
     """Unique identifier."""

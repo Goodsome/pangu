@@ -12,16 +12,16 @@ from codegen.code_metadata.domain.aggregates.component import UnionComponent
 from codegen.code_metadata.domain.aggregates.component import ClassComponent
 
 __all__ = [
-    "ClassNode",
     "CodeNode",
-    "Component",
+    "ClassNode",
     "DirectoryNode",
     "ExternalNode",
     "FileNode",
     "FunctionNode",
     "MethodNode",
     "ModuleNode",
-    "UnionComponent",
     "VariableNode",
+    "Component",
+    "UnionComponent",
     "ClassComponent",
 ]
