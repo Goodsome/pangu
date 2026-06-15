@@ -40,10 +40,10 @@ from codegen.shared.domain.enums import PythonBuiltinType
 class EdgeBuilder(AstVisitor):
     module: ModuleNode
     node_registry: NodeRegistry
-    local_aliases: dict[str, str] = field(init=False)
+    local_aliases: dict[str, Fqn] = field(init=False)
     context: TraversalContext = field(default_factory=TraversalContext)
 
-    function_local_aliases: dict[str, str] = field(default_factory=dict)
+    function_local_aliases: dict[str, Fqn] = field(default_factory=dict)
 
     edges: set[CodeEdgeAggregate] = field(default_factory=set)
 
@@ -162,7 +162,7 @@ class EdgeBuilder(AstVisitor):
     @override
     def visit_ast_class_def(self, node: AstClassDef):
 
-        class_fqn = f"{self.context.current_node.id}::{node.name}"
+        class_fqn = Fqn(f"{self.context.current_node.id}::{node.name}")
         class_node = self.node_registry.get_node(class_fqn)
         assert isinstance(class_node, ClassNode)
 
@@ -219,12 +219,12 @@ class EdgeBuilder(AstVisitor):
                 )
             )
 
-    def _find_fqn(self, alias: str):
+    def _find_fqn(self, alias: str) -> Fqn:
         if alias in self.function_local_aliases:
             return self.function_local_aliases[alias]
         if alias in self.local_aliases:
             return self.local_aliases[alias]
-        return alias
+        return Fqn(alias)
 
     def _visit_arguments(self, arguments: list[AstAssign | AstAnnAssign]):
         self.function_local_aliases = {}
@@ -275,11 +275,11 @@ class EdgeBuilder(AstVisitor):
     @override
     def visit_ast_attribute(self, node: AstAttribute):
         fqn = self._resolve_expr_to_fqn(node)
-        if fqn and self.current_edge:
-            self.current_node.add_edge(self.current_edge, fqn)
-
-        with self.context.visit_edge(EdgeType.READS):
-            self.visit(node.value)
+        if fqn:
+            edge = self.current_edge or EdgeType.READS
+            self.current_node.add_edge(edge, fqn)
+        
+        self.visit(node.value)
 
     @override
     def visit_ast_name(self, node: AstName):
@@ -297,7 +297,7 @@ class EdgeBuilder(AstVisitor):
         self.visit(node.args)
         self.visit(node.kwargs)
 
-    def _resolve_expr_to_fqn(self, node: AstExpr) -> str | None:
+    def _resolve_expr_to_fqn(self, node: AstExpr) -> Fqn | None:
         match node:
             case AstName(id=name):
                 return self._find_fqn(name)
@@ -307,14 +307,14 @@ class EdgeBuilder(AstVisitor):
                     return None
                 base_node = self.node_registry.find_node(base_fqn)
                 if base_node is None:
-                    return f"{base_fqn}::{attr}"
+                    return Fqn(f"{base_fqn}::{attr}")
                 match base_node:
                     case ModuleNode() | ClassNode() | ExternalNode():
-                        return f"{base_fqn}::{attr}"
+                        return Fqn(f"{base_fqn}::{attr}")
                     case VariableNode() | ParameterNode():
                         for edge in base_node.outbound_edges:
                             if edge.kind == EdgeType.TYPED_AS:
-                                return f"{edge.fqn}::{attr}"
+                                return Fqn(f"{edge.fqn}::{attr}")
                     case _:
                         # raise NotImplementedError(f"{base_fqn=}, {self.current_node.id=}")
                         return None
