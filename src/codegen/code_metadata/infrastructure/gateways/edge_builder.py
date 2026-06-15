@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import override
 
@@ -16,10 +17,12 @@ from codegen.code_metadata.domain.aggregates.code_node import (
     VariableNode,
 )
 from codegen.code_metadata.domain.core.fqn import Fqn
+from codegen.code_metadata.domain.enums.bin_op import BinOp
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
@@ -254,8 +257,7 @@ class EdgeBuilder(AstVisitor):
     def _visit_annotated_value(self, node: AstExpr | None):
         match node:
             case AstSubscript(value=AstName(id="Annotated"), slice=AstTuple(elts=elts)):
-                fqn = self._resolve_expr_to_fqn(elts[0])
-                if fqn:
+                for fqn in self._resolve_expr_to_fqns(elts[0]):
                     self.current_node.add_edge(EdgeType.TYPED_AS, fqn)
                 self.visit(elts[:1])
             case _:
@@ -322,3 +324,13 @@ class EdgeBuilder(AstVisitor):
             case _:
                 return
                 # raise NotImplementedError(f"{node=}")
+
+    def _resolve_expr_to_fqns(self, node: AstExpr) -> Iterable[Fqn]:
+        match node:
+            case AstName(id=id):
+                yield self._find_fqn(id)
+            case AstBinOp(left=left, op=BinOp.BIT_OR, right=right):
+                yield from self._resolve_expr_to_fqns(left)
+                yield from self._resolve_expr_to_fqns(right)
+            case _:
+                pass
