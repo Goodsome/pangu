@@ -96,7 +96,7 @@ def build_file_dom(
     )
 
 def build_package_dom(module: ModuleNode) -> CodeDocument:
-    physical_path = FqnFactory.fqn_to_path(module.id) / "__int__.py"
+    physical_path = FqnFactory.fqn_to_path(module.id) / "__init__.py"
     body: list[AstStmt] = []
     all_values: list[AstExpr] = []
     for edge in module.outbound_edges:

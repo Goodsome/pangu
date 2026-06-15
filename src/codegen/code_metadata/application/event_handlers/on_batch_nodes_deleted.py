@@ -33,7 +33,7 @@ class OnBatchNodesDeleted:
                     )
                 refresh_module_fqns = module_fqns - empty_module_fqns
                 package_modules: set[Fqn] = set()
-                for module_fqn in refresh_module_fqns:
+                for module_fqn in module_fqns:
                     parent_fqn = module_fqn.parent_fqn
                     if not parent_fqn:
                         return
