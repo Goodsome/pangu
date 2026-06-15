@@ -1,10 +1,9 @@
 import logging
 import re
 from pathlib import Path
-from typing import Annotated, Literal
-
+from typing import Annotated
+from typing import Literal
 from pydantic import Field
-
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
@@ -13,16 +12,14 @@ from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
-from codegen.code_metadata.domain.value_objects.code_edge import (
-    CodeEdge,
-    ContainsEdge,
-    DefinesEdge,
-    ExportsEdge,
-    ImportsEdge,
-    InheritsEdge,
-    OverridesEdge,
-    create_edge,
-)
+from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ExportsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import OverridesEdge
+from codegen.code_metadata.domain.value_objects.code_edge import create_edge
 from codegen.shared.domain.core.aggregate_root import AggregateRoot
 
 logger = logging.getLogger(__name__)
@@ -51,10 +48,7 @@ class _BaseNode(AggregateRoot[Fqn]):
         return ".".join(splits[:-1])
 
     def mark_deleted(self) -> None:
-        event = NodeDeleted(
-            node_id=self.id,
-            node_kind=self.kind,
-        )
+        event = NodeDeleted(node_id=self.id, node_kind=self.kind)
         self.add_domain_event(event)
 
 
@@ -80,9 +74,11 @@ class ModuleNode(_BaseNode):
     @property
     def is_empty(self):
         return not any(
-            edge
-            for edge in self.outbound_edges
-            if isinstance(edge, (ContainsEdge, DefinesEdge))
+            (
+                edge
+                for edge in self.outbound_edges
+                if isinstance(edge, (ContainsEdge, DefinesEdge))
+            )
         )
 
     def contains(self, node: ModuleNode):
@@ -107,14 +103,8 @@ class ModuleNode(_BaseNode):
         )
         self._add_edge(edge)
 
-    def exports(
-        self,
-        node: ClassNode | FunctionNode | VariableNode,
-    ):
-        edge = ExportsEdge(
-            fqn=node.id,
-            direction=EdgeDirection.OUT,
-        )
+    def exports(self, node: ClassNode | FunctionNode | VariableNode):
+        edge = ExportsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
     def get_parent_by_level(self, level: int) -> str:

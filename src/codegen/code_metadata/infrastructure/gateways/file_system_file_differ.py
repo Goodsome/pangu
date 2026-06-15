@@ -20,6 +20,8 @@ from codegen.code_metadata.domain.aggregates.code_node import (
     VariableNode,
 )
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
+from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
+from codegen.code_metadata.domain.value_objects import AstConstant, AstExpr, AstList
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
@@ -36,6 +38,7 @@ from codegen.code_metadata.domain.value_objects.code_edge import (
     CodeEdge,
     ContainsEdge,
     DefinesEdge,
+    ExportsEdge,
     ImportsEdge,
     InheritsEdge,
     ReadsEdge,
@@ -59,11 +62,18 @@ class FileSystemFileDiffer(FileDiffer):
 def module_node_dto_to_code_document(
     module: ModuleNode, node_registry: NodeRegistry
 ) -> CodeDocument:
-    physical_path = Path("src") / module.id.replace(".", "/")
     if module.is_package:
-        physical_path = physical_path / "__init__.py"
+        return build_package_dom(module)
     else:
-        physical_path = physical_path.with_suffix(".py")
+        return build_file_dom(
+            module=module,
+            node_registry=node_registry,
+        )
+
+def build_file_dom(
+    module: ModuleNode, node_registry: NodeRegistry
+) -> CodeDocument:
+    physical_path = FqnFactory.fqn_to_path(module.id).with_suffix(".py")
     imports: list[AstStmt] = []
     if_imports: list[AstStmt] = []
     body: list[AstStmt] = []
@@ -83,6 +93,35 @@ def module_node_dto_to_code_document(
         imports.append(AstIf(test=AstName(id="TYPE_CHECKING"), body=if_imports))
     return CodeDocument(
         physical_path=physical_path, body=imports + body, description=module.description
+    )
+
+def build_package_dom(module: ModuleNode) -> CodeDocument:
+    physical_path = FqnFactory.fqn_to_path(module.id) / "__int__.py"
+    body: list[AstStmt] = []
+    all_values: list[AstExpr] = []
+    for edge in module.outbound_edges:
+        match edge:
+            case ExportsEdge(fqn=fqn):
+                node_name = fqn.symbol
+                constant = AstConstant(value=node_name)
+                all_values.append(constant)
+                import_from = AstImportFrom(
+                    module=fqn.module_fqn,
+                    names=[AstAlias(name=node_name)]
+                )
+                body.append(import_from)
+            case _:
+                pass
+    body.append(
+        AstAssign(
+            targets=[AstName(id="__all__")],
+            value=AstList(elts=all_values)
+        )
+    )
+    return CodeDocument(
+        physical_path=physical_path,
+        body=body,
+        description=module.description
     )
 
 def edge_to_ast_stmt(edge: CodeEdge, node_registry: NodeRegistry) -> AstStmt:

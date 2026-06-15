@@ -1,7 +1,5 @@
 from typing import override
-
 from pydantic import BaseModel
-
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 
