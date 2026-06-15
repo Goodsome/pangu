@@ -54,7 +54,7 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
         conditions = [CodeNodeModel.fqn.startswith(p) for p in fqn_prefixs]
         stmt = (
             select(CodeNodeModel)
-            .where(*conditions)
+            .where(or_(*conditions))
             .options(
                 selectinload(CodeNodeModel.outbound_edges).joinedload(
                     CodeEdgeModel.target_entity
