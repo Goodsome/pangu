@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     database_url: PostgresDsn | None = Field(
         default=None, description="PostgreSQL Database Connection String"
     )
-    redis_url: str
+    redis_url: str | None = Field(
+        default=None, description="Redis Connection String"
+    )
         
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent.parent.parent / ".env",
