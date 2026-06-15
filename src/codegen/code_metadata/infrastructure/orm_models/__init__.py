@@ -41,48 +41,26 @@ from codegen.code_metadata.infrastructure.orm_models.component_model import (
 from codegen.code_metadata.infrastructure.orm_models.component_model import (
     ComponentModel,
 )
-from codegen.code_metadata.infrastructure.orm_models.component_model import (
-    UnionComponentModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.component_v2_model import (
-    ClassComponentV2Model,
-)
 from codegen.code_metadata.infrastructure.orm_models.component_v2_model import (
     ComponentV2Model,
 )
-from codegen.code_metadata.infrastructure.orm_models.component_v2_model import (
-    UnionComponentV2Model,
-)
-from codegen.code_metadata.infrastructure.orm_models.module_model import (
-    DirectoryModuleModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.module_model import (
-    ExternalModuleModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.module_model import FileModuleModel
 from codegen.code_metadata.infrastructure.orm_models.module_model import ModuleModel
 
 __all__ = [
     "AttributeModel",
     "BehaviorModel",
     "ClassComponentModel",
-    "ClassComponentV2Model",
     "ClassNodeModel",
     "CodeEdgeModel",
     "CodeNodeModel",
     "ComponentModel",
     "ComponentV2Model",
-    "DirectoryModuleModel",
     "DirectoryNodeModel",
-    "ExternalModuleModel",
     "ExternalNodeModel",
-    "FileModuleModel",
     "FileNodeModel",
     "FunctionNodeModel",
     "MethodNodeModel",
     "ModuleModel",
-    "UnionComponentModel",
-    "UnionComponentV2Model",
     "ModuleNodeModel",
     "ParameterNodeModel",
     "VariableNodeModel",

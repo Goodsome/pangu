@@ -17,6 +17,7 @@ from codegen.code_metadata.domain.value_objects.code_edge import (
     CodeEdge,
     ContainsEdge,
     DefinesEdge,
+    ExportsEdge,
     ImportsEdge,
     InheritsEdge,
     OverridesEdge,
@@ -103,6 +104,16 @@ class ModuleNode(_BaseNode):
             direction=EdgeDirection.OUT,
             asname=asname,
             is_type_checking=is_type_checking,
+        )
+        self._add_edge(edge)
+
+    def exports(
+        self,
+        node: ClassNode | FunctionNode | VariableNode,
+    ):
+        edge = ExportsEdge(
+            fqn=node.id,
+            direction=EdgeDirection.OUT,
         )
         self._add_edge(edge)
 

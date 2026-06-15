@@ -10,10 +10,6 @@ from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.aggregates.component import Component
 from codegen.code_metadata.domain.aggregates.component import UnionComponent
 from codegen.code_metadata.domain.aggregates.component import ClassComponent
-from codegen.code_metadata.domain.aggregates.module import Module
-from codegen.code_metadata.domain.aggregates.module import FileModule
-from codegen.code_metadata.domain.aggregates.module import DirectoryModule
-from codegen.code_metadata.domain.aggregates.module import ExternalModule
 
 __all__ = [
     "ClassNode",
@@ -24,12 +20,8 @@ __all__ = [
     "FileNode",
     "FunctionNode",
     "MethodNode",
-    "Module",
     "ModuleNode",
     "UnionComponent",
     "VariableNode",
     "ClassComponent",
-    "FileModule",
-    "DirectoryModule",
-    "ExternalModule",
 ]

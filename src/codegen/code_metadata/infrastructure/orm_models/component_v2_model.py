@@ -29,24 +29,3 @@ class ComponentV2Model(BaseORM):
     description: Mapped[str] = mapped_column(Text)
     layer: Mapped[str] = mapped_column(String(50), index=True, server_default="unknown")
     position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
-
-
-class UnionComponentV2Model(ComponentV2Model):
-    __mapper_args__ = {"polymorphic_identity": "union"}
-    members: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-    discriminator: Mapped[str | None] = mapped_column(String(255), nullable=True)
-
-
-class ClassComponentV2Model(ComponentV2Model):
-    __mapper_args__ = {"polymorphic_identity": "class"}
-    bases: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-    attributes: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-    behaviors: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )

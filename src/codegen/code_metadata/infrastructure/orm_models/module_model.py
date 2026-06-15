@@ -31,24 +31,3 @@ class ModuleModel(BaseORM):
         order_by="ComponentV2Model.position",
         collection_class=ordering_list("position"),
     )
-
-
-class FileModuleModel(ModuleModel):
-    __mapper_args__ = {"polymorphic_identity": "file"}
-    dependencies: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-
-
-class DirectoryModuleModel(ModuleModel):
-    __mapper_args__ = {"polymorphic_identity": "directory"}
-    public_component_ids: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-    sub_module_ids: Mapped[list[UUID]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-
-
-class ExternalModuleModel(ModuleModel):
-    __mapper_args__ = {"polymorphic_identity": "external"}

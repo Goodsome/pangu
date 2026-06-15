@@ -35,14 +35,6 @@ class ComponentModel(BaseORM):
     layer: Mapped[str] = mapped_column(String(50), index=True, server_default="unknown")
 
 
-class UnionComponentModel(ComponentModel):
-    __mapper_args__ = {"polymorphic_identity": "union"}
-    members: Mapped[list[UUID]] = mapped_column(
-        JSONB, default=list, server_default="[]"
-    )
-    discriminator: Mapped[str | None] = mapped_column(String(255), nullable=True)
-
-
 class ClassComponentModel(ComponentModel):
     __mapper_args__ = {"polymorphic_identity": "class"}
     bases: Mapped[list[dict[str, Any]]] = mapped_column(
