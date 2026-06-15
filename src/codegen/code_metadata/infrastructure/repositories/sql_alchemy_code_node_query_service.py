@@ -172,7 +172,8 @@ class SqlAlchemyCodeNodeQueryService(CodeNodeQueryService):
         )
         conditions: list[ColumnElement[bool]] = [
             not_(has_usage_inbound),
-            not_(CodeNodeModel.fqn.startswith("apps"))
+            not_(CodeNodeModel.fqn.startswith("apps.")),
+            not_(CodeNodeModel.fqn.startswith("codegen.shared.")),
         ]
         if kind:
             conditions.append(CodeNodeModel.kind == kind)
