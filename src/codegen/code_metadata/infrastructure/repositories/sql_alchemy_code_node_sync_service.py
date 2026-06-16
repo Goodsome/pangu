@@ -1,13 +1,16 @@
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import cast, override
+from typing import cast
+from typing import override
 from uuid import UUID
-
-from sqlalchemy import ColumnElement, delete, or_, select
+from sqlalchemy import ColumnElement
+from sqlalchemy import delete
+from sqlalchemy import or_
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import CursorResult
-from sqlalchemy.orm import Session, sessionmaker
-
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 from codegen.code_metadata.application.dtos.bulk_save_result import BulkSaveResult
 from codegen.code_metadata.application.ports.code_node_sync_service import (
     CodeNodeSyncService,
@@ -36,10 +39,7 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
 
     @override
     def save_nodes_bulk(
-        self,
-        node_dtos: list[CodeNode],
-        sync_id: str,
-        fqn_prefix: str,
+        self, node_dtos: list[CodeNode], sync_id: str, fqn_prefix: str
     ) -> BulkSaveResult:
         if not node_dtos:
             return BulkSaveResult(nodes_upserted=0, edges_created=0)
@@ -62,7 +62,6 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                 for edge in dto.outbound_edges:
                     if not edge.fqn.startswith(fqn_prefix):
                         external_fqns.add(edge.fqn)
-
             conditions = [CodeNodeModel.fqn.startswith(fqn_prefix)]
             if external_fqns:
                 conditions.append(CodeNodeModel.fqn.in_(external_fqns))
@@ -109,13 +108,10 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
 
     @override
     def delete_stale_nodes(
-        self,
-        fqn_prefixes: Collection[str],
-        current_sync_id: str | None = None,
+        self, fqn_prefixes: Collection[str], current_sync_id: str | None = None
     ) -> int:
         if not fqn_prefixes:
             return 0
-
         with self.session_factory() as session:
             prefix_conditions = [
                 CodeNodeModel.fqn.startswith(prefix) for prefix in fqn_prefixes

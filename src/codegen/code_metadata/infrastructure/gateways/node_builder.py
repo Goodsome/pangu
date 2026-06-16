@@ -1,19 +1,17 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 from typing import override
-
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import (
-    ClassNode,
-    CodeNode,
-    FunctionNode,
-    MethodNode,
-    ModuleNode,
-    ParameterNode,
-    VariableNode,
-)
+from codegen.code_metadata.domain.aggregates.code_node import ClassNode
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
+from codegen.code_metadata.domain.aggregates.code_node import MethodNode
+from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
+from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
+from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
@@ -34,7 +32,6 @@ class NodeBuilder(AstVisitor):
     fqn_factory: FqnFactory
     node_registery: NodeRegistry
     imports: set[str] = field(default_factory=set)
-
     node_stack: list[CodeNode] = field(default_factory=list)
     _current_module: ModuleNode | None = None
     _in_function_body: bool = False
@@ -77,9 +74,9 @@ class NodeBuilder(AstVisitor):
         module_path = module.get_physical_path()
         if module_path.with_suffix("") == self.root_path:
             return
-        assert len(module_path.parts) >= len(self.root_path.parts), (
-            f"module_path={module_path!r} not under self.root_path={self.root_path!r}"
-        )
+        assert len(module_path.parts) >= len(
+            self.root_path.parts
+        ), f"module_path={module_path!r} not under self.root_path={self.root_path!r}"
         parent_path = module_path.parent
         parent = self._find_or_create_module(parent_path)
         parent.is_package = True
@@ -91,10 +88,8 @@ class NodeBuilder(AstVisitor):
         node.description = code_document.description
         node.is_package = path.name == "__init__.py"
         self._ensure_parent_module(node)
-
         self._current_module = node
         self.node_stack.append(node)
-
         self.visit(code_document.body)
         return node
 
@@ -107,9 +102,7 @@ class NodeBuilder(AstVisitor):
     @override
     def visit_ast_import_from(self, node: AstImportFrom):
         from_module = get_import_from_module(
-            origin_module=node.module,
-            level=node.level,
-            module_node=self.current_module,
+            origin_module=node.module, level=node.level, module_node=self.current_module
         )
         self.imports.add(from_module)
         return super().visit_ast_import_from(node)
@@ -118,13 +111,11 @@ class NodeBuilder(AstVisitor):
     def visit_ast_expr_stmt(self, node: AstExprStmt):
         if isinstance(self.current_node, ModuleNode):
             self.current_node.exprs.append(node.value)
-
         return super().visit_ast_expr_stmt(node)
 
     @override
     def visit_ast_class_def(self, node: AstClassDef):
         assert isinstance(self.current_node, ModuleNode)
-
         class_fqn = Fqn(f"{self.current_node.id}::{node.name}")
         class_node = ClassNode(
             id=class_fqn,
@@ -135,7 +126,6 @@ class NodeBuilder(AstVisitor):
             type_params=node.type_params,
         )
         self._add_node(class_node)
-
         self.current_node.defines(class_node)
         self.node_stack.append(class_node)
         super().visit_ast_class_def(node)
@@ -188,12 +178,9 @@ class NodeBuilder(AstVisitor):
             case MethodNode():
                 return
             case _:
-                raise NotImplementedError(f"{parent_node=}")
-
+                raise NotImplementedError(f"parent_node={parent_node!r}")
         self._add_node(func_node)
-
         self.node_stack.append(func_node)
-
         self.visit(node.decorator_list)
         for arg in node.arguments:
             self.visit(arg)
@@ -202,16 +189,13 @@ class NodeBuilder(AstVisitor):
         self._in_function_body = False
         if node.returns is not None:
             self.visit(node.returns)
-
         self.node_stack.pop()
 
     @override
     def visit_ast_assign(self, node: AstAssign) -> None:
         target = node.target
         self._create_variable_node(
-            target=target,
-            annotation=node.annotation,
-            value=node.value,
+            target=target, annotation=node.annotation, value=node.value
         )
         return super().visit_ast_assign(node)
 
@@ -219,9 +203,7 @@ class NodeBuilder(AstVisitor):
     def visit_ast_ann_assign(self, node: AstAnnAssign):
         target = node.target
         self._create_variable_node(
-            target=target,
-            annotation=node.annotation,
-            value=node.value,
+            target=target, annotation=node.annotation, value=node.value
         )
         return super().visit_ast_ann_assign(node)
 

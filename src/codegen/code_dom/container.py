@@ -46,7 +46,7 @@ class Container(DeclarativeContainer):
     )
     code_generator: Factory[CodeGenerator] = Factory(AstCodeGenerator)
     code_similarity_calculator: Factory[CodeSimilarityCalculator] = Factory(
-        AstCodeSimilarityCalculator,
+        AstCodeSimilarityCalculator
     )
     get_code_document_diff: Factory[GetCodeDocumentDiffHandler] = Factory(
         GetCodeDocumentDiffHandler,

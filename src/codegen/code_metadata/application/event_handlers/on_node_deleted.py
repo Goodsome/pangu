@@ -1,9 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
-
-from codegen.code_metadata.application.commands.clean_node import (
-    CleanNodeCommand,
-)
+from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand
 from codegen.code_metadata.application.commands.delete_module_in_physical import (
     DeleteModuleInPhysicalCommand,
 )
@@ -19,22 +16,16 @@ from codegen.shared.domain.core.command import Command
 
 @dataclass
 class OnNodeDeleted:
-    def send_to_outbox(
-        self,
-        event: NodeDeleted,
-        uow: UnitOfWork,
-    ) -> Iterable[Command]:
+
+    def send_to_outbox(self, event: NodeDeleted, uow: UnitOfWork) -> Iterable[Command]:
         integration_event = NodeDeletedIntegrationEvent(
-            node_id=event.node_id,
-            node_kind=event.node_kind,
+            node_id=event.node_id, node_kind=event.node_kind
         )
         uow.save_outbox_message(integration_event)
         yield from []
 
     def handle_clean_node(
-        self,
-        event: NodeDeletedIntegrationEvent,
-        uow: UnitOfWork,
+        self, event: NodeDeletedIntegrationEvent, uow: UnitOfWork
     ) -> Iterable[Command]:
         match event.node_kind:
             case CodeNodeKind.CLASS | CodeNodeKind.FUNCTION:
@@ -52,4 +43,4 @@ class OnNodeDeleted:
                 module_fqn = event.node_id.module_fqn
                 yield GenerateCodeCommand(fqns=[module_fqn])
             case _:
-                raise NotImplementedError(f"{event.node_kind=}")
+                raise NotImplementedError(f"event.node_kind={event.node_kind!r}")

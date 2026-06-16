@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Collection
 from uuid import UUID
-
 from codegen.code_metadata.application.dtos.code_node_detail_dto import (
     CodeNodeDetailDto,
 )
@@ -17,7 +17,7 @@ class CodeNodeQueryService(ABC):
     def find_by_fqn_prefix(self, fqn_prefix: str) -> list[CodeNode]:
         """查询 fqn 以指定前缀开头的所有 CodeNode（含根节点自身）。"""
         pass
-        
+
     @abstractmethod
     def find_by_fqn_prefixs(self, fqn_prefixs: Collection[str]) -> list[CodeNode]:
         pass
@@ -46,9 +46,7 @@ class CodeNodeQueryService(ABC):
 
     @abstractmethod
     def find_unused_nodes(
-        self,
-        kind: CodeNodeKind | None = None,
-        fqns: Collection[str] | None = None,
+        self, kind: CodeNodeKind | None = None, fqns: Collection[str] | None = None
     ) -> list[CodeNode]:
         """查询指定类型下未被使用的节点（支持 CLASS、FUNCTION、VARIABLE）。
 
@@ -57,17 +55,10 @@ class CodeNodeQueryService(ABC):
         pass
 
     @abstractmethod
-    def find_all_dead_nodes_cascading(
-        self,
-        kind: CodeNodeKind,
-    ) -> list[CodeNode]:
-        ...
+    def find_all_dead_nodes_cascading(self, kind: CodeNodeKind) -> list[CodeNode]: ...
 
     @abstractmethod
-    def find_empty_modules(
-        self,
-        fqns: Collection[Fqn] | None = None,
-    ) -> list[CodeNode]:
+    def find_empty_modules(self, fqns: Collection[Fqn] | None = None) -> list[CodeNode]:
         """查找没有 DEFINES 出边的 MODULE 节点。
 
         Args:

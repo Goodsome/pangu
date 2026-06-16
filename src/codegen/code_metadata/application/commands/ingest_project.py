@@ -1,6 +1,5 @@
 import uuid
 from dataclasses import dataclass
-
 from codegen.code_metadata.application.dtos.ingest_project_command import (
     IngestProjectCommand,
 )
@@ -51,9 +50,7 @@ class IngestProject:
             node_registry=node_reistry, code_documents=code_documents
         )
         bulk_result = self.sync_service.save_nodes_bulk(
-            node_reistry.upsert_nodes,
-            sync_id=sync_id,
-            fqn_prefix=fqn,
+            node_reistry.upsert_nodes, sync_id=sync_id, fqn_prefix=fqn
         )
         deleted_count = self.sync_service.delete_stale_nodes(
             fqn_prefixes={fqn}, current_sync_id=sync_id

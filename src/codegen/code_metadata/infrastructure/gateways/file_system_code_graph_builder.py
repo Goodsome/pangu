@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-
 from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
+)
+from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsQuery,
 )
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
@@ -12,9 +13,7 @@ from codegen.code_metadata.application.registry.node_registry import NodeRegistr
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
-from codegen.code_metadata.infrastructure.gateways.edge_builder import (
-    EdgeBuilder,
-)
+from codegen.code_metadata.infrastructure.gateways.edge_builder import EdgeBuilder
 from codegen.code_metadata.infrastructure.gateways.node_builder import NodeBuilder
 
 
@@ -55,4 +54,3 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
             assert isinstance(module, ModuleNode)
             module_builder = EdgeBuilder(module, node_registry)
             module_builder.build(code_document)
-

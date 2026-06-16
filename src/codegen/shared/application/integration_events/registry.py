@@ -1,13 +1,16 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 import logging
-
-
-from codegen.shared.application.integration_events.batch_nodes_deleted import BatchNodesDeletedIntegrationEvent
+from codegen.shared.application.integration_events.batch_nodes_deleted import (
+    BatchNodesDeletedIntegrationEvent,
+)
 from codegen.shared.domain.core.event import IntegrationEvent
-from codegen.shared.application.integration_events.node_deleted import NodeDeletedIntegrationEvent
-
+from codegen.shared.application.integration_events.node_deleted import (
+    NodeDeletedIntegrationEvent,
+)
 
 logger = logging.getLogger("event_hub.registry")
+
 
 @dataclass
 class EventRegistry:
@@ -23,7 +26,9 @@ class EventRegistry:
             if existing is not event_class:
                 logger.warning(
                     "⚠️ 事件类型 %r 已注册为 %s，将被覆盖为 %s",
-                    name, existing.__module__, event_class.__module__,
+                    name,
+                    existing.__module__,
+                    event_class.__module__,
                 )
         self._entries[name] = event_class
         logger.debug("📋 注册事件类型: %s → %s", name, event_class)

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
-
 from codegen.code_metadata.domain.core.fqn import Fqn
 
 
@@ -33,5 +32,5 @@ class FqnFactory:
             return Path("apps") / module_path
         elif module_path.startswith("codegen"):
             return Path("src") / module_path
-        else: 
+        else:
             return Path("src") / module_path

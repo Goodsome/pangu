@@ -280,7 +280,9 @@ class AstToStmt:
         return result
 
     @staticmethod
-    def to_ast_function_def(node: ast.FunctionDef | ast.AsyncFunctionDef) -> AstFunctionDef:
+    def to_ast_function_def(
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> AstFunctionDef:
         arguments = AstToStmt.arguments_to_assigns(node.args)
         return AstFunctionDef(
             lineno=node.lineno,

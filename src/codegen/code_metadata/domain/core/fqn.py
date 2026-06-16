@@ -1,6 +1,6 @@
 import re
-from typing import Any, ClassVar
-
+from typing import Any
+from typing import ClassVar
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
 
@@ -9,14 +9,14 @@ class Fqn(str):
     """支持任意深度、统一处理模块与符号层级的 FQN 强类型字符串。 格式要求：module_path[::symbol_1][::symbol_2]..."""
 
     _FQN_PATTERN: ClassVar[re.Pattern[str]] = re.compile(
-        r"^[a-zA-Z0-9_.]+(?:::[a-zA-Z0-9_]+(?:<[a-zA-Z0-9_]+>)?)*$"
+        "^[a-zA-Z0-9_.]+(?:::[a-zA-Z0-9_]+(?:<[a-zA-Z0-9_]+>)?)*$"
     )
 
     def __new__(cls, value: str) -> Fqn:
         if not cls._FQN_PATTERN.match(value):
             raise ValueError(f"Invalid FQN format: {value}")
         return super().__new__(cls, value)
-        
+
     @property
     def module_fqn(self) -> Fqn:
         """获取纯模块路径（第一个 :: 之前的部分）"""
@@ -51,7 +51,6 @@ class Fqn(str):
     @property
     def parts(self) -> tuple[str, ...]:
         """将完整的层级拆解为元组（兼容 . 和 :: 的全路径打平）"""
-        # 将所有的 :: 替换为 .，然后统一拆分
         return tuple(self.replace("::", ".").split("."))
 
     @classmethod
@@ -59,8 +58,7 @@ class Fqn(str):
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         return core_schema.no_info_after_validator_function(
-            cls._validate,
-            core_schema.str_schema(),
+            cls._validate, core_schema.str_schema()
         )
 
     @classmethod

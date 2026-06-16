@@ -2,7 +2,6 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.ports.code_parser import CodeParser
 from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt

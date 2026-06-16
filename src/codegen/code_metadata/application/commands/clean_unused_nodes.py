@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-
 from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
 )
@@ -35,11 +34,9 @@ class CleanUnusedNodesHandler:
                 )
         if not nodes:
             return
-
         clean_node_ids = [n.id for n in nodes]
         self.sync_service.delete_stale_nodes(fqn_prefixes=clean_node_ids)
         event = BatchNodesDeletedIntegrationEvent(
-            node_ids=[n.id for n in nodes],
-            node_kind=cmd.kind,
+            node_ids=[n.id for n in nodes], node_kind=cmd.kind
         )
         uow.save_outbox_message(event)

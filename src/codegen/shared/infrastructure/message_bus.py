@@ -1,8 +1,9 @@
 from collections.abc import Iterable
 import logging
 from dataclasses import dataclass
-from typing import Any, Protocol, assert_never
-
+from typing import Any
+from typing import Protocol
+from typing import assert_never
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
 from codegen.shared.domain.core.command import Command
 from codegen.shared.domain.core.event import Event
@@ -12,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 class CommandHandler[T_Command: Command, T_UnitOfWork](Protocol):
 
-    def __call__(self, cmd: T_Command, uow: T_UnitOfWork) -> None:
-        ...
+    def __call__(self, cmd: T_Command, uow: T_UnitOfWork) -> None: ...
+
 
 class EventHanlder[T_Event: Event, T_UnitOfWork](Protocol):
 
-    def __call__(self, event: T_Event, uow: T_UnitOfWork) -> Iterable[Command]:
-        ...
+    def __call__(self, event: T_Event, uow: T_UnitOfWork) -> Iterable[Command]: ...
+
 
 @dataclass
 class BaseMessageBus[T: UnitOfWork[Any]]:
@@ -28,11 +29,10 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
 
     def handle(self, message: Command | Event) -> None:
         queue = [message]
-
         with self.uow:
             while queue:
                 msg = queue.pop(0)
-                logger.info(f"handle {msg=}")
+                logger.info(f"handle msg={msg!r}")
                 match msg:
                     case Command():
                         self._handle_command(msg)
@@ -43,21 +43,18 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
                             queue.append(cmd)
                     case _:
                         assert_never(msg)
-                            
             self.uow.commit()
 
     def _handle_command(self, command: Command) -> None:
         handler = self.command_handlers.get(type(command))
         if not handler:
-            raise NotImplementedError(f"{type(command)=}")
-
+            raise NotImplementedError(f"type(command)={type(command)!r}")
         try:
             handler(command, self.uow)
         except Exception:
             logger.exception(f"Exception handling command {command}")
             raise
 
-        
     def _handle_event(self, event: Event) -> Iterable[Command]:
         for handler in self.event_handlers.get(type(event), []):
             try:

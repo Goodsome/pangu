@@ -28,7 +28,7 @@ def ingest_project(
         typer.Argument(
             help="The prefix of the bounded context to ingest, e.g. src/codegen/code_metadata"
         ),
-    ]="codegen",
+    ] = "codegen",
 ) -> None:
     """Scan a bounded context's directory tree into the CodeNode graph."""
     cmd = IngestProjectCommand(prefix=prefix)

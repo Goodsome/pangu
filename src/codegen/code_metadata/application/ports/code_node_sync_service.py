@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Collection
-
 from codegen.code_metadata.application.dtos.bulk_save_result import BulkSaveResult
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
@@ -11,10 +11,7 @@ class CodeNodeSyncService(ABC):
 
     @abstractmethod
     def save_nodes_bulk(
-        self,
-        node_dtos: list[CodeNode],
-        sync_id: str,
-        fqn_prefix: str,
+        self, node_dtos: list[CodeNode], sync_id: str, fqn_prefix: str
     ) -> BulkSaveResult: ...
 
     @abstractmethod

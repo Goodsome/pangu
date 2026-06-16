@@ -1,21 +1,19 @@
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from typing import override
-
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
-from codegen.code_metadata.domain.aggregates.code_node import (
-    ClassNode,
-    CodeNode,
-    ExternalNode,
-    FunctionNode,
-    MethodNode,
-    ModuleNode,
-    ParameterNode,
-    VariableNode,
-)
+from codegen.code_metadata.domain.aggregates.code_node import ClassNode
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
+from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
+from codegen.code_metadata.domain.aggregates.code_node import MethodNode
+from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
+from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
+from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.bin_op import BinOp
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
@@ -45,7 +43,6 @@ class EdgeBuilder(AstVisitor):
     node_registry: NodeRegistry
     local_aliases: dict[str, Fqn] = field(init=False)
     context: TraversalContext = field(default_factory=TraversalContext)
-
     function_local_aliases: dict[str, Fqn] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -126,19 +123,13 @@ class EdgeBuilder(AstVisitor):
         if self.module.is_package:
             assert isinstance(
                 node, ClassNode | FunctionNode | VariableNode
-            ), f"{node=}"
-            self.module.exports(
-                node
-            )
+            ), f"node={node!r}"
+            self.module.exports(node)
         else:
             assert isinstance(
                 node, ExternalNode | ClassNode | FunctionNode | VariableNode
-            ), f"{node=}"
-            self.module.imports(
-                node,
-                is_type_checking=is_type_checking,
-                asname=asname,
-            )
+            ), f"node={node!r}"
+            self.module.imports(node, is_type_checking=is_type_checking, asname=asname)
         if asname:
             local_alias_key = asname
         else:
@@ -158,18 +149,14 @@ class EdgeBuilder(AstVisitor):
 
     @override
     def visit_ast_class_def(self, node: AstClassDef):
-
         class_fqn = Fqn(f"{self.context.current_node.id}::{node.name}")
         class_node = self.node_registry.get_node(class_fqn)
         assert isinstance(class_node, ClassNode)
-
         self.local_aliases["self"] = class_fqn
-
         with self.context.visit_node(class_node):
             self._visit_class_bases(node.bases)
             self.visit(node.decorator_list)
             self.visit(node.body)
-
         self.local_aliases.pop("self")
 
     def _visit_class_bases(self, bases: list[AstExpr]):
@@ -192,7 +179,6 @@ class EdgeBuilder(AstVisitor):
             func_fqn = f"{func_fqn}<expression>"
         func_node = self.node_registry.get_node(func_fqn)
         assert isinstance(func_node, (MethodNode, FunctionNode)), func_node
-
         self._build_overriden_edge(func_node=func_node, ast_node=node)
         with self.context.visit_node(func_node):
             self._visit_arguments(node.arguments)
@@ -211,9 +197,7 @@ class EdgeBuilder(AstVisitor):
         assert isinstance(class_node, ClassNode), class_node
         for edge in class_node.get_inherits_edges():
             target_fqn = Fqn(f"{edge.fqn}::{func_node.name}")
-            func_node.overrides(
-                target_fqn=target_fqn,
-            )
+            func_node.overrides(target_fqn=target_fqn)
 
     def _find_fqn(self, alias: str) -> Fqn:
         if alias in self.function_local_aliases:
@@ -240,7 +224,7 @@ class EdgeBuilder(AstVisitor):
     @override
     def visit_ast_assign(self, node: AstAssign):
         target = node.target
-        if isinstance(target, AstName) and not self.context.in_function_body:
+        if isinstance(target, AstName) and (not self.context.in_function_body):
             fqn = f"{self.current_node.id}::{target.id}"
             variable_node = self.node_registry.get_node(fqn)
             with self.context.visit_node(variable_node):
@@ -260,7 +244,7 @@ class EdgeBuilder(AstVisitor):
     @override
     def visit_ast_ann_assign(self, node: AstAnnAssign):
         target = node.target
-        if isinstance(target, AstName) and not self.context.in_function_body:
+        if isinstance(target, AstName) and (not self.context.in_function_body):
             fqn = f"{self.current_node.id}::{target.id}"
             variable_node = self.node_registry.get_node(fqn)
             with self.context.visit_node(variable_node):
@@ -277,19 +261,17 @@ class EdgeBuilder(AstVisitor):
         fqn = self._resolve_expr_to_fqn(node)
         if fqn:
             self.current_node.add_edge(EdgeType.READS, fqn)
-        
         self.visit(node.value)
 
     @override
     def visit_ast_name(self, node: AstName):
         return
-        
+
     @override
     def visit_ast_call(self, node: AstCall):
         fqn = self._resolve_expr_to_fqn(node.func)
         if fqn:
             self.current_node.add_edge(EdgeType.CALLS, fqn)
-            
         self.visit(node.func)
         self.visit(node.args)
         self.visit(node.kwargs)
@@ -313,11 +295,9 @@ class EdgeBuilder(AstVisitor):
                             if edge.kind == EdgeType.TYPED_AS:
                                 return Fqn(f"{edge.fqn}::{attr}")
                     case _:
-                        # raise NotImplementedError(f"{base_fqn=}, {self.current_node.id=}")
                         return None
             case _:
                 return
-                # raise NotImplementedError(f"{node=}")
 
     def _resolve_expr_to_fqns(self, node: AstExpr) -> Iterable[Fqn]:
         match node:

@@ -1,19 +1,23 @@
 import asyncio
 from dataclasses import dataclass
 import logging
-
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import not_, select
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy import not_
+from sqlalchemy import select
 from codegen.shared.application.integration_events.registry import EventRegistry
-from codegen.shared.infrastructure.gateways.redis_stream_publisher import RedisStreamPublisher
-from codegen.shared.infrastructure.orm_models.outbox_message_module import OutboxMessageModel
+from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
+    RedisStreamPublisher,
+)
+from codegen.shared.infrastructure.orm_models.outbox_message_module import (
+    OutboxMessageModel,
+)
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class OutboxWorker:
-    
     session_factory: async_sessionmaker[AsyncSession]
     publisher: RedisStreamPublisher
     event_registry: EventRegistry
@@ -31,17 +35,17 @@ class OutboxWorker:
 
     async def _process_batch(self, batch_size: int = 100) -> int:
         processed_count = 0
-        
         async with self.session_factory() as session:
-            stmt = select(OutboxMessageModel).where(
-                not_(OutboxMessageModel.processed)
-            ).limit(batch_size).with_for_update(skip_locked=True)
-            
-            result = await session.execute(stmt) 
+            stmt = (
+                select(OutboxMessageModel)
+                .where(not_(OutboxMessageModel.processed))
+                .limit(batch_size)
+                .with_for_update(skip_locked=True)
+            )
+            result = await session.execute(stmt)
             messages = result.scalars().all()
             if not messages:
                 return 0
-            
             for msg in messages:
                 event_class = self.event_registry.resolve(msg.event_type)
                 if not event_class:
@@ -55,7 +59,5 @@ class OutboxWorker:
                     processed_count += 1
                 except Exception as e:
                     logger.error(f"❌ 处理消息 {msg.id} 失败: {e}")
-                    
             await session.commit()
-            
         return processed_count

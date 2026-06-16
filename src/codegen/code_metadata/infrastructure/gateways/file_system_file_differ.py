@@ -1,27 +1,28 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-
 from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
+)
+from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffQuery,
 )
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
 from codegen.code_metadata.application.ports.file_differ import FileDiffer
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import (
-    ClassNode,
-    CodeNode,
-    FunctionNode,
-    MethodNode,
-    ModuleNode,
-    ParameterNode,
-    VariableNode,
-)
+from codegen.code_metadata.domain.aggregates.code_node import ClassNode
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
+from codegen.code_metadata.domain.aggregates.code_node import MethodNode
+from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
+from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
+from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
-from codegen.code_metadata.domain.value_objects import AstConstant, AstExpr, AstList
+from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
+from codegen.code_metadata.domain.value_objects.ast_list import AstList
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
@@ -34,15 +35,13 @@ from codegen.code_metadata.domain.value_objects.ast_import_from import AstImport
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
-from codegen.code_metadata.domain.value_objects.code_edge import (
-    CodeEdge,
-    ContainsEdge,
-    DefinesEdge,
-    ExportsEdge,
-    ImportsEdge,
-    InheritsEdge,
-    ReadsEdge,
-)
+from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ExportsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ReadsEdge
 
 
 @dataclass
@@ -65,14 +64,10 @@ def module_node_dto_to_code_document(
     if module.is_package:
         return build_package_dom(module)
     else:
-        return build_file_dom(
-            module=module,
-            node_registry=node_registry,
-        )
+        return build_file_dom(module=module, node_registry=node_registry)
 
-def build_file_dom(
-    module: ModuleNode, node_registry: NodeRegistry
-) -> CodeDocument:
+
+def build_file_dom(module: ModuleNode, node_registry: NodeRegistry) -> CodeDocument:
     physical_path = FqnFactory.fqn_to_path(module.id).with_suffix(".py")
     imports: list[AstStmt] = []
     if_imports: list[AstStmt] = []
@@ -95,6 +90,7 @@ def build_file_dom(
         physical_path=physical_path, body=imports + body, description=module.description
     )
 
+
 def build_package_dom(module: ModuleNode) -> CodeDocument:
     physical_path = FqnFactory.fqn_to_path(module.id) / "__init__.py"
     body: list[AstStmt] = []
@@ -106,26 +102,21 @@ def build_package_dom(module: ModuleNode) -> CodeDocument:
                 constant = AstConstant(value=node_name)
                 all_values.append(constant)
                 import_from = AstImportFrom(
-                    module=fqn.module_fqn,
-                    names=[AstAlias(name=node_name)]
+                    module=fqn.module_fqn, names=[AstAlias(name=node_name)]
                 )
                 body.append(import_from)
             case _:
                 pass
     if all_values:
         body.append(
-            AstAssign(
-                targets=[AstName(id="__all__")],
-                value=AstList(elts=all_values)
-            )
+            AstAssign(targets=[AstName(id="__all__")], value=AstList(elts=all_values))
         )
     for expr in module.exprs:
         body.append(AstExprStmt(value=expr))
     return CodeDocument(
-        physical_path=physical_path,
-        body=body,
-        description=module.description
+        physical_path=physical_path, body=body, description=module.description
     )
+
 
 def edge_to_ast_stmt(edge: CodeEdge, node_registry: NodeRegistry) -> AstStmt:
     match edge:

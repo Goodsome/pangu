@@ -330,7 +330,9 @@ class StmtToAst:
         )
 
     @staticmethod
-    def from_function_def(stmt: AstFunctionDef) -> ast.FunctionDef | ast.AsyncFunctionDef:
+    def from_function_def(
+        stmt: AstFunctionDef,
+    ) -> ast.FunctionDef | ast.AsyncFunctionDef:
         args = StmtToAst._assigns_to_arguments(stmt.arguments)
         body = StmtToAst._to_body(stmt.body)
         decorator_list = [ExprToAst.to_node(d) for d in stmt.decorator_list]

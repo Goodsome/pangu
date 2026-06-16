@@ -13,16 +13,22 @@ from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_compare import AstCompare
-from codegen.code_metadata.domain.value_objects.ast_comprehension import AstComprehension
+from codegen.code_metadata.domain.value_objects.ast_comprehension import (
+    AstComprehension,
+)
 from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
 from codegen.code_metadata.domain.value_objects.ast_dict import AstDict
 from codegen.code_metadata.domain.value_objects.ast_dict_comp import AstDictComp
-from codegen.code_metadata.domain.value_objects.ast_except_handler import AstExceptHandler
+from codegen.code_metadata.domain.value_objects.ast_except_handler import (
+    AstExceptHandler,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_for import AstFor
-from codegen.code_metadata.domain.value_objects.ast_formatted_value import AstFormattedValue
+from codegen.code_metadata.domain.value_objects.ast_formatted_value import (
+    AstFormattedValue,
+)
 from codegen.code_metadata.domain.value_objects.ast_function_def import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_generator_exp import AstGeneratorExp
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
@@ -59,23 +65,24 @@ class AstVisitor:
 
     def visit(
         self,
-        node: AstStmt
-        | AstExpr
-        | AstArguments
-        | AstComprehension
-        | AstKeyword
-        | AstMatchCase
-        | AstExceptHandler
-        | Arg
-        | list[AstStmt]
-        | list[AstExpr]
-        | list[AstKeyword]
-        | None
+        node: (
+            AstStmt
+            | AstExpr
+            | AstArguments
+            | AstComprehension
+            | AstKeyword
+            | AstMatchCase
+            | AstExceptHandler
+            | Arg
+            | list[AstStmt]
+            | list[AstExpr]
+            | list[AstKeyword]
+            | None
+        ),
     ):
         if node is None:
             return
         match node:
-            # Statements
             case AstReturn():
                 self.visit_ast_return(node)
             case AstRaise():
@@ -116,7 +123,6 @@ class AstVisitor:
                 self.visit_ast_import_from(node)
             case AstClassDef():
                 self.visit_ast_class_def(node)
-            # Expressions
             case AstConstant():
                 self.visit_ast_constant(node)
             case AstName():
@@ -169,7 +175,6 @@ class AstVisitor:
                 self.visit_ast_yield_from(node)
             case AstAwait():
                 self.visit_ast_await(node)
-            # Helpers
             case AstKeyword():
                 self.visit_ast_keyword(node)
             case AstArguments():
@@ -182,14 +187,11 @@ class AstVisitor:
                 self.visit_ast_except_handler(node)
             case Arg():
                 self.visit_arg(node)
-            # Lists
             case list():
                 for item in node:
                     self.visit(item)
             case _:
                 assert_never(node)
-
-    # ── Statement visitors ──────────────────────────────────────
 
     def visit_ast_return(self, node: AstReturn):
         if node.value is not None:
@@ -276,7 +278,6 @@ class AstVisitor:
         if node.returns is not None:
             self.visit(node.returns)
 
-
     def visit_ast_import(self, node: AstImport):
         pass
 
@@ -287,8 +288,6 @@ class AstVisitor:
         self.visit(node.bases)
         self.visit(node.body)
         self.visit(node.decorator_list)
-
-    # ── Expression visitors ─────────────────────────────────────
 
     def visit_ast_constant(self, node: AstConstant):
         pass
@@ -404,8 +403,6 @@ class AstVisitor:
 
     def visit_ast_await(self, node: AstAwait):
         self.visit(node.value)
-
-    # ── Helper visitors ─────────────────────────────────────────
 
     def visit_ast_keyword(self, node: AstKeyword):
         self.visit(node.value)

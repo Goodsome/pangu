@@ -1,11 +1,11 @@
 import logging
 from collections.abc import Iterator
-from dataclasses import dataclass, field
-
+from dataclasses import dataclass
+from dataclasses import field
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session, sessionmaker
-
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 from codegen.shared.infrastructure.orm_models.base import BaseORM
 
 
@@ -14,7 +14,6 @@ class Database:
     """Database connection handling using SQLAlchemy."""
 
     connection_string: str
-
     _engine: Engine = field(init=False)
     _session_factory: sessionmaker[Session] = field(init=False)
 

@@ -6,7 +6,8 @@ from typing import Any
 from typing import assert_never
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
-from codegen.code_metadata.domain.value_objects.code_edge import AcceptsEdge, OverridesEdge
+from codegen.code_metadata.domain.value_objects.code_edge import AcceptsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import OverridesEdge
 from codegen.code_metadata.domain.value_objects.code_edge import CallsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
@@ -47,7 +48,9 @@ from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.implements_ed
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.inherits_edge import (
     InheritsEdgeMapper,
 )
-from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.overriddes_edge import OverridesEdgeMapper
+from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.overriddes_edge import (
+    OverridesEdgeMapper,
+)
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.reads_edge import (
     ReadsEdgeMapper,
 )
@@ -146,4 +149,4 @@ def code_edge_to_upsert_dict(edge: CodeEdge) -> dict[str, Any]:
             properties = OverridesEdgeMapper.to_properties(edge)
         case _:
             assert_never(edge)
-    return {"type": edge.kind.value, "properties": properties,}
+    return {"type": edge.kind.value, "properties": properties}

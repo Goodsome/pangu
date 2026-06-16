@@ -3,10 +3,12 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
-
-from sqlalchemy import ColumnElement, exists, not_, select
-from sqlalchemy.orm import Session, selectinload
-
+from sqlalchemy import ColumnElement
+from sqlalchemy import exists
+from sqlalchemy import not_
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import selectinload
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
@@ -14,6 +16,8 @@ from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     dto_to_upsert_dict,
+)
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     orm_to_dto,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
@@ -21,14 +25,32 @@ from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ClassNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     CodeNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     DirectoryNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ExternalNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FileNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     MethodNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ModuleNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ParameterNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     VariableNodeModel,
 )
 
@@ -109,12 +131,8 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             self.session.delete(orm_model)
 
     @override
-    def find_empty_modules(
-        self,
-        fqns: Collection[Fqn] | None = None,
-    ) -> list[CodeNode]:
+    def find_empty_modules(self, fqns: Collection[Fqn] | None = None) -> list[CodeNode]:
         self.session.flush()
-
         has_defines_outbound = exists().where(
             CodeEdgeModel.source_id == CodeNodeModel.id,
             CodeEdgeModel.type.in_((EdgeType.DEFINES, EdgeType.CONTAINS)),
@@ -125,7 +143,6 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         ]
         if fqns:
             conditions.append(CodeNodeModel.fqn.in_(fqns))
-
         stmt = (
             select(CodeNodeModel)
             .where(*conditions)
@@ -140,15 +157,9 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
 
     @override
     def find_unused_nodes(
-        self,
-        kind: CodeNodeKind | None = None,
-        fqns: Collection[str] | None = None,
+        self, kind: CodeNodeKind | None = None, fqns: Collection[str] | None = None
     ) -> list[CodeNode]:
-        _SUPPORTED = {
-            CodeNodeKind.CLASS,
-            CodeNodeKind.FUNCTION,
-            CodeNodeKind.VARIABLE,
-        }
+        _SUPPORTED = {CodeNodeKind.CLASS, CodeNodeKind.FUNCTION, CodeNodeKind.VARIABLE}
         _USAGE_EDGE_TYPES = {
             EdgeType.IMPORTS,
             EdgeType.INHERITS,
@@ -168,7 +179,6 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             conditions.append(CodeNodeModel.kind.in_(_SUPPORTED))
         if fqns:
             conditions.append(CodeNodeModel.fqn.in_(fqns))
-
         stmt = (
             select(CodeNodeModel)
             .where(*conditions)

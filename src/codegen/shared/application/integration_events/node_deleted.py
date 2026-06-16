@@ -6,7 +6,5 @@ from codegen.shared.domain.core.event import IntegrationEvent
 
 class NodeDeletedIntegrationEvent(IntegrationEvent):
     __domain_entity__: ClassVar[str] = "code_node"
-    
     node_id: Fqn
     node_kind: CodeNodeKind
-    

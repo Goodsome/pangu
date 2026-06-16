@@ -1,12 +1,9 @@
 from typing import Annotated
-
 import typer
-from dependency_injector.wiring import Provide, inject
+from dependency_injector.wiring import Provide
+from dependency_injector.wiring import inject
 from rich.console import Console
-
-from codegen.code_metadata.application.commands.clean_node import (
-    CleanNodeCommand,
-)
+from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand
 from codegen.code_metadata.application.commands.clean_unused_nodes import (
     CleanUnusedNodesCommand,
 )
@@ -29,7 +26,8 @@ def clean_node(
         str | None, typer.Option("--fqn", "-f", help="The FQN of the node to clean")
     ] = None,
     kind: Annotated[
-        CodeNodeKind | None, typer.Option("--kind", "-k", help="The kind of the nodes to clean")
+        CodeNodeKind | None,
+        typer.Option("--kind", "-k", help="The kind of the nodes to clean"),
     ] = None,
 ) -> None:
     """Clean an unused CodeNode and its orphaned module from the graph."""
@@ -40,5 +38,4 @@ def clean_node(
     else:
         console.print("[red] node fqn or kind is needed[/red]")
         exit(1)
-        
     _clean_node(cmd)

@@ -15,6 +15,7 @@ from codegen.shared.domain.core.command import Command
 
 logger = logging.getLogger(__name__)
 
+
 class GenerateCodeCommand(Command):
     fqns: list[str]
 

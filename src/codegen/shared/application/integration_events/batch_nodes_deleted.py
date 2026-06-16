@@ -6,7 +6,5 @@ from codegen.shared.domain.core.event import IntegrationEvent
 
 class BatchNodesDeletedIntegrationEvent(IntegrationEvent):
     __domain_entity__: ClassVar[str] = "code_node"
-    
     node_ids: list[Fqn]
     node_kind: CodeNodeKind
-    
