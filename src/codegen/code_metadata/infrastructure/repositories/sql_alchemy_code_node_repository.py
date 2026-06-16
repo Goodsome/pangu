@@ -263,7 +263,7 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
     def rename_node(self, node_fqn: Fqn, new_name: str) -> Fqn:
         node = self._get_orm(node_fqn)
         old_fqn = node.fqn
-        parent_fqn = old_fqn.parent_fqn
+        parent_fqn = node_fqn.parent_fqn
         separator = "::" if "::" in old_fqn else "."
         new_fqn = f"{parent_fqn}{separator}{new_name}"
         if old_fqn == new_fqn:

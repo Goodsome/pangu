@@ -11,7 +11,7 @@ from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssi
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstClassDef
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_compare import AstCompare
 from codegen.code_metadata.domain.value_objects.ast_comprehension import (
     AstComprehension,
@@ -28,9 +28,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_formatted_value import (
     AstFormattedValue,
 )
-from codegen.code_metadata.domain.value_objects.ast_stmt import (
-    AstFunctionDef,
-)
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_generator_exp import AstGeneratorExp
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_if_exp import AstIfExp
@@ -65,9 +63,9 @@ from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVar
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVarTuple
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstParamSpec
 from codegen.code_metadata.domain.value_objects.ast_type_param import type_param_adapter
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstFor
-from codegen.code_metadata.domain.value_objects.ast_stmt import ast_stmt_adapter
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFor
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import ast_stmt_adapter
 from codegen.code_metadata.domain.value_objects.match_pattern import MatchPattern
 from codegen.code_metadata.domain.value_objects.match_pattern import (
     match_pattern_adapter,

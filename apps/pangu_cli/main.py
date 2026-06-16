@@ -12,6 +12,7 @@ from codegen.code_metadata.interfaces.cli.ingest_project import ingest_project
 from codegen.code_metadata.interfaces.cli.list_unused_nodes import list_unused_nodes
 from codegen.code_metadata.interfaces.cli.listen import listen
 from codegen.code_metadata.interfaces.cli.move_node import move_node, move_to_ast_stmt
+from codegen.code_metadata.interfaces.cli.rename_node import rename_node
 from codegen.code_metadata.interfaces.cli.trace import trace
 from codegen.shared.interfaces.cli.run_outbox_worker import run_worker
 
@@ -34,6 +35,7 @@ app.command()(run_worker)
 app.command()(listen)
 app.command()(move_node)
 app.command()(move_to_ast_stmt)
+app.command()(rename_node)
 
 def main():
     """Bootstrap the DI container and run the CLI app."""

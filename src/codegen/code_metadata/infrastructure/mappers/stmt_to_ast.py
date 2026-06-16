@@ -2,9 +2,9 @@ import ast
 from typing import cast
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstClassDef
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
@@ -14,8 +14,8 @@ from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
 )
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstFor
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFor
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch

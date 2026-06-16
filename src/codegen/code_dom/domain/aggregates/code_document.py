@@ -1,6 +1,6 @@
 from pathlib import Path
 from pydantic import BaseModel
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
 
 
 class CodeDocument(BaseModel):

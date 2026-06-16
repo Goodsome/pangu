@@ -21,9 +21,9 @@ from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstClassDef
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
