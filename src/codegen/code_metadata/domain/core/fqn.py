@@ -33,7 +33,7 @@ class Fqn(str):
             return Fqn(self.rsplit("::", 1)[0])
         if "." in self:
             return Fqn(self.rsplit(".", 1)[0])
-        raise ValueError(f"Parent fqn not Found: {self=}")
+        raise ValueError(f"Parent fqn not Found: self={self!r}")
 
     @property
     def symbol(self) -> str:

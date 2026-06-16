@@ -3,11 +3,16 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
-from sqlalchemy import ColumnElement, any_, func, or_, update
+from sqlalchemy import ColumnElement
+from sqlalchemy import any_
+from sqlalchemy import func
+from sqlalchemy import or_
+from sqlalchemy import update
 from sqlalchemy import exists
 from sqlalchemy import not_
 from sqlalchemy import select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm import selectinload
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
@@ -167,7 +172,6 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
     ) -> list[CodeEdgeAggregate]:
         source_node = aliased(CodeNodeModel)
         target_node = aliased(CodeNodeModel)
-
         stmt = (
             select(
                 source_node.fqn.label("source_fqn"),
@@ -177,7 +181,6 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             .join(source_node, CodeEdgeModel.source_id == source_node.id)
             .join(target_node, CodeEdgeModel.target_id == target_node.id)
         )
-
         conditions: list[ColumnElement[bool]] = []
         if edge_types is not None:
             conditions.append(CodeEdgeModel.type.in_(edge_types))
@@ -191,10 +194,8 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         if target_fqn_prefixes is not None:
             patterns = [f"{p}%" for p in target_fqn_prefixes]
             conditions.append(target_node.fqn.like(any_(patterns)))
-
         if conditions:
             stmt = stmt.where(*conditions)
-
         rows = self.session.execute(stmt).all()
         return [
             CodeEdgeAggregate(
@@ -213,61 +214,44 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         return orm_model
 
     @override
-    def move_node(
-        self, node_fqn: Fqn, target_fqn: Fqn
-    ) -> Fqn:
+    def move_node(self, node_fqn: Fqn, target_fqn: Fqn) -> Fqn:
         node = self._get_orm(node_fqn)
         target = self._get_orm(target_fqn)
-
-        match node, target:
-            case ModuleNodeModel(), ModuleNodeModel():
+        match (node, target):
+            case [ModuleNodeModel(), ModuleNodeModel()]:
                 return self._move_module_node(node, target)
             case _:
-                raise NotImplementedError(f"{node.kind=}, {target.kind}=")
+                raise NotImplementedError(f"node.kind={node.kind!r}, {target.kind}=")
 
     def _move_module_node(self, node: ModuleNodeModel, target: ModuleNodeModel) -> Fqn:
-        
         old_fqn = node.fqn
         new_fqn = f"{target.fqn}.{node.name}"
-
         if old_fqn == new_fqn:
             return Fqn(new_fqn)
-        
         conflict_exists = self.session.scalar(
             select(CodeNodeModel.id).where(CodeNodeModel.fqn == new_fqn)
         )
         if conflict_exists:
             raise ValueError(f"目标路径已存在相同的 FQN: {new_fqn}")
-
         separator = "." if node.is_package else "::"
         like_pattern = f"{old_fqn}{separator}%"
-        
         old_fqn_len = len(old_fqn)
         node_update_stmt = (
             update(CodeNodeModel)
             .where(
-                or_(
-                    CodeNodeModel.id == node.id,
-                    CodeNodeModel.fqn.like(like_pattern)
-                )
+                or_(CodeNodeModel.id == node.id, CodeNodeModel.fqn.like(like_pattern))
             )
-            .values(
-                fqn=new_fqn + func.substr(CodeNodeModel.fqn, old_fqn_len + 1)
-            )
+            .values(fqn=new_fqn + func.substr(CodeNodeModel.fqn, old_fqn_len + 1))
         )
-        
         edge_update_stmt = (
             update(CodeEdgeModel)
             .where(
                 CodeEdgeModel.target_id == node.id,
-                CodeEdgeModel.type == EdgeType.CONTAINS
+                CodeEdgeModel.type == EdgeType.CONTAINS,
             )
             .values(source_id=target.id)
         )
-        
         self.session.execute(node_update_stmt)
         self.session.execute(edge_update_stmt)
-        
         self.session.flush()
-
         return Fqn(new_fqn)

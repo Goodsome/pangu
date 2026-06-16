@@ -19,17 +19,9 @@ def _move_node(
 
 
 def move_node(
-    fqn: Annotated[
-        str, typer.Argument(help="The FQN of the node to move")
-    ],
-    target_fqn: Annotated[
-        str,
-        typer.Argument()
-    ],
+    fqn: Annotated[str, typer.Argument(help="The FQN of the node to move")],
+    target_fqn: Annotated[str, typer.Argument()],
 ) -> None:
     """move an unused CodeNode and its orphaned module from the graph."""
-    cmd = MoveNodeCommand(
-        node_fqn=Fqn(fqn),
-        target_fqn=Fqn(target_fqn)
-    )
+    cmd = MoveNodeCommand(node_fqn=Fqn(fqn), target_fqn=Fqn(target_fqn))
     _move_node(cmd)

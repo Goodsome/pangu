@@ -31,7 +31,8 @@ from codegen.code_metadata.application.commands.delete_module_in_physical import
 from codegen.code_metadata.application.commands.generate_code import GenerateCode
 from codegen.code_metadata.application.commands.generate_code import GenerateCodeCommand
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
-from codegen.code_metadata.application.commands.move_node import MoveNodeCommand, MoveNodeHandler
+from codegen.code_metadata.application.commands.move_node import MoveNodeCommand
+from codegen.code_metadata.application.commands.move_node import MoveNodeHandler
 from codegen.code_metadata.application.event_handlers.on_batch_nodes_deleted import (
     OnBatchNodesDeleted,
 )
@@ -87,7 +88,9 @@ from codegen.shared.application.integration_events.batch_nodes_deleted import (
 from codegen.shared.application.integration_events.node_deleted import (
     NodeDeletedIntegrationEvent,
 )
-from codegen.shared.application.integration_events.node_moved import NodeMovedIntegrationEvent
+from codegen.shared.application.integration_events.node_moved import (
+    NodeMovedIntegrationEvent,
+)
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
@@ -185,12 +188,8 @@ class Container(DeclarativeContainer):
     on_batch_nodes_deleted: Singleton[OnBatchNodesDeleted] = Singleton(
         OnBatchNodesDeleted
     )
-    move_node_handler: Singleton[MoveNodeHandler] = Singleton(
-        MoveNodeHandler
-    )
-    on_node_moved: Singleton[OnNodeMoved] = Singleton(
-        OnNodeMoved
-    )
+    move_node_handler: Singleton[MoveNodeHandler] = Singleton(MoveNodeHandler)
+    on_node_moved: Singleton[OnNodeMoved] = Singleton(OnNodeMoved)
     message_bus: Factory[MessageBus] = Factory(
         MessageBus,
         uow=code_node_unit_of_work,
@@ -214,7 +213,7 @@ class Container(DeclarativeContainer):
                 ),
                 NodeMovedIntegrationEvent: List(
                     on_node_moved.provided.regenerate_codes
-                )
+                ),
             }
         ),
     )

@@ -8,7 +8,9 @@ from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_compare import AstCompare
-from codegen.code_metadata.domain.value_objects.ast_comprehension import AstComprehension
+from codegen.code_metadata.domain.value_objects.ast_comprehension import (
+    AstComprehension,
+)
 from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_dict import AstDict
 from codegen.code_metadata.domain.value_objects.ast_dict_comp import AstDictComp
@@ -63,8 +65,6 @@ AstExpr = Annotated[
     Field(discriminator="kind"),
 ]
 ast_expr_adapter: TypeAdapter[AstExpr] = TypeAdapter(AstExpr)
-
-
 Arg.model_rebuild()
 AstAttribute.model_rebuild()
 AstCall.model_rebuild()
@@ -90,6 +90,5 @@ AstUnaryOp.model_rebuild()
 AstYield.model_rebuild()
 AstYieldFrom.model_rebuild()
 AstAwait.model_rebuild()
-
 AstKeyword.model_rebuild()
 AstComprehension.model_rebuild()

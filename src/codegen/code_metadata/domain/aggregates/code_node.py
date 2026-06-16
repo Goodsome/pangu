@@ -63,7 +63,7 @@ class _BaseNode(AggregateRoot[Fqn]):
         for edge in self.outbound_edges:
             if isinstance(edge, ImportsEdge):
                 yield edge
-                
+
     @property
     def exportss_edges(self) -> Iterable[ExportsEdge]:
         for edge in self.outbound_edges:
@@ -104,8 +104,7 @@ class ModuleNode(_BaseNode):
         edge = ContainsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
-    def remove_contains(self, node: ModuleNode):
-        ...
+    def remove_contains(self, node: ModuleNode): ...
 
     def defines(self, node: ClassNode | FunctionNode | VariableNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
@@ -150,7 +149,7 @@ class ModuleNode(_BaseNode):
         for edge in self.outbound_edges:
             if isinstance(edge, ContainsEdge):
                 yield edge
-    
+
 
 class ClassNode(_BaseNode):
     """类节点：kind 固定为 CLASS，由模块节点的 AST 类定义派生。"""

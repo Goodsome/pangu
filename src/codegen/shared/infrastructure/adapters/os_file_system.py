@@ -67,7 +67,7 @@ class OSFileSystem(FileSystemPort):
     def delete_file(self, path: Path) -> bool:
         full_path = self.root / path
         if not full_path.is_file():
-            logger.warning(f"{full_path=} is not fille, skip")
+            logger.warning(f"full_path={full_path!r} is not fille, skip")
             return False
         full_path.unlink()
         return True

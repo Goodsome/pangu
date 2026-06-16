@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Collection
-
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
@@ -9,6 +9,7 @@ from codegen.shared.domain.ports.repository import Repository
 
 
 class CodeNodeRepository(Repository[CodeNode, Fqn], ABC):
+
     @abstractmethod
     def find_empty_modules(
         self, fqns: Collection[Fqn] | None = None
