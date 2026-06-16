@@ -131,7 +131,6 @@ class AstToExpr:
         kwargs = [
             AstKeyword(arg=kw.arg, value=AstToExpr.to_expr(kw.value))
             for kw in node.keywords
-            if kw.arg
         ]
         return AstCall(
             func=AstToExpr.to_expr(node.func),
