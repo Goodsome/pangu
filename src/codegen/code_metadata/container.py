@@ -1,16 +1,12 @@
 from pathlib import Path
-
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import (
-    Configuration,
-    Dependency,
-    Dict,
-    Factory,
-    List,
-    Singleton,
-)
+from dependency_injector.providers import Configuration
+from dependency_injector.providers import Dependency
+from dependency_injector.providers import Dict
+from dependency_injector.providers import Factory
+from dependency_injector.providers import List
+from dependency_injector.providers import Singleton
 from redis.asyncio import Redis
-
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
 from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
@@ -18,22 +14,22 @@ from codegen.code_dom.application.queries.get_code_document_diff import (
 from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
 )
-from codegen.code_metadata.application.commands.clean_node import (
-    CleanNodeCommand,
-    CleanNodeHandler,
-)
+from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand
+from codegen.code_metadata.application.commands.clean_node import CleanNodeHandler
 from codegen.code_metadata.application.commands.clean_unused_nodes import (
     CleanUnusedNodesCommand,
+)
+from codegen.code_metadata.application.commands.clean_unused_nodes import (
     CleanUnusedNodesHandler,
 )
 from codegen.code_metadata.application.commands.delete_module_in_physical import (
     DeleteModuleInPhysicalCommand,
+)
+from codegen.code_metadata.application.commands.delete_module_in_physical import (
     DeleteModuleInPhysicalHandler,
 )
-from codegen.code_metadata.application.commands.generate_code import (
-    GenerateCode,
-    GenerateCodeCommand,
-)
+from codegen.code_metadata.application.commands.generate_code import GenerateCode
+from codegen.code_metadata.application.commands.generate_code import GenerateCodeCommand
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
 from codegen.code_metadata.application.event_handlers.on_batch_nodes_deleted import (
     OnBatchNodesDeleted,

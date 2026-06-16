@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass
-
 from codegen.code_metadata.application.dtos.generate_code_result import (
     GenerateCodeResult,
 )
