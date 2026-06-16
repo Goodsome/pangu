@@ -179,10 +179,10 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
     def _move_module_node(self, node: ModuleNodeModel, target: ModuleNodeModel) -> Fqn:
         
         old_fqn = node.fqn
-        new_fqn = Fqn(f"{target.fqn}.{node.name}")
+        new_fqn = f"{target.fqn}.{node.name}"
 
         if old_fqn == new_fqn:
-            return new_fqn
+            return Fqn(new_fqn)
         
         conflict_exists = self.session.scalar(
             select(CodeNodeModel.id).where(CodeNodeModel.fqn == new_fqn)
@@ -221,4 +221,4 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         
         self.session.flush()
 
-        return new_fqn
+        return Fqn(new_fqn)
