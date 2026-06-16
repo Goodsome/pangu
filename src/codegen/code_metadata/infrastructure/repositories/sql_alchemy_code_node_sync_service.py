@@ -15,7 +15,6 @@ from codegen.code_metadata.application.dtos.bulk_save_result import BulkSaveResu
 from codegen.code_metadata.application.ports.code_node_sync_service import (
     CodeNodeSyncService,
 )
-from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.dispatcher import (
     code_edge_to_upsert_dict as edge_to_upsert_dict,

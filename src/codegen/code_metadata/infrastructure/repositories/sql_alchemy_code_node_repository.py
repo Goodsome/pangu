@@ -9,7 +9,6 @@ from sqlalchemy import not_
 from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy.orm import selectinload
-from codegen.code_metadata.domain.aggregates import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn

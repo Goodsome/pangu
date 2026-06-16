@@ -5,7 +5,6 @@ from typing import override
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import ClassNode
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
@@ -34,7 +33,6 @@ from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
 from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
-from codegen.shared.domain.enums import PythonBuiltinType
 
 
 @dataclass

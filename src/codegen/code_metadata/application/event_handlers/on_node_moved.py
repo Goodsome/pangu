@@ -4,7 +4,6 @@ from codegen.code_metadata.application.commands.delete_module_in_physical import
     DeleteModuleInPhysicalCommand,
 )
 from codegen.code_metadata.application.commands.generate_code import GenerateCodeCommand
-from codegen.code_metadata.application.ports.code_node_query_service import CodeNodeQueryService
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_type import EdgeType

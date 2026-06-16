@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
-from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.shared.application.integration_events.node_moved import NodeMovedIntegrationEvent
 from codegen.shared.domain.core.command import Command
 

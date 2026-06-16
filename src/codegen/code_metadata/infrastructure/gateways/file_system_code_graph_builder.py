@@ -10,7 +10,6 @@ from codegen.code_dom.application.queries.get_project_documents import (
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 from codegen.code_metadata.infrastructure.gateways.edge_builder import EdgeBuilder

@@ -2,7 +2,6 @@ from abc import ABC
 from abc import abstractmethod
 from collections.abc import Collection
 from codegen.code_metadata.application.dtos.bulk_save_result import BulkSaveResult
-from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 
 

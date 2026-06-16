@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 from typing import Literal
 from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
 from codegen.code_metadata.domain.enums.bin_op import BinOp

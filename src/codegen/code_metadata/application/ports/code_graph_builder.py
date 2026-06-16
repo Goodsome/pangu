@@ -3,7 +3,6 @@ from abc import abstractmethod
 from pathlib import Path
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 
 
 class CodeGraphBuilder(ABC):
