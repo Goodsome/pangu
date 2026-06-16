@@ -2,7 +2,7 @@ import ast
 from typing import cast
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
-from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign

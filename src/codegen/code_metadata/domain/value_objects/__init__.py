@@ -11,7 +11,7 @@ from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssi
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_compare import AstCompare
 from codegen.code_metadata.domain.value_objects.ast_comprehension import (
     AstComprehension,

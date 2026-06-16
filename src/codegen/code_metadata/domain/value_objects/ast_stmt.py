@@ -3,7 +3,6 @@ from typing import Literal
 from pydantic import Field
 from pydantic import TypeAdapter
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
-from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
@@ -30,6 +29,17 @@ from codegen.code_metadata.domain.value_objects.ast_try import AstTry
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.shared.domain.core.value_object import ValueObject
+
+
+class AstClassDef(ValueObject):
+    kind: Literal[AstStmtKind.CLASS_DEF] = AstStmtKind.CLASS_DEF
+    name: str
+    description: str | None = None
+    bases: list[AstExpr] = Field(default_factory=list)
+    keywords: list[AstKeyword] = Field(default_factory=list)
+    type_params: list[AstTypeParam] = Field(default_factory=list)
+    body: list[AstStmt] = Field(default_factory=list)
+    decorator_list: list[AstExpr] = Field(default_factory=list)
 
 
 class AstFor(ValueObject):

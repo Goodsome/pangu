@@ -18,7 +18,7 @@ from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
-from codegen.code_metadata.domain.value_objects.ast_class_def import AstClassDef
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase

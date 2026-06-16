@@ -230,7 +230,7 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             update(CodeEdgeModel)
             .where(
                 CodeEdgeModel.target_id == node.id,
-                CodeEdgeModel.type.in_(EdgeType.CONTAINS),
+                CodeEdgeModel.type.in_((EdgeType.CONTAINS, EdgeType.DEFINES)),
             )
             .values(source_id=target.id)
         )
