@@ -40,7 +40,6 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
         node_dtos: list[CodeNode],
         sync_id: str,
         fqn_prefix: str,
-        code_edges: Collection[CodeEdgeAggregate],
     ) -> BulkSaveResult:
         if not node_dtos:
             return BulkSaveResult(nodes_upserted=0, edges_created=0)
@@ -63,12 +62,6 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                 for edge in dto.outbound_edges:
                     if not edge.fqn.startswith(fqn_prefix):
                         external_fqns.add(edge.fqn)
-
-            for code_edge in code_edges:
-                if not code_edge.source_id.startswith(fqn_prefix):
-                    external_fqns.add(code_edge.source_id)
-                if not code_edge.target_id.startswith(fqn_prefix):
-                    external_fqns.add(code_edge.target_id)
 
             conditions = [CodeNodeModel.fqn.startswith(fqn_prefix)]
             if external_fqns:
@@ -99,19 +92,6 @@ class SqlAlchemyCodeNodeSyncService(CodeNodeSyncService):
                     edge_dict["target_id"] = target_id
                     edge_dict["position"] = idx
                     edge_values.append(edge_dict)
-            for code_edge in code_edges:
-                source_id = fqn_to_id.get(code_edge.source_id)
-                target_id = fqn_to_id.get(code_edge.target_id)
-                if not source_id or not target_id:
-                    continue
-                edge_dict: dict[str, object] = {
-                    "source_id": source_id,
-                    "target_id": target_id,
-                    "type": code_edge.edge_type,
-                    "position": None,
-                    "properties": {},
-                }
-                edge_values.append(edge_dict)
             if edge_values:
                 insert_edge_stmt = insert(CodeEdgeModel)
                 insert_edge_stmt = insert_edge_stmt.on_conflict_do_update(

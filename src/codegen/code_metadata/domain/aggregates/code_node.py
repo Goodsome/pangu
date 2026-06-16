@@ -178,8 +178,8 @@ class MethodNode(_BaseNode):
     def add_returns(self, node: ClassNode | ExternalNode | VariableNode):
         self._add_edge_by_type(EdgeType.RETURNS, node.id)
 
-    def overriden_by(self, node: MethodNode):
-        edge = OverridesEdge(fqn=node.id, direction=EdgeDirection.OUT)
+    def overrides(self, target_fqn: Fqn):
+        edge = OverridesEdge(fqn=target_fqn, direction=EdgeDirection.OUT)
         self._add_edge(edge)
 
 

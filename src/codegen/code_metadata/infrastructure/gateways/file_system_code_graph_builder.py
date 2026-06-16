@@ -46,16 +46,13 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
     @override
     def build_edges(
         self, node_registry: NodeRegistry, code_documents: list[CodeDocument]
-    ) -> set[CodeEdgeAggregate]:
+    ) -> None:
         fqn_factory = FqnFactory()
         sorted_docs = sorted(code_documents, key=lambda d: not d.is_init_file)
-        edges: set[CodeEdgeAggregate] = set()
         for code_document in sorted_docs:
             module_fqn = fqn_factory.build_module_fqn(code_document.physical_path)
             module = node_registry.get_node(module_fqn)
             assert isinstance(module, ModuleNode)
             module_builder = EdgeBuilder(module, node_registry)
             module_builder.build(code_document)
-            edges.update(module_builder.edges)
 
-        return edges

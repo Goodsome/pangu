@@ -15,7 +15,6 @@ class CodeNodeSyncService(ABC):
         node_dtos: list[CodeNode],
         sync_id: str,
         fqn_prefix: str,
-        code_edges: Collection[CodeEdgeAggregate],
     ) -> BulkSaveResult: ...
 
     @abstractmethod

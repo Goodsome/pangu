@@ -48,8 +48,6 @@ class EdgeBuilder(AstVisitor):
 
     function_local_aliases: dict[str, Fqn] = field(default_factory=dict)
 
-    edges: set[CodeEdgeAggregate] = field(default_factory=set)
-
     def __post_init__(self):
         self.local_aliases = {}
         for edge in self.module.outbound_edges:
@@ -213,12 +211,8 @@ class EdgeBuilder(AstVisitor):
         assert isinstance(class_node, ClassNode), class_node
         for edge in class_node.get_inherits_edges():
             target_fqn = Fqn(f"{edge.fqn}::{func_node.name}")
-            self.edges.add(
-                CodeEdgeAggregate(
-                    source_id=func_node.id,
-                    target_id=target_fqn,
-                    edge_type=EdgeType.OVERRIDDES,
-                )
+            func_node.overrides(
+                target_fqn=target_fqn,
             )
 
     def _find_fqn(self, alias: str) -> Fqn:

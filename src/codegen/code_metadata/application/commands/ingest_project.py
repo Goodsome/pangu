@@ -47,14 +47,13 @@ class IngestProject:
             query_imports, with_outbounds=True
         )
         node_reistry.registry_nodes(query_nodes)
-        edges = self.graph_builder.build_edges(
+        self.graph_builder.build_edges(
             node_registry=node_reistry, code_documents=code_documents
         )
         bulk_result = self.sync_service.save_nodes_bulk(
             node_reistry.upsert_nodes,
             sync_id=sync_id,
             fqn_prefix=fqn,
-            code_edges=edges,
         )
         deleted_count = self.sync_service.delete_stale_nodes(
             fqn_prefixes={fqn}, current_sync_id=sync_id
