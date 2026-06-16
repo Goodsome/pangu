@@ -179,6 +179,14 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             for r in rows
         ]
 
+    @override
+    def delete_by_fqn_prefix(self, fqn_prefixes: Collection[Fqn]) -> None:
+        from sqlalchemy import delete as sa_delete
+
+        patterns = [f"{p}%" for p in fqn_prefixes]
+        stmt = sa_delete(CodeNodeModel).where(CodeNodeModel.fqn.like(any_(patterns)))
+        self.session.execute(stmt)
+
     def _get_orm(self, id: Fqn) -> CodeNodeModel:
         stmt = select(CodeNodeModel).where(CodeNodeModel.fqn == id)
         orm_model = self.session.execute(stmt).scalar_one_or_none()
@@ -192,13 +200,13 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         target = self._get_orm(target_fqn)
         match (node, target):
             case ModuleNodeModel(), ModuleNodeModel():
-                return self._move_mode(node, target)
+                return self._move_node(node, target)
             case ClassNodeModel(), ModuleNodeModel():
-                return self._move_mode(node, target)
+                return self._move_node(node, target)
             case _:
                 raise NotImplementedError(f"node.kind={node.kind!r}, {target.kind}=")
 
-    def _move_mode(
+    def _move_node(
         self,
         node: ModuleNodeModel | ClassNodeModel,
         target: ModuleNodeModel,

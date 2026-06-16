@@ -27,3 +27,6 @@ class CodeNodeRepository(Repository[CodeNode, Fqn], ABC):
         source_fqn_prefixes: Collection[Fqn] | None = None,
         target_fqn_prefixes: Collection[Fqn] | None = None,
     ) -> list[CodeEdgeAggregate]: ...
+
+    @abstractmethod
+    def delete_by_fqn_prefix(self, fqn_prefixes: Collection[Fqn]) -> None: ...
