@@ -3,13 +3,14 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
-from sqlalchemy import ColumnElement, func, or_, update
+from sqlalchemy import ColumnElement, any_, func, or_, update
 from sqlalchemy import exists
 from sqlalchemy import not_
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from sqlalchemy.orm import selectinload
 from codegen.code_metadata.domain.aggregates import ModuleNode
+from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
@@ -155,7 +156,56 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         )
         models = self.session.execute(stmt).scalars().unique().all()
         return [orm_to_dto(m) for m in models]
-        
+
+    @override
+    def find_edges(
+        self,
+        edge_types: Collection[EdgeType] | None = None,
+        source_fqns: Collection[Fqn] | None = None,
+        target_fqns: Collection[Fqn] | None = None,
+        source_fqn_prefixes: Collection[Fqn] | None = None,
+        target_fqn_prefixes: Collection[Fqn] | None = None,
+    ) -> list[CodeEdgeAggregate]:
+        source_node = aliased(CodeNodeModel)
+        target_node = aliased(CodeNodeModel)
+
+        stmt = (
+            select(
+                source_node.fqn.label("source_fqn"),
+                target_node.fqn.label("target_fqn"),
+                CodeEdgeModel.type.label("edge_type"),
+            )
+            .join(source_node, CodeEdgeModel.source_id == source_node.id)
+            .join(target_node, CodeEdgeModel.target_id == target_node.id)
+        )
+
+        conditions: list[ColumnElement[bool]] = []
+        if edge_types is not None:
+            conditions.append(CodeEdgeModel.type.in_(edge_types))
+        if source_fqns is not None:
+            conditions.append(source_node.fqn.in_(source_fqns))
+        if target_fqns is not None:
+            conditions.append(target_node.fqn.in_(target_fqns))
+        if source_fqn_prefixes is not None:
+            patterns = [f"{p}%" for p in source_fqn_prefixes]
+            conditions.append(source_node.fqn.like(any_(patterns)))
+        if target_fqn_prefixes is not None:
+            patterns = [f"{p}%" for p in target_fqn_prefixes]
+            conditions.append(target_node.fqn.like(any_(patterns)))
+
+        if conditions:
+            stmt = stmt.where(*conditions)
+
+        rows = self.session.execute(stmt).all()
+        return [
+            CodeEdgeAggregate(
+                source_id=Fqn(r.source_fqn),
+                target_id=Fqn(r.target_fqn),
+                edge_type=EdgeType(r.edge_type),
+            )
+            for r in rows
+        ]
+
     def _get_orm(self, id: Fqn) -> CodeNodeModel:
         stmt = select(CodeNodeModel).where(CodeNodeModel.fqn == id)
         orm_model = self.session.execute(stmt).scalar_one_or_none()

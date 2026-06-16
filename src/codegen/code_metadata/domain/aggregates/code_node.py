@@ -58,6 +58,18 @@ class _BaseNode(AggregateRoot[Fqn]):
     def remove_edges(self, edge: CodeEdge):
         self.outbound_edges = [e for e in self.outbound_edges if e != edge]
 
+    @property
+    def imports_edges(self) -> Iterable[ImportsEdge]:
+        for edge in self.outbound_edges:
+            if isinstance(edge, ImportsEdge):
+                yield edge
+                
+    @property
+    def exportss_edges(self) -> Iterable[ExportsEdge]:
+        for edge in self.outbound_edges:
+            if isinstance(edge, ExportsEdge):
+                yield edge
+
 
 class DirectoryNode(_BaseNode):
     """目录节点：kind 固定为 DIRECTORY。"""
