@@ -19,6 +19,9 @@ class CodeNodeRepository(Repository[CodeNode, Fqn], ABC):
     def move_node(self, node_fqn: Fqn, target_fqn: Fqn) -> Fqn: ...
 
     @abstractmethod
+    def rename_node(self, node_fqn: Fqn, new_name: str) -> Fqn: ...
+
+    @abstractmethod
     def find_edges(
         self,
         edge_types: Collection[EdgeType] | None = None,

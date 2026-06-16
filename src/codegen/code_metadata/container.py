@@ -33,6 +33,8 @@ from codegen.code_metadata.application.commands.generate_code import GenerateCod
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
 from codegen.code_metadata.application.commands.move_node import MoveNodeCommand
 from codegen.code_metadata.application.commands.move_node import MoveNodeHandler
+from codegen.code_metadata.application.commands.rename_node import RenameNodeCommand
+from codegen.code_metadata.application.commands.rename_node import RenameNodeHandler
 from codegen.code_metadata.application.event_handlers.on_batch_nodes_deleted import (
     OnBatchNodesDeleted,
 )
@@ -189,6 +191,7 @@ class Container(DeclarativeContainer):
         OnBatchNodesDeleted
     )
     move_node_handler: Singleton[MoveNodeHandler] = Singleton(MoveNodeHandler)
+    rename_node_handler: Singleton[RenameNodeHandler] = Singleton(RenameNodeHandler)
     on_node_moved: Singleton[OnNodeMoved] = Singleton(OnNodeMoved)
     message_bus: Factory[MessageBus] = Factory(
         MessageBus,
@@ -200,6 +203,7 @@ class Container(DeclarativeContainer):
                 GenerateCodeCommand: generate_code.provided.execute,
                 DeleteModuleInPhysicalCommand: delete_module_in_physical_handler.provided.execute,
                 MoveNodeCommand: move_node_handler.provided.execute,
+                RenameNodeCommand: rename_node_handler.provided.execute,
             }
         ),
         event_handlers=Dict(

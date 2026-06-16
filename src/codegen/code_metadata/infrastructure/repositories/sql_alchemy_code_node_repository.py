@@ -4,7 +4,7 @@ from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
 
-from sqlalchemy import ColumnElement, any_, exists, func, not_, or_, select, update
+from sqlalchemy import ColumnElement, any_, exists, func, not_, or_, select, update, delete
 from sqlalchemy.orm import Session, aliased, selectinload
 
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
@@ -181,10 +181,9 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
 
     @override
     def delete_by_fqn_prefix(self, fqn_prefixes: Collection[Fqn]) -> None:
-        from sqlalchemy import delete as sa_delete
 
         patterns = [f"{p}%" for p in fqn_prefixes]
-        stmt = sa_delete(CodeNodeModel).where(CodeNodeModel.fqn.like(any_(patterns)))
+        stmt = delete(CodeNodeModel).where(CodeNodeModel.fqn.like(any_(patterns)))
         self.session.execute(stmt)
 
     def _get_orm(self, id: Fqn) -> CodeNodeModel:
@@ -206,6 +205,31 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             case _:
                 raise NotImplementedError(f"node.kind={node.kind!r}, {target.kind}=")
 
+    def _batch_update_fqn_prefix(
+        self,
+        node_id: object,
+        old_fqn: str,
+        new_fqn: str,
+        separator: str,
+    ) -> None:
+        """批量更新节点自身及所有以 old_fqn 为前缀的后代节点的 FQN。"""
+        like_pattern = f"{old_fqn}{separator}%"
+        old_fqn_len = len(old_fqn)
+        node_update_stmt = (
+            update(CodeNodeModel)
+            .where(
+                or_(CodeNodeModel.id == node_id, CodeNodeModel.fqn.like(like_pattern))
+            )
+            .values(fqn=new_fqn + func.substr(CodeNodeModel.fqn, old_fqn_len + 1))
+        )
+        self.session.execute(node_update_stmt)
+
+    def _determine_separator(self, node: CodeNodeModel) -> str:
+        """根据节点类型决定后代 FQN 使用的分隔符。"""
+        if isinstance(node, ModuleNodeModel) and node.is_package:
+            return "."
+        return "::"
+
     def _move_node(
         self,
         node: ModuleNodeModel | ClassNodeModel,
@@ -220,19 +244,8 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         )
         if conflict_exists:
             raise ValueError(f"目标路径已存在相同的 FQN: {new_fqn}")
-        separator = "::"
-        if isinstance(node, ModuleNodeModel) and node.is_package:
-            separator = "."
-            
-        like_pattern = f"{old_fqn}{separator}%"
-        old_fqn_len = len(old_fqn)
-        node_update_stmt = (
-            update(CodeNodeModel)
-            .where(
-                or_(CodeNodeModel.id == node.id, CodeNodeModel.fqn.like(like_pattern))
-            )
-            .values(fqn=new_fqn + func.substr(CodeNodeModel.fqn, old_fqn_len + 1))
-        )
+        separator = self._determine_separator(node)
+        self._batch_update_fqn_prefix(node.id, old_fqn, new_fqn, separator)
 
         edge_update_stmt = (
             update(CodeEdgeModel)
@@ -242,7 +255,32 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             )
             .values(source_id=target.id)
         )
-        self.session.execute(node_update_stmt)
         self.session.execute(edge_update_stmt)
+        self.session.flush()
+        return Fqn(new_fqn)
+
+    @override
+    def rename_node(self, node_fqn: Fqn, new_name: str) -> Fqn:
+        node = self._get_orm(node_fqn)
+        old_fqn = node.fqn
+        parent_fqn = old_fqn.parent_fqn
+        separator = "::" if "::" in old_fqn else "."
+        new_fqn = f"{parent_fqn}{separator}{new_name}"
+        if old_fqn == new_fqn:
+            return Fqn(new_fqn)
+        conflict_exists = self.session.scalar(
+            select(CodeNodeModel.id).where(CodeNodeModel.fqn == new_fqn)
+        )
+        if conflict_exists:
+            raise ValueError(f"目标路径已存在相同的 FQN: {new_fqn}")
+        child_separator = self._determine_separator(node)
+        self._batch_update_fqn_prefix(node.id, old_fqn, new_fqn, child_separator)
+        # 更新节点自身的 name 字段
+        name_update_stmt = (
+            update(CodeNodeModel)
+            .where(CodeNodeModel.id == node.id)
+            .values(name=new_name)
+        )
+        self.session.execute(name_update_stmt)
         self.session.flush()
         return Fqn(new_fqn)
