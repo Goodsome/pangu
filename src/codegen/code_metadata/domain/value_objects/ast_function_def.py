@@ -8,9 +8,9 @@ from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.shared.domain.core.value_object import ValueObject
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 
 if TYPE_CHECKING:
-    from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
     from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
     from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
 

@@ -1,3 +1,4 @@
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.arg import Arg
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
@@ -23,7 +24,6 @@ from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
 )
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
-from codegen.code_metadata.domain.value_objects.ast_for import AstFor
 from codegen.code_metadata.domain.value_objects.ast_formatted_value import (
     AstFormattedValue,
 )
@@ -62,9 +62,8 @@ from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVar
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVarTuple
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstParamSpec
 from codegen.code_metadata.domain.value_objects.ast_type_param import type_param_adapter
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt, AstFor
 from codegen.code_metadata.domain.value_objects.ast_stmt import ast_stmt_adapter
-from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.match_pattern import MatchPattern
 from codegen.code_metadata.domain.value_objects.match_pattern import (
@@ -93,7 +92,6 @@ __all__ = [
     "AstDictComp",
     "AstExceptHandler",
     "AstExprStmt",
-    "AstFor",
     "AstFormattedValue",
     "AstFunctionDef",
     "AstGeneratorExp",
@@ -130,61 +128,11 @@ __all__ = [
     "AstTypeVarTuple",
     "AstParamSpec",
     "type_param_adapter",
-    "AstStmt",
-    "ast_stmt_adapter",
     "AstExpr",
     "AstKeyword",
     "MatchPattern",
     "match_pattern_adapter",
+    "AstStmt",
+    "ast_stmt_adapter",
+    "AstFor"
 ]
-AstKeyword.model_rebuild()
-Arg.model_rebuild()
-AstAnnAssign.model_rebuild()
-AstAssert.model_rebuild()
-AstAssign.model_rebuild()
-AstAugAssign.model_rebuild()
-AstExprStmt.model_rebuild()
-AstFor.model_rebuild()
-AstIf.model_rebuild()
-AstWith.model_rebuild()
-AstMatch.model_rebuild()
-AstExceptHandler.model_rebuild()
-AstTry.model_rebuild()
-AstArguments.model_rebuild()
-AstFunctionDef.model_rebuild()
-AstAttribute.model_rebuild()
-AstCall.model_rebuild()
-AstBinOp.model_rebuild()
-AstBoolOp.model_rebuild()
-AstCompare.model_rebuild()
-AstIfExp.model_rebuild()
-AstLambda.model_rebuild()
-AstJoinedStr.model_rebuild()
-AstFormattedValue.model_rebuild()
-AstListComp.model_rebuild()
-AstSetComp.model_rebuild()
-AstDictComp.model_rebuild()
-AstGeneratorExp.model_rebuild()
-AstSlice.model_rebuild()
-AstStarred.model_rebuild()
-AstSubscript.model_rebuild()
-AstTuple.model_rebuild()
-AstList.model_rebuild()
-AstSet.model_rebuild()
-AstDict.model_rebuild()
-AstWithItem.model_rebuild()
-AstMatchCase.model_rebuild()
-AstComprehension.model_rebuild()
-AstReturn.model_rebuild()
-AstUnaryOp.model_rebuild()
-AstYield.model_rebuild()
-AstYieldFrom.model_rebuild()
-AstAwait.model_rebuild()
-AstRaise.model_rebuild()
-AstImport.model_rebuild()
-AstImportFrom.model_rebuild()
-AstClassDef.model_rebuild()
-AstTypeVar.model_rebuild()
-AstTypeVarTuple.model_rebuild()
-AstParamSpec.model_rebuild()
-AstWhile.model_rebuild()

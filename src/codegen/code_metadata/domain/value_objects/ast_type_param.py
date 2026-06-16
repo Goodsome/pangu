@@ -7,9 +7,7 @@ from pydantic import Field
 from pydantic import TypeAdapter
 from codegen.code_metadata.domain.enums.ast_type_param_kind import AstTypeParamKind
 from codegen.shared.domain.core.value_object import ValueObject
-
-if TYPE_CHECKING:
-    from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 
 
 class AstTypeVar(ValueObject):

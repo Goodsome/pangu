@@ -25,7 +25,7 @@ from codegen.code_metadata.domain.value_objects.ast_except_handler import (
 )
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
-from codegen.code_metadata.domain.value_objects.ast_for import AstFor
+from codegen.code_metadata.domain.value_objects import AstFor
 from codegen.code_metadata.domain.value_objects.ast_formatted_value import (
     AstFormattedValue,
 )

@@ -1,5 +1,6 @@
 from pathlib import Path
 from pydantic import BaseModel
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 
 
