@@ -1,7 +1,11 @@
+import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
+from typing import override
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -11,10 +15,12 @@ class OSFileSystem(FileSystemPort):
     root: Path
     encoding: str = "utf-8"
 
+    @override
     def read_file(self, path: Path) -> str:
         full_path = self.root / path
         return full_path.read_text(encoding=self.encoding)
 
+    @override
     def write_file(self, path: Path, content: str, overwrite: bool = False) -> bool:
         """Writes content to file. Returns True if written, False if skipped (due to overwrite=False)."""
         full_path = self.root / path
@@ -24,6 +30,7 @@ class OSFileSystem(FileSystemPort):
         _ = full_path.write_text(content, encoding=self.encoding)
         return True
 
+    @override
     def list_directory_recursively(
         self, path: Path, pattern: str = "*", ignore_dirs: set[str] | None = None
     ) -> Iterator[Path]:
@@ -38,23 +45,29 @@ class OSFileSystem(FileSystemPort):
                 if rp.match(pattern):
                     yield rp
 
+    @override
     def list_directory_flat(self, path: Path) -> Iterator[Path]:
         full_path = self.root / path
         for entry in full_path.iterdir():
             yield entry.relative_to(self.root)
 
+    @override
     def is_directory(self, path: Path) -> bool:
         return (self.root / path).is_dir()
 
+    @override
     def is_file(self, path: Path) -> bool:
         return (self.root / path).is_file()
 
+    @override
     def exists(self, path: Path) -> bool:
         return (self.root / path).exists()
 
+    @override
     def delete_file(self, path: Path) -> bool:
         full_path = self.root / path
         if not full_path.is_file():
+            logger.warning(f"{full_path=} is not fille, skip")
             return False
         full_path.unlink()
         return True
