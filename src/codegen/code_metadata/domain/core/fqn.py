@@ -23,7 +23,7 @@ class Fqn(str):
         return Fqn(self.split("::")[0])
 
     @property
-    def parent_fqn(self) -> Fqn | None:
+    def parent_fqn(self) -> Fqn:
         """
         获取上一层路径。
         逻辑：优先从右侧查找 `::` 进行拆分；如果没有 `::`，则从右侧查找 `.` 进行拆分。
@@ -33,7 +33,7 @@ class Fqn(str):
             return Fqn(self.rsplit("::", 1)[0])
         if "." in self:
             return Fqn(self.rsplit(".", 1)[0])
-        return None
+        raise ValueError(f"Parent fqn not Found: {self=}")
 
     @property
     def symbol(self) -> str:

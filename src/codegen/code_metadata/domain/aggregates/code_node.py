@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import logging
 import re
 from pathlib import Path
@@ -30,6 +31,9 @@ class _BaseNode(AggregateRoot[Fqn]):
     description: str | None = Field(default=None)
     outbound_edges: list[CodeEdge] = Field(default_factory=list)
 
+    def update_fqn(self, fqn: Fqn):
+        self.id: Fqn = fqn
+
     def _add_edge(self, edge: CodeEdge):
         if edge in self.outbound_edges:
             return
@@ -50,6 +54,9 @@ class _BaseNode(AggregateRoot[Fqn]):
     def mark_deleted(self) -> None:
         event = NodeDeleted(node_id=self.id, node_kind=self.kind)
         self.add_domain_event(event)
+
+    def remove_edges(self, edge: CodeEdge):
+        self.outbound_edges = [e for e in self.outbound_edges if e != edge]
 
 
 class DirectoryNode(_BaseNode):
@@ -84,6 +91,9 @@ class ModuleNode(_BaseNode):
     def contains(self, node: ModuleNode):
         edge = ContainsEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
+
+    def remove_contains(self, node: ModuleNode):
+        ...
 
     def defines(self, node: ClassNode | FunctionNode | VariableNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
@@ -123,6 +133,12 @@ class ModuleNode(_BaseNode):
             path = path.with_suffix(".py")
         return path
 
+    @property
+    def contains_edges(self) -> Iterable[ContainsEdge]:
+        for edge in self.outbound_edges:
+            if isinstance(edge, ContainsEdge):
+                yield edge
+    
 
 class ClassNode(_BaseNode):
     """类节点：kind 固定为 CLASS，由模块节点的 AST 类定义派生。"""

@@ -31,12 +31,14 @@ from codegen.code_metadata.application.commands.delete_module_in_physical import
 from codegen.code_metadata.application.commands.generate_code import GenerateCode
 from codegen.code_metadata.application.commands.generate_code import GenerateCodeCommand
 from codegen.code_metadata.application.commands.ingest_project import IngestProject
+from codegen.code_metadata.application.commands.move_node import MoveNodeCommand, MoveNodeHandler
 from codegen.code_metadata.application.event_handlers.on_batch_nodes_deleted import (
     OnBatchNodesDeleted,
 )
 from codegen.code_metadata.application.event_handlers.on_node_deleted import (
     OnNodeDeleted,
 )
+from codegen.code_metadata.application.event_handlers.on_node_moved import OnNodeMoved
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.ports.code_node_query_service import (
     CodeNodeQueryService,
@@ -85,6 +87,7 @@ from codegen.shared.application.integration_events.batch_nodes_deleted import (
 from codegen.shared.application.integration_events.node_deleted import (
     NodeDeletedIntegrationEvent,
 )
+from codegen.shared.application.integration_events.node_moved import NodeMovedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
@@ -182,6 +185,12 @@ class Container(DeclarativeContainer):
     on_batch_nodes_deleted: Singleton[OnBatchNodesDeleted] = Singleton(
         OnBatchNodesDeleted
     )
+    move_node_handler: Singleton[MoveNodeHandler] = Singleton(
+        MoveNodeHandler
+    )
+    on_node_moved: Singleton[OnNodeMoved] = Singleton(
+        OnNodeMoved
+    )
     message_bus: Factory[MessageBus] = Factory(
         MessageBus,
         uow=code_node_unit_of_work,
@@ -191,6 +200,7 @@ class Container(DeclarativeContainer):
                 CleanUnusedNodesCommand: clean_unused_nodes.provided.execute,
                 GenerateCodeCommand: generate_code.provided.execute,
                 DeleteModuleInPhysicalCommand: delete_module_in_physical_handler.provided.execute,
+                MoveNodeCommand: move_node_handler.provided.execute,
             }
         ),
         event_handlers=Dict(
@@ -202,6 +212,9 @@ class Container(DeclarativeContainer):
                 BatchNodesDeletedIntegrationEvent: List(
                     on_batch_nodes_deleted.provided.handle_nodes_deleted
                 ),
+                NodeMovedIntegrationEvent: List(
+                    on_node_moved.provided.regenerate_codes
+                )
             }
         ),
     )

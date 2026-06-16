@@ -3,12 +3,13 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
-from sqlalchemy import ColumnElement
+from sqlalchemy import ColumnElement, func, or_, update
 from sqlalchemy import exists
 from sqlalchemy import not_
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import selectinload
+from codegen.code_metadata.domain.aggregates import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
@@ -154,39 +155,70 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         )
         models = self.session.execute(stmt).scalars().unique().all()
         return [orm_to_dto(m) for m in models]
+        
+    def _get_orm(self, id: Fqn) -> CodeNodeModel:
+        stmt = select(CodeNodeModel).where(CodeNodeModel.fqn == id)
+        orm_model = self.session.execute(stmt).scalar_one_or_none()
+        if orm_model is None:
+            raise ValueError(f"CodeNode with fqn '{id}' not found")
+        return orm_model
 
     @override
-    def find_unused_nodes(
-        self, kind: CodeNodeKind | None = None, fqns: Collection[str] | None = None
-    ) -> list[CodeNode]:
-        _SUPPORTED = {CodeNodeKind.CLASS, CodeNodeKind.FUNCTION, CodeNodeKind.VARIABLE}
-        _USAGE_EDGE_TYPES = {
-            EdgeType.IMPORTS,
-            EdgeType.INHERITS,
-            EdgeType.CALLS,
-            EdgeType.RETURNS,
-            EdgeType.ACCEPTS,
-            EdgeType.TYPED_AS,
-        }
-        has_usage_inbound = exists().where(
-            CodeEdgeModel.target_id == CodeNodeModel.id,
-            CodeEdgeModel.type.in_(_USAGE_EDGE_TYPES),
+    def move_node(
+        self, node_fqn: Fqn, target_fqn: Fqn
+    ) -> Fqn:
+        node = self._get_orm(node_fqn)
+        target = self._get_orm(target_fqn)
+
+        match node, target:
+            case ModuleNodeModel(), ModuleNodeModel():
+                return self._move_module_node(node, target)
+            case _:
+                raise NotImplementedError(f"{node.kind=}, {target.kind}=")
+
+    def _move_module_node(self, node: ModuleNodeModel, target: ModuleNodeModel) -> Fqn:
+        
+        old_fqn = node.fqn
+        new_fqn = Fqn(f"{target.fqn}.{node.name}")
+
+        if old_fqn == new_fqn:
+            return new_fqn
+        
+        conflict_exists = self.session.scalar(
+            select(CodeNodeModel.id).where(CodeNodeModel.fqn == new_fqn)
         )
-        conditions: list[ColumnElement[bool]] = [not_(has_usage_inbound)]
-        if kind:
-            conditions.append(CodeNodeModel.kind == kind)
-        else:
-            conditions.append(CodeNodeModel.kind.in_(_SUPPORTED))
-        if fqns:
-            conditions.append(CodeNodeModel.fqn.in_(fqns))
-        stmt = (
-            select(CodeNodeModel)
-            .where(*conditions)
-            .options(
-                selectinload(CodeNodeModel.outbound_edges).joinedload(
-                    CodeEdgeModel.target_entity
+        if conflict_exists:
+            raise ValueError(f"目标路径已存在相同的 FQN: {new_fqn}")
+
+        separator = "." if node.is_package else "::"
+        like_pattern = f"{old_fqn}{separator}%"
+        
+        old_fqn_len = len(old_fqn)
+        node_update_stmt = (
+            update(CodeNodeModel)
+            .where(
+                or_(
+                    CodeNodeModel.id == node.id,
+                    CodeNodeModel.fqn.like(like_pattern)
                 )
             )
+            .values(
+                fqn=new_fqn + func.substr(CodeNodeModel.fqn, old_fqn_len + 1)
+            )
         )
-        models = self.session.execute(stmt).scalars().unique().all()
-        return [orm_to_dto(m) for m in models]
+        
+        edge_update_stmt = (
+            update(CodeEdgeModel)
+            .where(
+                CodeEdgeModel.target_id == node.id,
+                CodeEdgeModel.type == EdgeType.CONTAINS
+            )
+            .values(source_id=target.id)
+        )
+        
+        self.session.execute(node_update_stmt)
+        self.session.execute(edge_update_stmt)
+        
+        self.session.flush()
+
+        return new_fqn
