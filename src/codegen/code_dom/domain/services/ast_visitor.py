@@ -29,7 +29,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt import AstFor
 from codegen.code_metadata.domain.value_objects.ast_formatted_value import (
     AstFormattedValue,
 )
-from codegen.code_metadata.domain.value_objects.ast_function_def import AstFunctionDef
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_generator_exp import AstGeneratorExp
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_if_exp import AstIfExp

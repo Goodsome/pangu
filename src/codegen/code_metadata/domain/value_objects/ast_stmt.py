@@ -2,6 +2,7 @@ from typing import Annotated
 from typing import Literal
 from pydantic import Field
 from pydantic import TypeAdapter
+from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
@@ -9,6 +10,7 @@ from codegen.code_metadata.domain.value_objects.ast_except_handler import (
 )
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
+from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_return import AstReturn
 from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
@@ -17,7 +19,6 @@ from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssi
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
 from codegen.code_metadata.domain.value_objects.ast_while import AstWhile
-from codegen.code_metadata.domain.value_objects.ast_function_def import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_with import AstWith
 from codegen.code_metadata.domain.value_objects.ast_raise import AstRaise
@@ -40,6 +41,72 @@ class AstClassDef(ValueObject):
     type_params: list[AstTypeParam] = Field(default_factory=list)
     body: list[AstStmt] = Field(default_factory=list)
     decorator_list: list[AstExpr] = Field(default_factory=list)
+
+
+class AstFunctionDef(ValueObject):
+    lineno: int
+    kind: Literal[AstStmtKind.FUNCTION_DEF] = AstStmtKind.FUNCTION_DEF
+    is_async: bool = False
+    name: str
+    type_params: list[AstTypeParam] = Field(default_factory=list)
+    arguments: list[AstAssign | AstAnnAssign] = Field(default_factory=list)
+    body: list[AstStmt] = Field(default_factory=list)
+    decorator_list: list[AstExpr] = Field(default_factory=list)
+    returns: AstExpr | None = None
+    type_comment: str | None = None
+
+    @property
+    def is_overload(self) -> bool:
+        return self.check_something_in_decorator_list("overload")
+
+    @property
+    def is_override(self) -> bool:
+        return self.check_something_in_decorator_list("override")
+
+    def check_something_in_decorator_list(self, something: str):
+        return any(
+            (
+                isinstance(decorator, AstName) and decorator.id == something
+                for decorator in self.decorator_list
+            )
+        )
+
+    @property
+    def is_getter_property(self) -> bool:
+        return any(
+            (
+                isinstance(decorator, AstName)
+                and decorator.id in ["property", "hybird_property"]
+                for decorator in self.decorator_list
+            )
+        )
+
+    @property
+    def is_setter_property(self) -> bool:
+        for decorator in self.decorator_list:
+            if not isinstance(decorator, AstAttribute):
+                continue
+            if decorator.attr == "setter":
+                return True
+        return False
+
+    @property
+    def is_deleter_property(self) -> bool:
+        for decorator in self.decorator_list:
+            if not isinstance(decorator, AstAttribute):
+                continue
+            if decorator.attr == "deleter":
+                return True
+        return False
+
+    @property
+    def is_expression_property(self) -> bool:
+        for decorator in self.decorator_list:
+            if not isinstance(decorator, AstAttribute):
+                continue
+            if decorator.attr == "expression":
+                return True
+        return False
 
 
 class AstFor(ValueObject):

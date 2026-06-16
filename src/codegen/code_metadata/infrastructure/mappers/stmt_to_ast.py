@@ -15,7 +15,7 @@ from codegen.code_metadata.domain.value_objects.ast_except_handler import (
 )
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstFor
-from codegen.code_metadata.domain.value_objects.ast_function_def import AstFunctionDef
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
