@@ -23,6 +23,10 @@ class Fqn(str):
         return Fqn(self.split("::")[0])
 
     @property
+    def is_module(self) -> bool:
+        return "::" not in self
+
+    @property
     def parent_fqn(self) -> Fqn:
         """
         获取上一层路径。

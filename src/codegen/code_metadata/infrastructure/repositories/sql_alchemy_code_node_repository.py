@@ -3,17 +3,10 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from typing import override
-from sqlalchemy import ColumnElement
-from sqlalchemy import any_
-from sqlalchemy import func
-from sqlalchemy import or_
-from sqlalchemy import update
-from sqlalchemy import exists
-from sqlalchemy import not_
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import aliased
-from sqlalchemy.orm import selectinload
+
+from sqlalchemy import ColumnElement, any_, exists, func, not_, or_, select, update
+from sqlalchemy.orm import Session, aliased, selectinload
+
 from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
@@ -22,8 +15,6 @@ from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     dto_to_upsert_dict,
-)
-from codegen.code_metadata.infrastructure.mappers.code_node_mapper.dispatcher import (
     orm_to_dto,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
@@ -31,32 +22,14 @@ from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ClassNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     CodeNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     DirectoryNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ExternalNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FileNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     MethodNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ModuleNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ParameterNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     VariableNodeModel,
 )
 
@@ -218,12 +191,18 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         node = self._get_orm(node_fqn)
         target = self._get_orm(target_fqn)
         match (node, target):
-            case [ModuleNodeModel(), ModuleNodeModel()]:
-                return self._move_module_node(node, target)
+            case ModuleNodeModel(), ModuleNodeModel():
+                return self._move_mode(node, target)
+            case ClassNodeModel(), ModuleNodeModel():
+                return self._move_mode(node, target)
             case _:
                 raise NotImplementedError(f"node.kind={node.kind!r}, {target.kind}=")
 
-    def _move_module_node(self, node: ModuleNodeModel, target: ModuleNodeModel) -> Fqn:
+    def _move_mode(
+        self,
+        node: ModuleNodeModel | ClassNodeModel,
+        target: ModuleNodeModel,
+    ) -> Fqn:
         old_fqn = node.fqn
         new_fqn = f"{target.fqn}.{node.name}"
         if old_fqn == new_fqn:
@@ -233,7 +212,10 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
         )
         if conflict_exists:
             raise ValueError(f"目标路径已存在相同的 FQN: {new_fqn}")
-        separator = "." if node.is_package else "::"
+        separator = "::"
+        if isinstance(node, ModuleNodeModel) and node.is_package:
+            separator = "."
+            
         like_pattern = f"{old_fqn}{separator}%"
         old_fqn_len = len(old_fqn)
         node_update_stmt = (
@@ -243,11 +225,12 @@ class SqlAlchemyCodeNodeRepository(CodeNodeRepository):
             )
             .values(fqn=new_fqn + func.substr(CodeNodeModel.fqn, old_fqn_len + 1))
         )
+
         edge_update_stmt = (
             update(CodeEdgeModel)
             .where(
                 CodeEdgeModel.target_id == node.id,
-                CodeEdgeModel.type == EdgeType.CONTAINS,
+                CodeEdgeModel.type.in_(EdgeType.CONTAINS),
             )
             .values(source_id=target.id)
         )
