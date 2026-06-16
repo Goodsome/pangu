@@ -15,7 +15,6 @@ from codegen.shared.application.integration_events.node_moved import (
 
 @dataclass
 class OnNodeMoved:
-    query_service: CodeNodeQueryService
     
     def regenerate_codes(self, event: NodeMovedIntegrationEvent, uow: UnitOfWork):
         
