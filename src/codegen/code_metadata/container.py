@@ -57,12 +57,6 @@ from codegen.code_metadata.application.queries.get_code_node_detail import (
 from codegen.code_metadata.application.queries.get_dev_progress import (
     GetDevProgressHandler,
 )
-from codegen.code_metadata.application.queries.get_directory_tree import (
-    GetDirectoryTree,
-)
-from codegen.code_metadata.application.queries.trace_symbol_dependencies import (
-    TraceSymbolDependenciesQueryHandler,
-)
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.code_metadata.infrastructure.gateways.file_system_code_graph_builder import (
@@ -163,14 +157,8 @@ class Container(DeclarativeContainer):
         sync_service=code_node_sync_service,
         query_service=code_node_query_service,
     )
-    get_directory_tree: Factory[GetDirectoryTree] = Factory(
-        GetDirectoryTree, query_service=code_node_query_service
-    )
     get_code_node_detail: Factory[GetCodeNodeDetail] = Factory(
         GetCodeNodeDetail, query_service=code_node_query_service
-    )
-    trace_symbol_dependencies: Factory[TraceSymbolDependenciesQueryHandler] = Factory(
-        TraceSymbolDependenciesQueryHandler, query_service=code_node_query_service
     )
     find_unused_nodes: Factory[FindUnusedNodes] = Factory(
         FindUnusedNodes, query_service=code_node_query_service
