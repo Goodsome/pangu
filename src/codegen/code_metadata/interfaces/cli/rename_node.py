@@ -1,10 +1,8 @@
 from typing import Annotated
-
 import typer
 from dependency_injector.wiring import Provide
 from dependency_injector.wiring import inject
 from rich.console import Console
-
 from codegen.code_metadata.application.commands.rename_node import RenameNodeCommand
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.infrastructure.message_bus import MessageBus

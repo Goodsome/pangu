@@ -29,9 +29,7 @@ def move_node(
     _move_node(cmd)
 
 
-def move_to_ast_stmt(
-    name: Annotated[str, typer.Argument()],
-):
+def move_to_ast_stmt(name: Annotated[str, typer.Argument()]):
     vo_path = "codegen.code_metadata.domain.value_objects"
     fqn = Fqn(f"{vo_path}.{SnakeString(name)}::{PascalString(name)}")
     target_fqn = Fqn(f"{vo_path}.ast_stmt")

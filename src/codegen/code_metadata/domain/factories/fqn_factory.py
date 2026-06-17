@@ -4,9 +4,14 @@ from typing import ClassVar
 from codegen.code_metadata.domain.core.fqn import Fqn
 
 
+list_path = list[Path]
+
 @dataclass
 class FqnFactory:
-    SOURCE_ROOTS: ClassVar[list[Path]] = [Path("src"), Path("apps")]
+    SOURCE_ROOTS: ClassVar[list[Path]] = [
+        Path("src"), 
+        Path("apps"),
+    ]
 
     def build_module_fqn(self, path: Path) -> Fqn:
         """模块 FQN：将路径分隔符替换为 '.'，去除后缀。
