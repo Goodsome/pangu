@@ -30,6 +30,7 @@ from codegen.code_metadata.domain.value_objects.ast_import_from import AstImport
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
 from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
+from codegen.code_metadata.infrastructure.gateways.document_context import DocumentContext
 from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
@@ -39,6 +40,7 @@ from codegen.code_metadata.infrastructure.gateways.traversal_context import (
 class EdgeBuilder(AstVisitor):
     module: ModuleNode
     node_registry: NodeRegistry
+    document_context: DocumentContext
     local_aliases: dict[str, Fqn] = field(init=False)
     context: TraversalContext = field(default_factory=TraversalContext)
     function_local_aliases: dict[str, Fqn] = field(default_factory=dict)

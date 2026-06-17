@@ -1,8 +1,11 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
+
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
+from codegen.code_metadata.infrastructure.gateways.document_context import (
+    DocumentContext,
+)
 
 
 class CodeGraphBuilder(ABC):
@@ -19,9 +22,13 @@ class CodeGraphBuilder(ABC):
         root_path: Path,
         node_registry: NodeRegistry,
         code_documents: list[CodeDocument],
+        document_context: DocumentContext,
     ) -> set[str]: ...
 
     @abstractmethod
     def build_edges(
-        self, node_registry: NodeRegistry, code_documents: list[CodeDocument]
+        self,
+        node_registry: NodeRegistry,
+        code_documents: list[CodeDocument],
+        document_context: DocumentContext,
     ) -> None: ...

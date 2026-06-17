@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass
+
 from codegen.code_metadata.application.dtos.ingest_project_command import (
     IngestProjectCommand,
 )
@@ -16,6 +17,9 @@ from codegen.code_metadata.application.ports.code_node_sync_service import (
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
+from codegen.code_metadata.infrastructure.gateways.document_context import (
+    DocumentContext,
+)
 
 
 @dataclass
@@ -32,10 +36,12 @@ class IngestProject:
         module_path = FqnFactory.fqn_to_path(fqn)
         code_documents = self.graph_builder.get_code_documents(module_path=module_path)
         node_reistry: NodeRegistry = NodeRegistry()
+        document_context: DocumentContext = DocumentContext()
         imports = self.graph_builder.build_nodes(
             root_path=module_path,
             node_registry=node_reistry,
             code_documents=code_documents,
+            document_context=document_context,
         )
         query_imports: set[str] = set()
         for import_module_fqn in imports:
@@ -47,7 +53,9 @@ class IngestProject:
         )
         node_reistry.registry_nodes(query_nodes)
         self.graph_builder.build_edges(
-            node_registry=node_reistry, code_documents=code_documents
+            node_registry=node_reistry,
+            code_documents=code_documents,
+            document_context=document_context,
         )
         bulk_result = self.sync_service.save_nodes_bulk(
             node_reistry.upsert_nodes, sync_id=sync_id, fqn_prefix=fqn

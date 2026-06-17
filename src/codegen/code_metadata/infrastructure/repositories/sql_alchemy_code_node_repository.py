@@ -28,6 +28,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     MethodNodeModel,
     ModuleNodeModel,
     ParameterNodeModel,
+    TypeClassNodeModel,
     VariableNodeModel,
 )
 
@@ -39,6 +40,7 @@ _KIND_TO_MODEL: dict[CodeNodeKind, type[CodeNodeModel]] = {
     CodeNodeKind.VARIABLE: VariableNodeModel,
     CodeNodeKind.PARAMETER: ParameterNodeModel,
     CodeNodeKind.EXTERNAL: ExternalNodeModel,
+    CodeNodeKind.TYPE_CLASS: TypeClassNodeModel,
 }
 
 

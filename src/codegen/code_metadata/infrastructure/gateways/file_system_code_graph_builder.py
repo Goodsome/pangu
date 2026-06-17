@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
+
 from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
-)
-from codegen.code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsQuery,
 )
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
@@ -12,6 +11,9 @@ from codegen.code_metadata.application.ports.code_graph_builder import CodeGraph
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
+from codegen.code_metadata.infrastructure.gateways.document_context import (
+    DocumentContext,
+)
 from codegen.code_metadata.infrastructure.gateways.edge_builder import EdgeBuilder
 from codegen.code_metadata.infrastructure.gateways.node_builder import NodeBuilder
 
@@ -34,16 +36,23 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
         root_path: Path,
         node_registry: NodeRegistry,
         code_documents: list[CodeDocument],
+        document_context: DocumentContext,
     ) -> set[str]:
         acl = NodeBuilder(
-            root_path=root_path, fqn_factory=FqnFactory(), node_registery=node_registry
+            root_path=root_path,
+            fqn_factory=FqnFactory(),
+            node_registery=node_registry,
+            document_context=document_context,
         )
         acl.build(code_documents)
         return acl.imports
 
     @override
     def build_edges(
-        self, node_registry: NodeRegistry, code_documents: list[CodeDocument]
+        self,
+        node_registry: NodeRegistry,
+        code_documents: list[CodeDocument],
+        document_context: DocumentContext,
     ) -> None:
         fqn_factory = FqnFactory()
         sorted_docs = sorted(code_documents, key=lambda d: not d.is_init_file)
@@ -51,5 +60,8 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
             module_fqn = fqn_factory.build_module_fqn(code_document.physical_path)
             module = node_registry.get_node(module_fqn)
             assert isinstance(module, ModuleNode)
-            module_builder = EdgeBuilder(module, node_registry)
+            module_builder = EdgeBuilder(
+                module, node_registry,
+                document_context=document_context
+            )
             module_builder.build(code_document)

@@ -220,6 +220,12 @@ class ExternalNode(_BaseNode):
     kind: Literal[CodeNodeKind.EXTERNAL] = CodeNodeKind.EXTERNAL
 
 
+class TypeClassNode(_BaseNode):
+    """类型类节点：kind 固定为 TYPE_CLASS，表示类型类定义。"""
+
+    kind: Literal[CodeNodeKind.TYPE_CLASS] = CodeNodeKind.TYPE_CLASS
+
+
 CodeNode = Annotated[
     ModuleNode
     | ClassNode
@@ -227,6 +233,7 @@ CodeNode = Annotated[
     | MethodNode
     | VariableNode
     | ParameterNode
-    | ExternalNode,
+    | ExternalNode
+    | TypeClassNode,
     Field(discriminator="kind"),
 ]

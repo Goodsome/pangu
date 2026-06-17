@@ -243,3 +243,7 @@ class ParameterNodeModel(CodeNodeModel):
 
 class ExternalNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.EXTERNAL}
+
+
+class TypeClassNodeModel(CodeNodeModel):
+    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.TYPE_CLASS}

@@ -1,28 +1,35 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import override
+
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import ClassNode
-from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
-from codegen.code_metadata.domain.aggregates.code_node import MethodNode
-from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
-from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
-from codegen.code_metadata.domain.aggregates.code_node import VariableNode
+from codegen.code_metadata.domain.aggregates.code_node import (
+    ClassNode,
+    CodeNode,
+    FunctionNode,
+    MethodNode,
+    ModuleNode,
+    ParameterNode,
+    VariableNode,
+)
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
+    AstClassDef,
+    AstFunctionDef,
+)
+from codegen.code_metadata.infrastructure.gateways.document_context import (
+    DocumentContext,
+)
 from codegen.code_metadata.infrastructure.gateways.utils import get_import_from_module
 
 
@@ -31,6 +38,7 @@ class NodeBuilder(AstVisitor):
     root_path: Path
     fqn_factory: FqnFactory
     node_registery: NodeRegistry
+    document_context: DocumentContext
     imports: set[str] = field(default_factory=set)
     node_stack: list[CodeNode] = field(default_factory=list)
     _current_module: ModuleNode | None = None
@@ -74,9 +82,9 @@ class NodeBuilder(AstVisitor):
         module_path = module.get_physical_path()
         if module_path.with_suffix("") == self.root_path:
             return
-        assert len(module_path.parts) >= len(
-            self.root_path.parts
-        ), f"module_path={module_path!r} not under self.root_path={self.root_path!r}"
+        assert len(module_path.parts) >= len(self.root_path.parts), (
+            f"module_path={module_path!r} not under self.root_path={self.root_path!r}"
+        )
         parent_path = module_path.parent
         parent = self._find_or_create_module(parent_path)
         parent.is_package = True
@@ -91,6 +99,7 @@ class NodeBuilder(AstVisitor):
         self._current_module = node
         self.node_stack.append(node)
         self.visit(code_document.body)
+        self.document_context.store(ast_node=code_document, node=node)
         return node
 
     @override
@@ -130,6 +139,11 @@ class NodeBuilder(AstVisitor):
         self.node_stack.append(class_node)
         super().visit_ast_class_def(node)
         self.node_stack.pop()
+
+        self.document_context.store(
+            ast_node=node,
+            node=class_node
+        )
 
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
@@ -190,6 +204,11 @@ class NodeBuilder(AstVisitor):
         if node.returns is not None:
             self.visit(node.returns)
         self.node_stack.pop()
+
+        self.document_context.store(
+            ast_node=node,
+            node=func_node,
+        )
 
     @override
     def visit_ast_assign(self, node: AstAssign) -> None:
