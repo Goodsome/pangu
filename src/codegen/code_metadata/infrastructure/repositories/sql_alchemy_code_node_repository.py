@@ -23,9 +23,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ClassNodeModel,
     CodeNodeModel,
-    DirectoryNodeModel,
     ExternalNodeModel,
-    FileNodeModel,
     FunctionNodeModel,
     MethodNodeModel,
     ModuleNodeModel,
@@ -34,8 +32,6 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
 )
 
 _KIND_TO_MODEL: dict[CodeNodeKind, type[CodeNodeModel]] = {
-    CodeNodeKind.DIRECTORY: DirectoryNodeModel,
-    CodeNodeKind.FILE: FileNodeModel,
     CodeNodeKind.MODULE: ModuleNodeModel,
     CodeNodeKind.CLASS: ClassNodeModel,
     CodeNodeKind.FUNCTION: FunctionNodeModel,

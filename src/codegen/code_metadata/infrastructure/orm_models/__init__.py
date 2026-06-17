@@ -8,13 +8,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     CodeNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
-    DirectoryNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ExternalNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
-    FileNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
@@ -36,9 +30,7 @@ __all__ = [
     "CodeEdgeModel",
     "ClassNodeModel",
     "CodeNodeModel",
-    "DirectoryNodeModel",
     "ExternalNodeModel",
-    "FileNodeModel",
     "FunctionNodeModel",
     "MethodNodeModel",
     "ModuleNodeModel",

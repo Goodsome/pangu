@@ -52,14 +52,6 @@ class CodeNodeModel(BaseORM):
     )
 
 
-class DirectoryNodeModel(CodeNodeModel):
-    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.DIRECTORY}
-
-
-class FileNodeModel(CodeNodeModel):
-    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.FILE}
-
-
 class ModuleNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.MODULE}
 

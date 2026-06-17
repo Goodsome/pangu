@@ -71,18 +71,6 @@ class _BaseNode(AggregateRoot[Fqn]):
                 yield edge
 
 
-class DirectoryNode(_BaseNode):
-    """目录节点：kind 固定为 DIRECTORY。"""
-
-    kind: Literal[CodeNodeKind.DIRECTORY] = CodeNodeKind.DIRECTORY
-
-
-class FileNode(_BaseNode):
-    """文件节点：kind 固定为 FILE。"""
-
-    kind: Literal[CodeNodeKind.FILE] = CodeNodeKind.FILE
-
-
 class ModuleNode(_BaseNode):
     """模块节点：kind 固定为 MODULE，由文件节点自动派生。"""
 
@@ -233,9 +221,7 @@ class ExternalNode(_BaseNode):
 
 
 CodeNode = Annotated[
-    DirectoryNode
-    | FileNode
-    | ModuleNode
+    ModuleNode
     | ClassNode
     | FunctionNode
     | MethodNode

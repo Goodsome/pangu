@@ -7,9 +7,7 @@ from codegen.code_metadata.application.dtos.code_node_detail_dto import (
 )
 from codegen.code_metadata.domain.aggregates.code_node import ClassNode
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.aggregates.code_node import DirectoryNode
 from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
-from codegen.code_metadata.domain.aggregates.code_node import FileNode
 from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
 from codegen.code_metadata.domain.aggregates.code_node import MethodNode
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
@@ -29,13 +27,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     CodeNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
-    DirectoryNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ExternalNodeModel,
-)
-from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
-    FileNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
@@ -55,14 +47,8 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.class_node import (
     ClassNodeMapper,
 )
-from codegen.code_metadata.infrastructure.mappers.code_node_mapper.directory_node import (
-    DirectoryNodeMapper,
-)
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.external_node import (
     ExternalNodeMapper,
-)
-from codegen.code_metadata.infrastructure.mappers.code_node_mapper.file_node import (
-    FileNodeMapper,
 )
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.function_node import (
     FunctionNodeMapper,
@@ -85,10 +71,6 @@ def orm_to_dto(orm_model: CodeNodeModel) -> CodeNode:
     """基于 kind 属性将 ORM 模型安全分发至 DTO 转换逻辑"""
     kind = CodeNodeKind(orm_model.kind)
     match kind:
-        case CodeNodeKind.DIRECTORY:
-            return DirectoryNodeMapper.to_dto(cast(DirectoryNodeModel, orm_model))
-        case CodeNodeKind.FILE:
-            return FileNodeMapper.to_dto(cast(FileNodeModel, orm_model))
         case CodeNodeKind.MODULE:
             return ModuleNodeMapper.to_dto(cast(ModuleNodeModel, orm_model))
         case CodeNodeKind.CLASS:
@@ -125,10 +107,6 @@ def orm_to_detail_dto(orm_model: CodeNodeModel) -> CodeNodeDetailDto:
 def dto_to_upsert_dict(dto: CodeNode, sync_id: str) -> dict[str, Any]:
     """高性能批量同步分发"""
     match dto:
-        case DirectoryNode():
-            properties = DirectoryNodeMapper.to_properties(dto)
-        case FileNode():
-            properties = FileNodeMapper.to_properties(dto)
         case ModuleNode():
             properties = ModuleNodeMapper.to_properties(dto)
         case ClassNode():
