@@ -1,0 +1,10 @@
+[project]
+name = "spike"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+]
+
+# 告诉 uv，foundation 不是来自 PyPI，而是来自本地工作区
+[tool.uv.sources]
+foundation = { workspace = true }

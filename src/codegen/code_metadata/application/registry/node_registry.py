@@ -1,8 +1,8 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Self
-from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
+
+from codegen.code_metadata.domain.aggregates.code_node import CodeNode, ExternalNode
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.shared.domain.enums import PythonBuiltinType
 
 
@@ -20,8 +20,8 @@ class NodeRegistry:
     def nodes(self) -> list[CodeNode]:
         return list(self.store_by_fqn.values())
 
-    def get_node(self, fqn: str) -> CodeNode:
-        self._ensure_external_node(fqn)
+    def get_node(self, fqn: Fqn) -> CodeNode:
+        self.ensure_external_node(fqn)
         if fqn in self.store_by_fqn:
             return self.store_by_fqn[fqn]
         if fqn in self.temp_store:
@@ -31,11 +31,11 @@ class NodeRegistry:
     def find_node(self, fqn: str) -> CodeNode | None:
         return self.store_by_fqn.get(fqn)
 
-    def _ensure_external_node(self, fqn: str) -> None:
+    def ensure_external_node(self, fqn: Fqn) -> None:
         if fqn in self.store_by_fqn:
             return
         if fqn in PythonBuiltinType._value2member_map_:
-            node = ExternalNode(id=fqn, name=fqn)
+            node = ExternalNode(id=Fqn(f"std::{fqn}"), name=fqn)
             self.add_node(node)
         elif not fqn.startswith("codegen."):
             node = ExternalNode(id=fqn, name=fqn.split(".")[-1])

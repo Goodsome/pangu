@@ -85,6 +85,18 @@ class ReferencesEdge(_BaseEdge):
     kind: Literal[EdgeType.REFERENCES] = EdgeType.REFERENCES
 
 
+class UnionMemberEdge(_BaseEdge):
+    kind: Literal[EdgeType.UNION_MEMBER] = EdgeType.UNION_MEMBER
+
+
+class TypeArgumentEdge(_BaseEdge):
+    kind: Literal[EdgeType.TYPE_ARGUMENT] = EdgeType.TYPE_ARGUMENT
+
+
+class BaseTypeEdge(_BaseEdge):
+    kind: Literal[EdgeType.BASE_TYPE] = EdgeType.BASE_TYPE
+
+
 CodeEdge = Annotated[
     ImportsEdge
     | ContainsEdge
@@ -100,7 +112,10 @@ CodeEdge = Annotated[
     | ReturnsEdge
     | AcceptsEdge
     | OverridesEdge
-    | ReferencesEdge,
+    | ReferencesEdge
+    | UnionMemberEdge
+    | TypeArgumentEdge
+    | BaseTypeEdge,
     Field(discriminator="kind"),
 ]
 _edge_adapter: TypeAdapter[CodeEdge] = TypeAdapter(CodeEdge)

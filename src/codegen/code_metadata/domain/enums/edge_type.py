@@ -18,3 +18,6 @@ class EdgeType(StrEnum):
     ACCEPTS = auto()
     OVERRIDDES = auto()
     REFERENCES = auto()
+    UNION_MEMBER = auto()
+    TYPE_ARGUMENT = auto()
+    BASE_TYPE = auto()

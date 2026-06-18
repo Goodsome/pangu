@@ -4,13 +4,19 @@ from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
 
 _FQN_PATTERN = r"[a-zA-Z0-9_.]+(?:::[a-zA-Z0-9_]+(?:<[a-zA-Z0-9_]+>)?)*"
-_CLASS_TYPE = r"(?:<(?:(?:\w+(?:\.\w+)+)::)?(?:\w+)>)"
-_UNION_TYPE = rf"{_CLASS_TYPE}(?:|{_CLASS_TYPE})+"
+_CLASS_TYPE = r"(?:<(?:\w+(?:\.\w+)*::)?\w+>(?:\.<\w+>)?)"
+_UNION_TYPE = rf"{_CLASS_TYPE}(?:\|{_CLASS_TYPE})+"
+
+SEP = r"[,|]+"
+_L1_internal = rf"{_CLASS_TYPE}(?:{SEP}{_CLASS_TYPE})*"
+
+_GENERIC_TYPE = rf"{_CLASS_TYPE}\[{_L1_internal}\]"
 
 _SUPPORT_PATTERNS = [
     re.compile(rf"^{_FQN_PATTERN}$"),
     re.compile(rf"^{_CLASS_TYPE}$"),
     re.compile(rf"^{_UNION_TYPE}$"),
+    re.compile(rf"^{_GENERIC_TYPE}$")
 ]
 
 class Fqn(str):
