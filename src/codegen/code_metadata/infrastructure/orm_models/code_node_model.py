@@ -245,5 +245,13 @@ class ExternalNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.EXTERNAL}
 
 
-class TypeClassNodeModel(CodeNodeModel):
-    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.TYPE_CLASS}
+class ClassTypeNodeModel(CodeNodeModel):
+    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.CLASS_TYPE}
+
+
+class UnionTypeNodeModel(CodeNodeModel):
+    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.UNION_TYPE}
+
+
+class GenericTypeNodeModel(CodeNodeModel):
+    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.GENERIC_TYPE}

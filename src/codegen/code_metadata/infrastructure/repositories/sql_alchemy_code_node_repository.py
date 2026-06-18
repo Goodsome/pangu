@@ -22,13 +22,15 @@ from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ClassNodeModel,
+    ClassTypeNodeModel,
     CodeNodeModel,
     ExternalNodeModel,
     FunctionNodeModel,
+    GenericTypeNodeModel,
     MethodNodeModel,
     ModuleNodeModel,
     ParameterNodeModel,
-    TypeClassNodeModel,
+    UnionTypeNodeModel,
     VariableNodeModel,
 )
 
@@ -40,7 +42,9 @@ _KIND_TO_MODEL: dict[CodeNodeKind, type[CodeNodeModel]] = {
     CodeNodeKind.VARIABLE: VariableNodeModel,
     CodeNodeKind.PARAMETER: ParameterNodeModel,
     CodeNodeKind.EXTERNAL: ExternalNodeModel,
-    CodeNodeKind.TYPE_CLASS: TypeClassNodeModel,
+    CodeNodeKind.CLASS_TYPE: ClassTypeNodeModel,
+    CodeNodeKind.UNION_TYPE: UnionTypeNodeModel,
+    CodeNodeKind.GENERIC_TYPE: GenericTypeNodeModel,
 }
 
 

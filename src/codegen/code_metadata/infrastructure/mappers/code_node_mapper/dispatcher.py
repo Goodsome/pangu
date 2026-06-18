@@ -12,7 +12,9 @@ from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
 from codegen.code_metadata.domain.aggregates.code_node import MethodNode
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
-from codegen.code_metadata.domain.aggregates.code_node import TypeClassNode
+from codegen.code_metadata.domain.aggregates.code_node import ClassTypeNode
+from codegen.code_metadata.domain.aggregates.code_node import GenericTypeNode
+from codegen.code_metadata.domain.aggregates.code_node import UnionTypeNode
 from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.dispatcher import (
@@ -31,6 +33,12 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ExternalNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
+    GenericTypeNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
+    UnionTypeNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
@@ -43,7 +51,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     ParameterNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
-    TypeClassNodeModel,
+    ClassTypeNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     VariableNodeModel,
@@ -66,8 +74,14 @@ from codegen.code_metadata.infrastructure.mappers.code_node_mapper.module_node i
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.parameter_node import (
     ParameterNodeMapper,
 )
-from codegen.code_metadata.infrastructure.mappers.code_node_mapper.type_class_node import (
-    TypeClassNodeMapper,
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.class_type_node import (
+    ClassTypeNodeMapper,
+)
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.generic_type_node import (
+    GenericTypeNodeMapper,
+)
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.union_type_node import (
+    UnionTypeNodeMapper,
 )
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.variable_node import (
     VariableNodeMapper,
@@ -92,8 +106,12 @@ def orm_to_dto(orm_model: CodeNodeModel) -> CodeNode:
             return ParameterNodeMapper.to_dto(cast(ParameterNodeModel, orm_model))
         case CodeNodeKind.EXTERNAL:
             return ExternalNodeMapper.to_dto(cast(ExternalNodeModel, orm_model))
-        case CodeNodeKind.TYPE_CLASS:
-            return TypeClassNodeMapper.to_dto(cast(TypeClassNodeModel, orm_model))
+        case CodeNodeKind.CLASS_TYPE:
+            return ClassTypeNodeMapper.to_dto(cast(ClassTypeNodeModel, orm_model))
+        case CodeNodeKind.UNION_TYPE:
+            return UnionTypeNodeMapper.to_dto(cast(UnionTypeNodeModel, orm_model))
+        case CodeNodeKind.GENERIC_TYPE:
+            return GenericTypeNodeMapper.to_dto(cast(GenericTypeNodeModel, orm_model))
         case _:
             assert_never(kind)
 
@@ -130,8 +148,12 @@ def dto_to_upsert_dict(dto: CodeNode, sync_id: str) -> dict[str, Any]:
             properties = ParameterNodeMapper.to_properties(dto)
         case ExternalNode():
             properties = ExternalNodeMapper.to_properties(dto)
-        case TypeClassNode():
-            properties = TypeClassNodeMapper.to_properties(dto)
+        case ClassTypeNode():
+            properties = ClassTypeNodeMapper.to_properties(dto)
+        case UnionTypeNode():
+            properties = UnionTypeNodeMapper.to_properties(dto)
+        case GenericTypeNode():
+            properties = GenericTypeNodeMapper.to_properties(dto)
         case _:
             assert_never(dto)
     return {

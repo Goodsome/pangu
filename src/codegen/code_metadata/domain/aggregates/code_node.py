@@ -214,10 +214,22 @@ class ExternalNode(_BaseNode):
     kind: Literal[CodeNodeKind.EXTERNAL] = CodeNodeKind.EXTERNAL
 
 
-class TypeClassNode(_BaseNode):
-    """类型类节点：kind 固定为 TYPE_CLASS，表示类型类定义。"""
+class ClassTypeNode(_BaseNode):
+    """类类型节点：kind 固定为 CLASS_TYPE，表示类型类定义。"""
 
-    kind: Literal[CodeNodeKind.TYPE_CLASS] = CodeNodeKind.TYPE_CLASS
+    kind: Literal[CodeNodeKind.CLASS_TYPE] = CodeNodeKind.CLASS_TYPE
+
+
+class UnionTypeNode(_BaseNode):
+    """联合类型节点：kind 固定为 UNION_TYPE，表示联合类型定义。"""
+
+    kind: Literal[CodeNodeKind.UNION_TYPE] = CodeNodeKind.UNION_TYPE
+
+
+class GenericTypeNode(_BaseNode):
+    """泛型类型节点：kind 固定为 GENERIC_TYPE，表示泛型类型定义。"""
+
+    kind: Literal[CodeNodeKind.GENERIC_TYPE] = CodeNodeKind.GENERIC_TYPE
 
 
 CodeNode = Annotated[
@@ -228,6 +240,8 @@ CodeNode = Annotated[
     | VariableNode
     | ParameterNode
     | ExternalNode
-    | TypeClassNode,
+    | ClassTypeNode
+    | UnionTypeNode
+    | GenericTypeNode,
     Field(discriminator="kind"),
 ]

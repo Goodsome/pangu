@@ -5,7 +5,7 @@ from typing import override
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import ClassNode, TypeClassNode
+from codegen.code_metadata.domain.aggregates.code_node import ClassNode, ClassTypeNode, UnionTypeNode
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
 from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
@@ -310,7 +310,7 @@ class EdgeBuilder(AstVisitor):
     def _resolve_annotation(self, annotation: AstExpr):
         match annotation:
             case AstName(id=id):
-                node = TypeClassNode(
+                node = ClassTypeNode(
                     id=Fqn(f"<{id}>"),
                     name=id,
                 )
@@ -321,5 +321,7 @@ class EdgeBuilder(AstVisitor):
                     EdgeType.TYPED_AS,
                     node.id
                 )
+            case AstBinOp(left=left, op=BinOp.BIT_OR, right=right):
+                node = UnionTypeNode()
             case _:
                 raise NotImplementedError(f"{annotation=}")

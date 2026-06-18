@@ -10,4 +10,6 @@ class CodeNodeKind(StrEnum):
     VARIABLE = auto()
     PARAMETER = auto()
     EXTERNAL = auto()
-    TYPE_CLASS = auto()
+    CLASS_TYPE = auto()
+    UNION_TYPE = auto()
+    GENERIC_TYPE = auto()
