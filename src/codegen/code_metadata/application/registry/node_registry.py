@@ -31,15 +31,15 @@ class NodeRegistry:
     def find_node(self, fqn: str) -> CodeNode | None:
         return self.store_by_fqn.get(fqn)
 
-    def ensure_external_node(self, fqn: Fqn) -> None:
+    def ensure_external_node(self, fqn: Fqn) -> CodeNode:
         if fqn in self.store_by_fqn:
-            return
+            return self.store_by_fqn[fqn]
         if fqn in PythonBuiltinType._value2member_map_:
             node = ExternalNode(id=Fqn(f"std::{fqn}"), name=fqn)
             self.add_node(node)
-        elif not fqn.startswith("codegen."):
-            node = ExternalNode(id=fqn, name=fqn.split(".")[-1])
-            self.add_node(node)
+        node = ExternalNode(id=fqn, name=fqn.symbol)
+        self.add_node(node)
+        return node
 
     def add_node(self, node: CodeNode) -> None:
         if node.id in self.store_by_fqn:

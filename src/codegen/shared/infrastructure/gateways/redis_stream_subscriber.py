@@ -6,11 +6,9 @@ import socket
 import traceback
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Any
-from typing import Callable
 from redis import asyncio as aioredis
 from codegen.shared.application.integration_events.registry import EventRegistry
-from codegen.shared.infrastructure.message_bus import BaseMessageBus
+from codegen.shared.infrastructure.message_bus import MessageBusFactory
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +18,7 @@ class RedisStreamSubscriber:
     """Redis Stream 集成事件订阅器。"""
 
     client: aioredis.Redis
-    message_bus_factory: Callable[[], BaseMessageBus[Any]]
+    message_bus_factory: MessageBusFactory
     registry: EventRegistry
     service_name: str = "default-service"
     consumer_name: str = f"{socket.gethostname()}-{os.getpid()}"

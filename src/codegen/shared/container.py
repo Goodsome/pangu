@@ -30,7 +30,7 @@ class Container(DeclarativeContainer):
     redis_client: Resource[Redis] = Resource(
         init_async_redis, redis_url=config.redis_url
     )
-    async_session_factory: Singleton[async_sessionmaker[AsyncSession]] = Singleton(
+    async_session_factory = Singleton(
         async_sessionmaker,
         bind=db_engine,
         autoflush=False,

@@ -6,6 +6,7 @@ from codegen.code_metadata.domain.aggregates.code_node import MethodNode
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_node import ClassTypeNode
 from codegen.code_metadata.domain.aggregates.code_node import GenericTypeNode
+from codegen.code_metadata.domain.aggregates.code_node import TypeVarNode
 from codegen.code_metadata.domain.aggregates.code_node import UnionTypeNode
 from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 
@@ -18,6 +19,7 @@ __all__ = [
     "GenericTypeNode",
     "MethodNode",
     "ModuleNode",
+    "TypeVarNode",
     "UnionTypeNode",
     "VariableNode",
 ]

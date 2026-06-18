@@ -28,6 +28,7 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     FunctionNodeModel,
     GenericTypeNodeModel,
     MethodNodeModel,
+    TypeVarNodeModel,
     ModuleNodeModel,
     ParameterNodeModel,
     UnionTypeNodeModel,
@@ -45,6 +46,7 @@ _KIND_TO_MODEL: dict[CodeNodeKind, type[CodeNodeModel]] = {
     CodeNodeKind.CLASS_TYPE: ClassTypeNodeModel,
     CodeNodeKind.UNION_TYPE: UnionTypeNodeModel,
     CodeNodeKind.GENERIC_TYPE: GenericTypeNodeModel,
+    CodeNodeKind.TYPE_VAR: TypeVarNodeModel,
 }
 
 

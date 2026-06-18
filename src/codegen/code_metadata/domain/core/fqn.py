@@ -4,13 +4,24 @@ from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
 
 _FQN_PATTERN = r"[a-zA-Z0-9_.]+(?:::[a-zA-Z0-9_]+(?:<[a-zA-Z0-9_]+>)?)*"
+
 _CLASS_TYPE = r"(?:<(?:\w+(?:\.\w+)*::)?\w+>(?:\.<\w+>)?)"
-_UNION_TYPE = rf"{_CLASS_TYPE}(?:\|{_CLASS_TYPE})+"
 
 SEP = r"[,|]+"
 _L1_internal = rf"{_CLASS_TYPE}(?:{SEP}{_CLASS_TYPE})*"
+L1_full = rf"{_CLASS_TYPE}\[{_L1_internal}\]"
 
-_GENERIC_TYPE = rf"{_CLASS_TYPE}\[{_L1_internal}\]"
+L2_element = rf"(?:{L1_full}|{_CLASS_TYPE})"
+L2_internal = rf"{L2_element}(?:{SEP}{L2_element})*"
+L2_full = rf"{_CLASS_TYPE}\[{L2_internal}\]"
+
+L3_element = rf"(?:{L2_full}|{L1_full}|{_CLASS_TYPE})"
+L3_internal = rf"{L3_element}(?:{SEP}{L3_element})*"
+L3_full = rf"{_CLASS_TYPE}\[{L3_internal}\]"
+
+_GENERIC_TYPE = rf"(?:{L3_full}|{L2_full}|{L1_full})"
+
+_UNION_TYPE = rf"({_CLASS_TYPE}|{_GENERIC_TYPE})(?:\|({_GENERIC_TYPE}|{_CLASS_TYPE}))+"
 
 _SUPPORT_PATTERNS = [
     re.compile(rf"^{_FQN_PATTERN}$"),
@@ -33,6 +44,15 @@ class Fqn(str):
         if cls._match_patterns(value):
             return super().__new__(cls, value)
         raise ValueError(f"Invalid FQN format: {value}")
+
+    @property
+    def context(self) -> str:
+        return self.parts[0]
+
+    @property
+    def identify(self) -> str:
+        _, identify = self.split("::", maxsplit=1)
+        return identify
 
     @property
     def module_fqn(self) -> Fqn:

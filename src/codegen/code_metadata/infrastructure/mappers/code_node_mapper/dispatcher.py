@@ -14,6 +14,7 @@ from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
 from codegen.code_metadata.domain.aggregates.code_node import ClassTypeNode
 from codegen.code_metadata.domain.aggregates.code_node import GenericTypeNode
+from codegen.code_metadata.domain.aggregates.code_node import TypeVarNode
 from codegen.code_metadata.domain.aggregates.code_node import UnionTypeNode
 from codegen.code_metadata.domain.aggregates.code_node import VariableNode
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
@@ -34,6 +35,9 @@ from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     GenericTypeNodeModel,
+)
+from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
+    TypeVarNodeModel,
 )
 from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
     UnionTypeNodeModel,
@@ -80,6 +84,9 @@ from codegen.code_metadata.infrastructure.mappers.code_node_mapper.class_type_no
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.generic_type_node import (
     GenericTypeNodeMapper,
 )
+from codegen.code_metadata.infrastructure.mappers.code_node_mapper.type_var_node import (
+    TypeVarNodeMapper,
+)
 from codegen.code_metadata.infrastructure.mappers.code_node_mapper.union_type_node import (
     UnionTypeNodeMapper,
 )
@@ -112,6 +119,8 @@ def orm_to_dto(orm_model: CodeNodeModel) -> CodeNode:
             return UnionTypeNodeMapper.to_dto(cast(UnionTypeNodeModel, orm_model))
         case CodeNodeKind.GENERIC_TYPE:
             return GenericTypeNodeMapper.to_dto(cast(GenericTypeNodeModel, orm_model))
+        case CodeNodeKind.TYPE_VAR:
+            return TypeVarNodeMapper.to_dto(cast(TypeVarNodeModel, orm_model))
         case _:
             assert_never(kind)
 
@@ -154,6 +163,8 @@ def dto_to_upsert_dict(dto: CodeNode, sync_id: str) -> dict[str, Any]:
             properties = UnionTypeNodeMapper.to_properties(dto)
         case GenericTypeNode():
             properties = GenericTypeNodeMapper.to_properties(dto)
+        case TypeVarNode():
+            properties = TypeVarNodeMapper.to_properties(dto)
         case _:
             assert_never(dto)
     return {

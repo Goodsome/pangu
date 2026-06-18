@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from dataclasses import field
 from types import TracebackType
 from typing import Any
-from typing import Callable
 from typing import override
 from typing import Self
 from sqlalchemy.orm import Session
@@ -14,6 +13,7 @@ from codegen.shared.domain.ports.repository import Repository
 from codegen.shared.infrastructure.orm_models.outbox_message_module import (
     OutboxMessageModel,
 )
+from codegen.shared.infrastructure.repository_factory import RepositoryFactory
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SqlAlchemyUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
     session_factory: sessionmaker[Session]
-    repository_factory: Callable[[Session], T_Repo]
+    repository_factory: RepositoryFactory[T_Repo]
     session: Session | None = field(default=None, init=False)
     _repository: T_Repo | None = field(default=None, init=False)
 

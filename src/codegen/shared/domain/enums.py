@@ -27,6 +27,7 @@ class PrimitiveType(StrEnum):
 
 class PythonBuiltinType(StrEnum):
     EXCEPTION = "Exception"
+    BASE_EXCEPTION = "BaseException"
     ELLIPSIS = "Ellipsis"
     NONE = "None"
     TUPLE = "tuple"
@@ -39,6 +40,8 @@ class PythonBuiltinType(StrEnum):
     BOOL = "bool"
     FLOAT = "float"
     T_ID = "T_ID"
+    TYPE = "type"
+    OBJECT = "object"
 
     def to_primitive_type(self) -> PrimitiveType | None:
         match self:

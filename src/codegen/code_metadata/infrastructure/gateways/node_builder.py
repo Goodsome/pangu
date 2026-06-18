@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import override
+from typing import assert_never, override
 
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
@@ -60,8 +60,18 @@ class NodeBuilder(AstVisitor):
         for doc in code_documents:
             self._build_module_node(doc)
 
-    def _add_node(self, dto: CodeNode) -> None:
-        self.node_registery.add_node(dto)
+    def _add_node(
+        self,
+        node: CodeNode,
+        ast_node: AstClassDef
+        | AstFunctionDef
+        | CodeDocument
+        | AstAnnAssign
+        | AstAssign | None = None,
+    ) -> None:
+        if ast_node:
+            self.document_context.store(ast_node=ast_node, node=node)
+        self.node_registery.add_node(node)
 
     def _build_module_by_path(self, path: Path) -> ModuleNode:
         module_fqn = self.fqn_factory.build_module_fqn(path)
@@ -134,16 +144,11 @@ class NodeBuilder(AstVisitor):
             bases=node.bases,
             type_params=node.type_params,
         )
-        self._add_node(class_node)
+        self._add_node(class_node, ast_node=node)
         self.current_node.defines(class_node)
         self.node_stack.append(class_node)
         super().visit_ast_class_def(node)
         self.node_stack.pop()
-
-        self.document_context.store(
-            ast_node=node,
-            node=class_node
-        )
 
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
@@ -193,7 +198,7 @@ class NodeBuilder(AstVisitor):
                 return
             case _:
                 raise NotImplementedError(f"parent_node={parent_node!r}")
-        self._add_node(func_node)
+        self._add_node(func_node, ast_node=node)
         self.node_stack.append(func_node)
         self.visit(node.decorator_list)
         for arg in node.arguments:
@@ -205,35 +210,25 @@ class NodeBuilder(AstVisitor):
             self.visit(node.returns)
         self.node_stack.pop()
 
-        self.document_context.store(
-            ast_node=node,
-            node=func_node,
-        )
-
     @override
     def visit_ast_assign(self, node: AstAssign) -> None:
-        target = node.target
-        self._create_variable_node(
-            target=target, annotation=node.annotation, value=node.value
-        )
-        return super().visit_ast_assign(node)
+        self._create_variable_node(node)
 
     @override
     def visit_ast_ann_assign(self, node: AstAnnAssign):
-        target = node.target
-        self._create_variable_node(
-            target=target, annotation=node.annotation, value=node.value
-        )
-        return super().visit_ast_ann_assign(node)
+        self._create_variable_node(node)
 
     def _create_variable_node(
         self,
-        target: AstExpr,
-        annotation: AstExpr | None = None,
-        value: AstExpr | None = None,
+        ast_node: AstAnnAssign | AstAssign,
     ) -> None:
         if self._in_function_body:
             return
+
+        target = ast_node.target
+        annotation = ast_node.annotation
+        value = ast_node.value
+
         if not isinstance(target, AstName):
             return
         assert isinstance(
@@ -252,4 +247,6 @@ class NodeBuilder(AstVisitor):
                     id=var_fqn, name=name, annotation=annotation, value=value
                 )
                 self.current_node.defines(node)
-        self._add_node(node)
+            case _:
+                assert_never(self.current_node)
+        self._add_node(node, ast_node=ast_node)

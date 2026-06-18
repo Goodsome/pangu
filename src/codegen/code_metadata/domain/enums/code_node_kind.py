@@ -13,3 +13,4 @@ class CodeNodeKind(StrEnum):
     CLASS_TYPE = auto()
     UNION_TYPE = auto()
     GENERIC_TYPE = auto()
+    TYPE_VAR = auto()

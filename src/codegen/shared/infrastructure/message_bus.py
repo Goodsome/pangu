@@ -16,16 +16,15 @@ class CommandHandler[T_Command: Command, T_UnitOfWork](Protocol):
     def __call__(self, cmd: T_Command, uow: T_UnitOfWork) -> None: ...
 
 
-class EventHanlder[T_Event: Event, T_UnitOfWork](Protocol):
+class EventHanlder[T](Protocol):
 
-    def __call__(self, event: T_Event, uow: T_UnitOfWork) -> Iterable[Command]: ...
-
+    def __call__(self, event: Event, uow: T) -> Iterable[Command]: ...
 
 @dataclass
 class BaseMessageBus[T: UnitOfWork[Any]]:
     uow: T
     command_handlers: dict[type[Command], CommandHandler[Command, T]]
-    event_handlers: dict[type[Event], list[EventHanlder[Event, T]]]
+    event_handlers: dict[type[Event], list[EventHanlder[T]]]
 
     def handle(self, message: Command | Event) -> None:
         queue = [message]
@@ -62,3 +61,9 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
                 raise
+
+
+class MessageBusFactory(Protocol):
+
+    def __call__(self) -> BaseMessageBus[Any]:
+        ...

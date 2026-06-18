@@ -13,7 +13,7 @@ from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
-from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge
+from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge, ReferencesEdge, TypedAsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ExportsEdge
@@ -65,7 +65,7 @@ class _BaseNode(AggregateRoot[Fqn]):
                 yield edge
 
     @property
-    def exportss_edges(self) -> Iterable[ExportsEdge]:
+    def exports_edges(self) -> Iterable[ExportsEdge]:
         for edge in self.outbound_edges:
             if isinstance(edge, ExportsEdge):
                 yield edge
@@ -199,6 +199,11 @@ class VariableNode(_BaseNode):
     annotation: AstExpr | None = None
     value: AstExpr | None = None
 
+    @property
+    def typed_as_edge(self) -> TypedAsEdge | None:
+        for edge in self.outbound_edges:
+            if isinstance(edge, TypedAsEdge):
+                return edge
 
 class ParameterNode(_BaseNode):
     """参数节点：kind 固定为 PARAMETER，由函数/方法的参数定义派生。"""
@@ -207,6 +212,11 @@ class ParameterNode(_BaseNode):
     annotation: AstExpr | None = None
     value: AstExpr | None = None
 
+    @property
+    def typed_as_edge(self) -> TypedAsEdge | None:
+        for edge in self.outbound_edges:
+            if isinstance(edge, TypedAsEdge):
+                return edge
 
 class ExternalNode(_BaseNode):
     """外部节点：kind 固定为 EXTERNAL，表示项目外部的依赖（第三方库、标准库等）。"""
@@ -219,6 +229,12 @@ class ClassTypeNode(_BaseNode):
 
     kind: Literal[CodeNodeKind.CLASS_TYPE] = CodeNodeKind.CLASS_TYPE
 
+    @property
+    def references_edge(self) -> ReferencesEdge:
+        for edge in self.outbound_edges:
+            if isinstance(edge, ReferencesEdge):
+                return edge
+        raise ValueError(f"references_edge not found in {self.id=}")
 
 class UnionTypeNode(_BaseNode):
     """联合类型节点：kind 固定为 UNION_TYPE，表示联合类型定义。"""
@@ -232,6 +248,12 @@ class GenericTypeNode(_BaseNode):
     kind: Literal[CodeNodeKind.GENERIC_TYPE] = CodeNodeKind.GENERIC_TYPE
 
 
+class TypeVarNode(_BaseNode):
+    """类型变量节点：kind 固定为 TYPE_VAR，表示类型变量定义。"""
+
+    kind: Literal[CodeNodeKind.TYPE_VAR] = CodeNodeKind.TYPE_VAR
+
+
 CodeNode = Annotated[
     ModuleNode
     | ClassNode
@@ -242,6 +264,7 @@ CodeNode = Annotated[
     | ExternalNode
     | ClassTypeNode
     | UnionTypeNode
-    | GenericTypeNode,
+    | GenericTypeNode
+    | TypeVarNode,
     Field(discriminator="kind"),
 ]

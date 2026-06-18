@@ -255,3 +255,7 @@ class UnionTypeNodeModel(CodeNodeModel):
 
 class GenericTypeNodeModel(CodeNodeModel):
     __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.GENERIC_TYPE}
+
+
+class TypeVarNodeModel(CodeNodeModel):
+    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.TYPE_VAR}

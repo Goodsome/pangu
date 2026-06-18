@@ -1,44 +1,52 @@
+from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Generator
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
+from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 
 
 @dataclass
+class Scope:
+    node: CodeNode
+    aliases: dict[str, CodeNode] = field(default_factory=dict)
+    
+    def add_alias(self, node: CodeNode, asname: str | None = None):
+        name = node.name
+        if asname:
+            name = asname
+        self.aliases[name] = node
+
+@dataclass
 class TraversalContext:
     """封装作用域和边类型的状态机"""
-
-    node_stack: list[CodeNode] = field(default_factory=list)
-    edge_stack: list[EdgeType] = field(default_factory=list)
-    attribute_stack: list[str] = field(default_factory=list)
+    
+    scope_stack: list[Scope] = field(default_factory=list)
     is_type_checking: bool = False
     in_function_body: bool = False
 
     @property
     def current_node(self) -> CodeNode:
-        if not self.node_stack:
-            raise ValueError(f"{self.node_stack} is None")
-        return self.node_stack[-1]
+        if not self.scope_stack:
+            raise ValueError(f"{self.scope_stack} is None")
+        return self.scope_stack[-1].node
+
+    @property
+    def current_scope(self) -> Scope:
+        if not self.scope_stack:
+            raise ValueError(f"{self.scope_stack} is None")
+        return self.scope_stack[-1]
 
     @contextmanager
     def visit_node(self, node: CodeNode) -> Generator[None, None, None]:
         """安全地将节点压入栈中，并在退出上下文时弹出"""
-        self.node_stack.append(node)
+        new_scope = Scope(node=node)
+        self.scope_stack.append(new_scope)
         try:
             yield
         finally:
-            self.node_stack.pop()
-
-    @contextmanager
-    def visit_attribute(self, attribute: str) -> Generator[None, None, None]:
-        """安全地将属性压入栈中，并在退出上下文时弹出"""
-        self.attribute_stack.append(attribute)
-        try:
-            yield
-        finally:
-            self.attribute_stack.pop()
+            self.scope_stack.pop()
 
     @contextmanager
     def enter_function(self) -> Generator[None, None, None]:
@@ -50,17 +58,11 @@ class TraversalContext:
         finally:
             self.in_function_body = previous_in_function_body
 
-    def stack_node(self, node: CodeNode):
-        self.node_stack.append(node)
+    def add_alias(self, node: CodeNode, asname: str | None = None):
+        self.current_scope.add_alias(node, asname=asname)
 
-    def pop_node(self) -> CodeNode:
-        return self.node_stack.pop()
-
-    def stack_attribute(self, attribute: str):
-        self.attribute_stack.append(attribute)
-
-    def pop_attribute(self):
-        return self.attribute_stack.pop()
-
-    def empty_attribute(self):
-        self.attribute_stack.clear()
+    def resolve_alias(self, name: str) -> CodeNode | None:
+        for scope in reversed(self.scope_stack):
+            if name in scope.aliases:
+                return scope.aliases[name]
+        return None

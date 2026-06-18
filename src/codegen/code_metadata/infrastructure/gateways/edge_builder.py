@@ -1,18 +1,24 @@
 from collections.abc import Iterable
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import override
+
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import ClassNode, ClassTypeNode, GenericTypeNode, UnionTypeNode
-from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
-from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
-from codegen.code_metadata.domain.aggregates.code_node import MethodNode
-from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
-from codegen.code_metadata.domain.aggregates.code_node import ParameterNode
-from codegen.code_metadata.domain.aggregates.code_node import VariableNode
+from codegen.code_metadata.domain.aggregates.code_node import (
+    ClassNode,
+    ClassTypeNode,
+    CodeNode,
+    ExternalNode,
+    FunctionNode,
+    GenericTypeNode,
+    MethodNode,
+    ModuleNode,
+    ParameterNode,
+    TypeVarNode,
+    UnionTypeNode,
+    VariableNode,
+)
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.bin_op import BinOp
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
@@ -22,16 +28,26 @@ from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribut
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
+from codegen.code_metadata.domain.value_objects.ast_list import AstList
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
+    AstClassDef,
+    AstFunctionDef,
+)
 from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
 from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
-from codegen.code_metadata.infrastructure.gateways.document_context import DocumentContext
+from codegen.code_metadata.domain.value_objects.ast_type_param import (
+    AstTypeParam,
+    AstTypeVar,
+)
+from codegen.code_metadata.domain.value_objects.code_edge import TypedAsEdge
+from codegen.code_metadata.infrastructure.gateways.document_context import (
+    DocumentContext,
+)
 from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
@@ -47,22 +63,38 @@ class EdgeBuilder(AstVisitor):
     context: TraversalContext = field(default_factory=TraversalContext)
     function_local_aliases: dict[str, Fqn] = field(default_factory=dict)
 
-    def __post_init__(self):
-        self.local_aliases = {}
-        for edge in self.module.outbound_edges:
-            if edge.kind is not EdgeType.DEFINES:
-                continue
-            target_name = edge.fqn.split("::")[-1]
-            self.local_aliases[target_name] = edge.fqn
+    def add_alias_fqn(self, fqn: Fqn, asname: str | None = None):
+        node = self.node_registry.get_node(fqn)
+        self.add_alias(node, asname=asname)
+
+    def add_alias(self, node: CodeNode, asname: str | None = None):
+        self.context.add_alias(node, asname=asname)
+
+    def resolve_alias(self, name: str) -> CodeNode:
+        node = self.context.resolve_alias(name)
+        if node:
+            return node
+        if name in PythonBuiltinType._value2member_map_:
+            fqn = Fqn(f"std::{name}")
+            node = self.node_registry.ensure_external_node(fqn)
+            return node
+        raise ValueError(f"not found {name=}")
+
+    def _find_fqn(self, alias: str) -> Fqn:
+        node = self.resolve_alias(alias)
+        return node.id
 
     @property
     def current_node(self) -> CodeNode:
         return self.context.current_node
 
     def build(self, code_document: CodeDocument):
-        self.context.stack_node(self.module)
-        self.visit(code_document.body)
-        self.context.pop_node()
+        with self.context.visit_node(self.module):
+            for edge in self.module.outbound_edges:
+                if edge.kind is not EdgeType.DEFINES:
+                    continue
+                self.add_alias_fqn(edge.fqn)
+            self.visit(code_document.body)
 
     @override
     def visit_ast_if(self, node: AstIf):
@@ -118,25 +150,24 @@ class EdgeBuilder(AstVisitor):
         else:
             is_external = not import_name.startswith("codegen.")
         if is_external:
-            external_fqn = Fqn(f"{from_name}.{import_name}") if from_name else Fqn(import_name)
+            external_fqn = (
+                Fqn(f"{from_name}.{import_name}") if from_name else Fqn(import_name)
+            )
             node = self.node_registry.get_node(external_fqn)
         else:
             node = self._get_internel_node(import_name=import_name, from_name=from_name)
         if self.module.is_package:
-            assert isinstance(
-                node, ClassNode | FunctionNode | VariableNode
-            ), f"node={node!r}"
+            assert isinstance(node, ClassNode | FunctionNode | VariableNode), (
+                f"node={node!r}"
+            )
             self.module.exports(node)
         else:
             assert isinstance(
                 node, ExternalNode | ClassNode | FunctionNode | VariableNode
             ), f"node={node!r}"
             self.module.imports(node, is_type_checking=is_type_checking, asname=asname)
-        if asname:
-            local_alias_key = asname
-        else:
-            local_alias_key = node.name
-        self.local_aliases[local_alias_key] = node.id
+
+        self.add_alias(node, asname=asname)
 
     def _get_internel_node(self, import_name: str, from_name: str | None) -> CodeNode:
         name = import_name
@@ -153,12 +184,12 @@ class EdgeBuilder(AstVisitor):
     def visit_ast_class_def(self, node: AstClassDef):
         class_node = self.document_context.get_node_by_ast(node)
         assert isinstance(class_node, ClassNode)
-        self.local_aliases["self"] = class_node.id
         with self.context.visit_node(class_node):
+            self.add_alias(class_node, asname="self")
             self._visit_class_bases(node.bases)
+            self._visit_type_params(node.type_params)
             self.visit(node.decorator_list)
             self.visit(node.body)
-        self.local_aliases.pop("self")
 
     def _visit_class_bases(self, bases: list[AstExpr]):
         for base in bases:
@@ -166,6 +197,32 @@ class EdgeBuilder(AstVisitor):
             if not fqn:
                 continue
             self.current_node.add_edge(EdgeType.INHERITS, fqn=fqn)
+
+    def _visit_type_params(self, type_params: list[AstTypeParam]):
+        for type_param in type_params:
+            self._visit_type_param(type_param)
+
+    def _visit_type_param(self, type_param: AstTypeParam):
+        match type_param:
+            case AstTypeVar(name=name, bound=bound):
+                context = self.current_node.id.context
+                identify = self.current_node.id.identify
+                fqn = Fqn(f"{context}::{identify}::{name}")
+                type_var_node = TypeVarNode(
+                    id=fqn,
+                    name=name,
+                )
+                self.node_registry.add_node(type_var_node)
+                self.add_alias(type_var_node)
+                self.current_node.add_edge(
+                    EdgeType.TYPE_ARGUMENT,
+                    fqn,
+                )
+                with self.context.visit_node(type_var_node):
+                    self._resolve_annotation(bound)
+
+            case _:
+                raise NotImplementedError(f"{type_param=}")
 
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
@@ -176,7 +233,7 @@ class EdgeBuilder(AstVisitor):
             self._visit_arguments(node.arguments)
             with self.context.enter_function():
                 self.visit(node.body)
-            self._visit_return(node.returns)
+            self._resolve_annotation(node.returns, EdgeType.RETURNS)
 
     def _build_overriden_edge(
         self, func_node: MethodNode | FunctionNode, ast_node: AstFunctionDef
@@ -191,31 +248,14 @@ class EdgeBuilder(AstVisitor):
             target_fqn = Fqn(f"{edge.fqn}::{func_node.name}")
             func_node.overrides(target_fqn=target_fqn)
 
-    def _find_fqn(self, alias: str) -> Fqn:
-        if alias in self.function_local_aliases:
-            return self.function_local_aliases[alias]
-        if alias in self.local_aliases:
-            return self.local_aliases[alias]
-        if alias in PythonBuiltinType._value2member_map_:
-            fqn = Fqn(f"std::{alias}")
-            self.node_registry.ensure_external_node(fqn)
-            return fqn
-        raise ValueError(f"not found {alias=}")
-
     def _visit_arguments(self, arguments: list[AstAssign | AstAnnAssign]):
-        self.function_local_aliases = {}
         for arg in arguments:
+            parameter_node = self.document_context.get_node_by_ast(arg)
+            self.add_alias(parameter_node)
             if isinstance(arg, AstAnnAssign) and isinstance(arg.target, AstName):
-                target_fqn = self._resolve_expr_to_fqn(arg.annotation)
-                if target_fqn:
-                    self.function_local_aliases[arg.target.id] = target_fqn
+                with self.context.visit_node(parameter_node):
+                    self._resolve_annotation(arg.annotation)
             self.visit(arg)
-
-    def _visit_return(self, returns: AstExpr | None):
-        fqn = self._resolve_expr_to_fqn(returns)
-        if fqn:
-            self.current_node.add_edge(EdgeType.RETURNS, fqn)
-        self.visit(returns)
 
     @override
     def visit_ast_assign(self, node: AstAssign):
@@ -267,7 +307,10 @@ class EdgeBuilder(AstVisitor):
     def _resolve_expr_to_fqn(self, node: AstExpr | None) -> Fqn | None:
         match node:
             case AstName(id=name):
-                return self._find_fqn(name)
+                try:
+                    return self._find_fqn(name)
+                except:
+                    return
             case AstAttribute(value=value, attr=attr):
                 base_fqn = self._resolve_expr_to_fqn(value)
                 if not base_fqn:
@@ -279,11 +322,29 @@ class EdgeBuilder(AstVisitor):
                     case ModuleNode() | ClassNode() | ExternalNode():
                         return Fqn(f"{base_fqn}::{attr}")
                     case VariableNode() | ParameterNode():
-                        raise NotImplementedError(f"{base_node=}")
+                        edge = base_node.typed_as_edge
+                        base_fqn = self._resolve_typed_as_edge(edge)
+                        if base_fqn is None:
+                            return None
+                        return Fqn(f"{base_fqn}::{attr}")
                     case _:
                         return None
             case _:
                 return
+
+    def _resolve_typed_as_edge(self, edge: TypedAsEdge | None) -> Fqn | None:
+        if edge is None:
+            return None
+        type_node = self.node_registry.get_node(edge.fqn)
+        match type_node:
+            case ClassTypeNode():
+                return type_node.references_edge.fqn
+            case GenericTypeNode():
+                return
+            case UnionTypeNode():
+                return
+            case _:
+                raise NotImplementedError(f"{type_node=}")
 
     def _resolve_expr_to_fqns(self, node: AstExpr) -> Iterable[Fqn]:
         match node:
@@ -295,20 +356,34 @@ class EdgeBuilder(AstVisitor):
             case _:
                 pass
 
-    def _resolve_annotation(self, annotation: AstExpr):
+    def _resolve_annotation(
+        self, annotation: AstExpr | None, edge_type: EdgeType = EdgeType.TYPED_AS
+    ):
+        if annotation is None:
+            return
         match annotation:
             case AstName(id=name):
                 node = self._get_class_type_node(name)
+            case AstConstant(value=None):
+                node = self._get_class_type_node("None")
             case AstBinOp(op=BinOp.BIT_OR):
                 node = self._get_union_type_node(annotation)
-            case AstSubscript(value=AstName(id=name), slice=slice):
-                node = self._get_generic_type_node(name, slice)
+            case AstSubscript(value=AstName(id="Annotated"), slice=AstTuple(elts=elts)):
+                self._resolve_annotation(elts[0], edge_type=edge_type)
+                self.visit(elts[:1])
+                return
+            case AstSubscript(value=value, slice=slice):
+                node = self._resolve_ast_subscript(value, slice)
+            case AstAttribute():
+                node = self._get_attribute_type_node(annotation)
             case _:
-                raise NotImplementedError(f"{annotation=}")
-                
-        self.current_node.add_edge( EdgeType.TYPED_AS, node.id )
+                raise NotImplementedError(f"{annotation=}, {self.current_node.id=}")
 
-    def _collect_class_types(self, ast_expr: AstExpr) -> Iterable[ClassTypeNode]:
+        self.current_node.add_edge(edge_type, node.id)
+
+    def _collect_class_types(
+        self, ast_expr: AstExpr
+    ) -> Iterable[ClassTypeNode | GenericTypeNode]:
         match ast_expr:
             case AstName(id=name):
                 yield self._get_class_type_node(name)
@@ -317,26 +392,34 @@ class EdgeBuilder(AstVisitor):
             case AstBinOp(left=left, op=BinOp.BIT_OR, right=right):
                 yield from self._collect_class_types(left)
                 yield from self._collect_class_types(right)
+            case AstSubscript(value=value, slice=slice):
+                yield self._resolve_ast_subscript(value, slice)
+            case AstAttribute():
+                yield self._get_attribute_type_node(ast_expr)
             case _:
                 raise NotImplementedError(f"{ast_expr=}")
 
-    def _collect_type_nodes(self, ast_expr: AstExpr) -> Iterable[ClassTypeNode | UnionTypeNode | GenericTypeNode]:
+    def _collect_type_nodes(
+        self, ast_expr: AstExpr
+    ) -> Iterable[ClassTypeNode | UnionTypeNode | GenericTypeNode]:
         match ast_expr:
             case AstName(id=name):
                 yield self._get_class_type_node(name)
             case AstConstant(value=None):
-                yield self._get_class_type_node("None")
+                yield self._get_class_type_node(PythonBuiltinType.NONE)
+            case AstConstant(value=Ellipsis):
+                yield self._get_class_type_node(PythonBuiltinType.ELLIPSIS)
             case AstBinOp(op=BinOp.BIT_OR):
                 yield self._get_union_type_node(ast_expr)
-            case AstSubscript(value=AstName(id=name), slice=slice):
-                yield self._get_generic_type_node(name, slice)
+            case AstSubscript(value=value, slice=slice):
+                yield self._resolve_ast_subscript(value, slice)
             case AstTuple(elts=elts):
                 for elt in elts:
                     yield from self._collect_type_nodes(elt)
             case AstAttribute():
                 yield self._get_attribute_type_node(ast_expr)
             case _:
-                raise NotImplementedError(f"{ast_expr=}")
+                raise NotImplementedError(f"{ast_expr=}, {self.current_node.id=}")
 
     def _get_attribute_type_node(self, attribute: AstAttribute) -> ClassTypeNode:
         reference_fqn = self._resolve_expr_to_fqn(attribute)
@@ -347,20 +430,20 @@ class EdgeBuilder(AstVisitor):
         parts = reference_fqn.split("::")[1:]
         parts[0] = f"{context}::{parts[0]}"
         fqn = Fqn(".".join(f"<{p}>" for p in parts))
-        
+
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, ClassTypeNode), existing
             return existing
-            
+
         node = ClassTypeNode(
             id=fqn,
-            name=fqn,
+            name=fqn.symbol,
         )
         node.add_edge(EdgeType.REFERENCES, reference_fqn)
         self.node_registry.add_node(node)
         return node
-        
+
     def _get_class_type_node(self, reference_name: str) -> ClassTypeNode:
         reference_fqn = self._find_fqn(reference_name)
         context = reference_fqn.parts[0]
@@ -369,52 +452,66 @@ class EdgeBuilder(AstVisitor):
         if existing:
             assert isinstance(existing, ClassTypeNode), existing
             return existing
-            
+
         node = ClassTypeNode(
             id=fqn,
-            name=fqn,
+            name=reference_name,
         )
         node.add_edge(EdgeType.REFERENCES, reference_fqn)
         self.node_registry.add_node(node)
-        
+
         return node
 
     def _get_union_type_node(self, ast_bin_op: AstBinOp) -> UnionTypeNode:
         class_type_nodes = list(self._collect_class_types(ast_bin_op))
         fqn = Fqn("|".join(n.id for n in class_type_nodes))
+        name = "|".join(n.name for n in class_type_nodes)
+        
+        if len(name) >= 100:
+            name = name[:100] + "..."
+        
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, UnionTypeNode), existing
             return existing
-            
-        node = UnionTypeNode(
-            id=fqn,
-            name=fqn
-        )
+
+        node = UnionTypeNode(id=fqn, name=name)
         for class_type_node in class_type_nodes:
             node.add_edge(EdgeType.UNION_MEMBER, fqn=class_type_node.id)
-            
+
         self.node_registry.add_node(node)
         return node
 
-    def _get_generic_type_node(self, name: str, slice: AstExpr) -> GenericTypeNode:
-        base_type = self._get_class_type_node(name)
+    def _resolve_ast_subscript(
+        self,
+        value: AstExpr,
+        slice: AstExpr,
+    ) -> GenericTypeNode:
+        match value:
+            case AstName():
+                base_type = self._get_class_type_node(value.id)
+            case AstAttribute():
+                base_type = self._get_attribute_type_node(value)
+            case _:
+                raise NotImplementedError(f"{value=}")
+
         slices = list(self._collect_type_nodes(slice))
         fqn = Fqn(f"{base_type.id}[{','.join(s.id for s in slices)}]")
-        
+        name = f"{base_type.name}[{','.join(s.name for s in slices)}]"
+
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, GenericTypeNode), existing
             return existing
-            
+
         node = GenericTypeNode(
             id=fqn,
-            name=fqn,
+            name=name,
         )
         node.add_edge(EdgeType.BASE_TYPE, fqn=base_type.id)
         for n in slices:
             node.add_edge(EdgeType.TYPE_ARGUMENT, n.id)
-            
+
         self.node_registry.add_node(node)
-        
+
         return node
