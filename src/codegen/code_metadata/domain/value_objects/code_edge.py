@@ -81,6 +81,10 @@ class OverridesEdge(_BaseEdge):
     kind: Literal[EdgeType.OVERRIDDES] = EdgeType.OVERRIDDES
 
 
+class ReferencesEdge(_BaseEdge):
+    kind: Literal[EdgeType.REFERENCES] = EdgeType.REFERENCES
+
+
 CodeEdge = Annotated[
     ImportsEdge
     | ContainsEdge
@@ -95,7 +99,8 @@ CodeEdge = Annotated[
     | TypedAsEdge
     | ReturnsEdge
     | AcceptsEdge
-    | OverridesEdge,
+    | OverridesEdge
+    | ReferencesEdge,
     Field(discriminator="kind"),
 ]
 _edge_adapter: TypeAdapter[CodeEdge] = TypeAdapter(CodeEdge)

@@ -6,11 +6,14 @@ from codegen.code_metadata.domain.core.fqn import Fqn
 
 list_path = list[Path]
 
+_SPIKE_PATH = Path("contexts/spike/src")
+
 @dataclass
 class FqnFactory:
     SOURCE_ROOTS: ClassVar[list[Path]] = [
         Path("src"), 
         Path("apps"),
+        _SPIKE_PATH
     ]
 
     def build_module_fqn(self, path: Path) -> Fqn:
@@ -37,5 +40,7 @@ class FqnFactory:
             return Path("apps") / module_path
         elif module_path.startswith("codegen"):
             return Path("src") / module_path
+        elif module_path.startswith("spike"):
+            return _SPIKE_PATH / module_path
         else:
-            return Path("src") / module_path
+            raise NotImplementedError(f"{module_path}=")

@@ -1,6 +1,5 @@
 import re
 from typing import Any
-from typing import ClassVar
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
 
@@ -8,14 +7,20 @@ from pydantic_core import core_schema
 class Fqn(str):
     """支持任意深度、统一处理模块与符号层级的 FQN 强类型字符串。 格式要求：module_path[::symbol_1][::symbol_2]..."""
 
-    _FQN_PATTERN: ClassVar[re.Pattern[str]] = re.compile(
+    _FQN_PATTERN: re.Pattern[str] = re.compile(
         "^[a-zA-Z0-9_.]+(?:::[a-zA-Z0-9_]+(?:<[a-zA-Z0-9_]+>)?)*$"
     )
 
+    _TYPE_FQN_PATTERN: re.Pattern[str] = re.compile(
+        "^<(?:(?P<context>\\w+(?:\\.\\w+)+)::)?(?P<type>\\w+)>$"
+    )
+
     def __new__(cls, value: str) -> Fqn:
-        if not cls._FQN_PATTERN.match(value):
-            raise ValueError(f"Invalid FQN format: {value}")
-        return super().__new__(cls, value)
+        if cls._FQN_PATTERN.match(value):
+            return super().__new__(cls, value)
+        elif cls._TYPE_FQN_PATTERN.match(value):
+            return super().__new__(cls, value)
+        raise ValueError(f"Invalid FQN format: {value}")
 
     @property
     def module_fqn(self) -> Fqn:
@@ -67,6 +72,8 @@ class Fqn(str):
 
     @classmethod
     def _validate(cls, input_value: str) -> Fqn:
-        if not cls._FQN_PATTERN.match(input_value):
-            raise ValueError(f"Invalid FQN format: {input_value}")
-        return cls(input_value)
+        if cls._FQN_PATTERN.match(input_value):
+            return cls(input_value)
+        elif cls._TYPE_FQN_PATTERN.match(input_value):
+            return cls(input_value)
+        raise ValueError(f"Invalid FQN format: {input_value}")

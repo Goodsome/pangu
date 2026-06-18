@@ -17,3 +17,4 @@ class EdgeType(StrEnum):
     RETURNS = auto()
     ACCEPTS = auto()
     OVERRIDDES = auto()
+    REFERENCES = auto()

@@ -21,6 +21,7 @@ from codegen.code_metadata.domain.value_objects.code_edge import ReadsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ReturnsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import TypedAsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import WritesEdge
+from codegen.code_metadata.domain.value_objects.code_edge import ReferencesEdge
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.accepts_edge import (
     AcceptsEdgeMapper,
 )
@@ -63,6 +64,9 @@ from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.typed_as_edge
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.writes_edge import (
     WritesEdgeMapper,
 )
+from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.references_edge import (
+    ReferencesEdgeMapper,
+)
 
 if TYPE_CHECKING:
     from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
@@ -102,6 +106,8 @@ def to_dto(edge_model: CodeEdgeModel, direction: EdgeDirection) -> CodeEdge:
             return AcceptsEdgeMapper.to_dto(edge_model, direction)
         case EdgeType.OVERRIDDES:
             return OverridesEdgeMapper.to_dto(edge_model, direction)
+        case EdgeType.REFERENCES:
+            return ReferencesEdgeMapper.to_dto(edge_model, direction)
         case _:
             assert_never(edge_type)
 
@@ -147,6 +153,8 @@ def code_edge_to_upsert_dict(edge: CodeEdge) -> dict[str, Any]:
             properties = AcceptsEdgeMapper.to_properties(edge)
         case OverridesEdge():
             properties = OverridesEdgeMapper.to_properties(edge)
+        case ReferencesEdge():
+            properties = ReferencesEdgeMapper.to_properties(edge)
         case _:
             assert_never(edge)
     return {"type": edge.kind.value, "properties": properties}

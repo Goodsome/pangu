@@ -79,7 +79,7 @@ class NodeBuilder(AstVisitor):
         return node
 
     def _ensure_parent_module(self, module: ModuleNode) -> None:
-        module_path = module.get_physical_path()
+        module_path = self.fqn_factory.fqn_to_path(module.id)
         if module_path.with_suffix("") == self.root_path:
             return
         assert len(module_path.parts) >= len(self.root_path.parts), (

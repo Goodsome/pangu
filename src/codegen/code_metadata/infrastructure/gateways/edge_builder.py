@@ -5,7 +5,7 @@ from typing import override
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
-from codegen.code_metadata.domain.aggregates.code_node import ClassNode
+from codegen.code_metadata.domain.aggregates.code_node import ClassNode, TypeClassNode
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.aggregates.code_node import ExternalNode
 from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
@@ -248,9 +248,7 @@ class EdgeBuilder(AstVisitor):
             fqn = f"{self.current_node.id}::{target.id}"
             variable_node = self.node_registry.get_node(fqn)
             with self.context.visit_node(variable_node):
-                fqn = self._resolve_expr_to_fqn(node.annotation)
-                if fqn:
-                    self.current_node.add_edge(EdgeType.TYPED_AS, fqn)
+                self._resolve_annotation(node.annotation)
                 self.visit(node.annotation)
                 self.visit(node.value)
         else:
@@ -308,3 +306,20 @@ class EdgeBuilder(AstVisitor):
                 yield from self._resolve_expr_to_fqns(right)
             case _:
                 pass
+
+    def _resolve_annotation(self, annotation: AstExpr):
+        match annotation:
+            case AstName(id=id):
+                node = TypeClassNode(
+                    id=Fqn(f"<{id}>"),
+                    name=id,
+                )
+                reference_fqn = self._find_fqn(id)
+                node.add_edge(EdgeType.REFERENCES, reference_fqn)
+                self.node_registry.add_node(node)
+                self.current_node.add_edge(
+                    EdgeType.TYPED_AS,
+                    node.id
+                )
+            case _:
+                raise NotImplementedError(f"{annotation=}")

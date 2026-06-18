@@ -126,12 +126,6 @@ class ModuleNode(_BaseNode):
             )
         return ".".join(parts[:-level])
 
-    def get_physical_path(self) -> Path:
-        path = Path("src") / self.id.replace(".", "/")
-        if not self.is_package:
-            path = path.with_suffix(".py")
-        return path
-
     @property
     def contains_edges(self) -> Iterable[ContainsEdge]:
         for edge in self.outbound_edges:
