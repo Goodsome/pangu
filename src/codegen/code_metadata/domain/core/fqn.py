@@ -51,6 +51,8 @@ class Fqn(str):
 
     @property
     def identify(self) -> str:
+        if "::" not in self:
+            return self.symbol
         _, identify = self.split("::", maxsplit=1)
         return identify
 

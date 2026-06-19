@@ -446,8 +446,15 @@ class EdgeBuilder(AstVisitor):
 
     def _get_class_type_node(self, reference_name: str) -> ClassTypeNode:
         reference_fqn = self._find_fqn(reference_name)
-        context = reference_fqn.parts[0]
-        fqn = Fqn(f"<{context}::{reference_name}>")
+        
+        context = reference_fqn.context
+        if "::" in reference_fqn:
+            parts = reference_fqn.split("::")[1:]
+            parts[0] = f"{context}::{parts[0]}"
+            fqn = Fqn(".".join(f"<{p}>" for p in parts))
+        else:
+            fqn = Fqn(f"<{context}::{reference_fqn.symbol}>")
+        
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, ClassTypeNode), existing
