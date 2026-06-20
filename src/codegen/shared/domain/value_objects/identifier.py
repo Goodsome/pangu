@@ -21,7 +21,11 @@ class Identifier[T](ValueObject):
 
 class UuidIdentifier(Identifier[UUID]):
     """Unique identifier."""
-
+    
+    @override
+    def __hash__(self) -> int:
+        return hash(self.value)
+        
     @classmethod
     def create(cls):
         return cls(value=uuid4())

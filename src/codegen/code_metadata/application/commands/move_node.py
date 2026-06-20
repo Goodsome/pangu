@@ -1,9 +1,8 @@
 from dataclasses import dataclass
+
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.shared.application.integration_events.node_moved import (
-    NodeMovedIntegrationEvent,
-)
+from codegen.code_metadata.domain.services.move_node_service import MoveNodeService
 from codegen.shared.domain.core.command import Command
 
 
@@ -14,12 +13,19 @@ class MoveNodeCommand(Command):
 
 @dataclass
 class MoveNodeHandler:
+    move_node_serivce: MoveNodeService
 
     def execute(self, cmd: MoveNodeCommand, uow: UnitOfWork):
         if cmd.node_fqn.parent_fqn == cmd.target_fqn:
             return
-        new_fqn = uow.repository.move_node(
-            node_fqn=cmd.node_fqn, target_fqn=cmd.target_fqn
+        node = uow.repository.get(cmd.node_fqn)
+        source_node = uow.repository.get(cmd.node_fqn.parent_fqn)
+        target_node = uow.repository.get(cmd.target_fqn)
+
+        self.move_node_serivce.move(
+            node=node, source_node=source_node, target_node=target_node
         )
-        event = NodeMovedIntegrationEvent(old_fqn=cmd.node_fqn, new_fqn=new_fqn)
-        uow.save_outbox_message(event)
+
+        uow.repository.save(node)
+        uow.repository.save(source_node)
+        uow.repository.save(target_node)

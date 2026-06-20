@@ -16,5 +16,7 @@ async def create_container(
     app_config = config_override or load_all_configurations()
     container.config.from_pydantic(app_config)
     if init_resources:
-        await container.init_resources()
+        _init = container.init_resources()
+        if _init:
+            await _init
     return container

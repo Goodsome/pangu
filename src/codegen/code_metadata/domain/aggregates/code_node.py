@@ -6,6 +6,9 @@ from typing import Annotated
 from typing import Literal
 from pydantic import Field
 from codegen.code_metadata.domain.core.fqn import Fqn
+from codegen.code_metadata.domain.domain_events.class_removed import ClassRemoved
+from codegen.code_metadata.domain.domain_events.module_defined_class import ModuleDefinedClass
+from codegen.code_metadata.domain.domain_events.module_undefined_class import ModuleUndefiedClass
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
@@ -34,8 +37,10 @@ class _BaseNode(AggregateRoot[Fqn]):
     def update_fqn(self, fqn: Fqn):
         self.id: Fqn = fqn
 
-    def _add_edge(self, edge: CodeEdge):
+    def _add_edge(self, edge: CodeEdge, raise_if_exists: bool=False):
         if edge in self.outbound_edges:
+            if raise_if_exists:
+                raise ValueError(f"{edge=} already exisits")
             return
         self.outbound_edges.append(edge)
 
@@ -97,6 +102,16 @@ class ModuleNode(_BaseNode):
     def defines(self, node: ClassNode | FunctionNode | VariableNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
+        
+    def defines_v2(self, fqn: Fqn):
+        edge = DefinesEdge(fqn=fqn, direction=EdgeDirection.OUT)
+        self._add_edge(edge)
+
+        event = ModuleDefinedClass(
+            module_id=self.id,
+            class_id=fqn,
+        )
+        self.add_domain_event(event)
 
     def imports(
         self,
@@ -132,6 +147,12 @@ class ModuleNode(_BaseNode):
             if isinstance(edge, ContainsEdge):
                 yield edge
 
+    def undefines(self, fqn: Fqn):
+        event = ModuleUndefiedClass(
+            module_id=self.id,
+            class_id=fqn
+        )
+        self.add_domain_event(event)
 
 class ClassNode(_BaseNode):
     """类节点：kind 固定为 CLASS，由模块节点的 AST 类定义派生。"""
@@ -151,6 +172,14 @@ class ClassNode(_BaseNode):
 
     def get_inherits_edges(self) -> list[InheritsEdge]:
         return [e for e in self.outbound_edges if isinstance(e, InheritsEdge)]
+
+    def moved(self, from_: Fqn, to: Fqn):
+        event = ClassRemoved(
+            class_id=self.id,
+            from_module_id=from_,
+            to_module_id=to
+        )
+        self.add_domain_event(event)
 
 
 class FunctionNode(_BaseNode):

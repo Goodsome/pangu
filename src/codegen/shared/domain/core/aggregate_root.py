@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from pydantic import PrivateAttr
 from pydantic import ConfigDict
 from codegen.shared.domain.core.event import DomainEvent
+from codegen.shared.domain.core.mutation_collector import Mutation, MutationCollector
 
 
 class AggregateRoot[T_ID: Hashable](BaseModel):
@@ -12,6 +13,7 @@ class AggregateRoot[T_ID: Hashable](BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: T_ID
     _domain_events: list[DomainEvent] = PrivateAttr(default_factory=list)
+    _mutation_collector: MutationCollector = PrivateAttr(default_factory=MutationCollector)
 
     @override
     def __hash__(self) -> int:
@@ -48,3 +50,10 @@ class AggregateRoot[T_ID: Hashable](BaseModel):
             如果有事件返回 True，否则返回 False
         """
         return len(self._domain_events) > 0
+
+    def add_mutation(self, mutation: Mutation) -> None:
+        self._mutation_collector.add_mutation(mutation)
+
+    def collect_mutations(self) -> list[Mutation]:
+        return self._mutation_collector.collect_mutations()
+        
