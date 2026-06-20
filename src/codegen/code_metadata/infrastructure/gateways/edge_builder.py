@@ -59,9 +59,7 @@ class EdgeBuilder(AstVisitor):
     module: ModuleNode
     node_registry: NodeRegistry
     document_context: DocumentContext
-    local_aliases: dict[str, Fqn] = field(init=False)
     context: TraversalContext = field(default_factory=TraversalContext)
-    function_local_aliases: dict[str, Fqn] = field(default_factory=dict)
 
     def add_alias_fqn(self, fqn: Fqn, asname: str | None = None):
         node = self.node_registry.get_node(fqn)
