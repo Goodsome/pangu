@@ -87,7 +87,7 @@ class MemgraphModuleRepository(ModuleRepository):
     @override
     def _save(self, aggregate: Module) -> None:
         query = """
-        MATCH (m:Module {id: $id})
+        MERGE (m:Module {id: $id})
         SET m.fqn = $fqn,
             m.name = $name,
             m.is_package = $is_package
@@ -109,11 +109,10 @@ class MemgraphModuleRepository(ModuleRepository):
 
         query = """
         UNWIND $modules AS mod
-        MATCH (m:Module {id: mod.id})
+        MERGE (m:Module {id: mod.id})
         SET m.fqn = mod.fqn,
             m.name = mod.name,
             m.is_package = mod.is_package
-        )
         """
         modules_data: list[dict[str, object]] = []
         mutations: list[Mutation] = []

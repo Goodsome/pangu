@@ -33,7 +33,8 @@ class AppContainer(containers.DeclarativeContainer):
         redis_client=shared_container.redis_client,
     )
     architecture_container: Container[ArchitectureContainer] = Container(
-        ArchitectureContainer
+        ArchitectureContainer,
+        file_system_port=os_file_system,
     )
 
 

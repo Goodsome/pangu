@@ -88,7 +88,7 @@ class BaseFqn(str):
         raise ValueError(f"Invalid FQN format: {input_value}")
 
 
-_MODULE_REGEX = r"(?:\w\.)*\w"
+_MODULE_REGEX = r"[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*"
 
 class ModuleFqn(BaseFqn):
 

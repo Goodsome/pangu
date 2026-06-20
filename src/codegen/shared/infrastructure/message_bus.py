@@ -31,7 +31,6 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
         with self.uow:
             while queue:
                 msg = queue.pop(0)
-                logger.info(f"handle msg={msg!r}")
                 match msg:
                     case Command():
                         self._handle_command(msg)

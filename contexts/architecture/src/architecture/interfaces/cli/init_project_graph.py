@@ -12,10 +12,7 @@ def _init_project_graph(
 ):
     message_bus.handle(cmd)
 
-def init_project_graph(
-    path: Annotated[str, Argument()]
-) -> None:
+def init_project_graph() -> None:
     cmd = InitProjectGraphCommand(
-        root_path=Path(path)
     )
     _init_project_graph(cmd)
