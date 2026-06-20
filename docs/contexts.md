@@ -1,0 +1,4 @@
+解析阶段,限界上下文 (DDD Context),聚合根 (Aggregate Root),图谱核心元素 (节点与边),能力边界 (能做什么),能力限制与代价 (不能做什么)
+阶段一：宏观架构级,架构治理上下文(Architecture Governance),ModulePackage,"节点：模块、包边：[DEPENDS_ON], [IMPORTS]",梳理系统级调用链路、发现模块间循环依赖、计算微服务拆分或解耦的宏观成本。,全黑盒。不知道模块内有任何类或函数，无法执行任何实质性的代码级重构操作。
+阶段二：面向对象/符号级,符号与重构上下文(Symbol & Refactoring),ModuleClass模块级 Function,"节点：顶级接口符号边：[DEFINES], [INHERITS], [REFERENCES], [CALLS] (轻量级折叠边)",跨模块移动类/函数、重命名接口、提取父类、精准计算重构时的“爆炸半径”并自动更新全局 Imports。,无语句体。不存储方法内部的循环、判断等逻辑节点，无法修改或分析函数内部的执行细节。
+阶段三：微观 AST/语义级,控制流与数据流上下文(CFG/DFG & AST),MethodFunction,"节点：变量、语句、表达式边：[CONTAINS_AST], [READS], [WRITES], [NEXT_STATEMENT]",死代码消除、提取局部变量、数据流污点追踪、精准追踪方法内部的每一行逻辑。,极度耗能。节点量级爆炸，绝对不能做全库解析，通常只能在重构特定函数时做按需延迟加载 (Lazy Parsing)。
