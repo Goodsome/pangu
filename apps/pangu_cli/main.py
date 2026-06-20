@@ -1,8 +1,8 @@
 import asyncio
 import typer
 
+from apps.pangu_cli.container import create_container
 from codegen.bootstrap.logging import setup_cli_logging
-from codegen.bootstrap.setup import create_container
 from codegen.code_metadata.interfaces.cli.clean_node import clean_node
 from codegen.code_metadata.interfaces.cli.generate_code import generate_code
 from codegen.code_metadata.interfaces.cli.get_code_node import get_code_node
@@ -14,12 +14,16 @@ from codegen.code_metadata.interfaces.cli.move_node import move_node, move_to_as
 from codegen.code_metadata.interfaces.cli.rename_node import rename_node
 from codegen.shared.interfaces.cli.run_outbox_worker import run_worker
 
+from architecture.interfaces.cli import arch_app
+
 app = typer.Typer(
     name="pangu",
     help="""Pangu CLI - DDD Project Scaffolding Tool.""",
     add_completion=False,
     rich_markup_mode="markdown",
 )
+
+app.add_typer(arch_app, name="arch")
 
 app.command()(generate_code)
 app.command()(get_dev_progress)
@@ -47,6 +51,7 @@ def main():
     
     container.wire(
         packages=[
+            "architecture.interfaces.cli",
             "codegen.code_metadata.interfaces.cli",
             "codegen.code_dom.interfaces.cli",
             "codegen.shared.interfaces.cli",
