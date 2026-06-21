@@ -31,8 +31,8 @@ class Neo4jModuleQueryService(ModuleQueryService):
             def _read_tx(tx):
                 result = tx.run(query, id=str(id))
                 return [
-                    ModuleFqn(caller_fqn)
-                    for caller_fqn in result
+                    ModuleFqn(record["caller_fqn"])
+                    for record in result
                 ]
                 
             return session.execute_read(_read_tx)

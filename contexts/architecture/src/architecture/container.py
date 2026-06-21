@@ -1,3 +1,4 @@
+from re import L
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration, Dependency, Dict, Factory, List, Provider, Resource, Singleton
 from neo4j import Driver
@@ -17,6 +18,7 @@ from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGrap
 from architecture.infrastructure.repositories.neo4j_module_query_service import Neo4jModuleQueryService
 from architecture.infrastructure.unit_of_work import UnitOfWork
 from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
+from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.gateways.redis_stream_subscriber import RedisStreamSubscriber
@@ -101,6 +103,9 @@ class Container(DeclarativeContainer):
                 ModuleDeleted: List(
                     on_module_deleted.provided.to_integration,
                 ),
+                ModuleDeletedIntegrationEvent: List(
+                    on_module_deleted.provided.clean_filesystem,
+                )
             }
         ),
     )
