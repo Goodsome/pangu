@@ -4,13 +4,15 @@ from neo4j import Driver
 from redis.asyncio import Redis
 
 from architecture.application.commands.init_project_graph import InitProjectGraphCommand, InitProjectGraphHandler
+from architecture.application.commands.remove_module import RemoveModuleCommand, RemoveModuleHandler
 from architecture.application.event_handlers.on_module_created import OnModuleCreated
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import FileSystemCodeScanner
 from architecture.infrastructure.message_bus import MessageBus
-from architecture.infrastructure.repositories.memgraph_module_repository import MemgraphModuleRepository
+from architecture.infrastructure.repositories.neo4j_module_repository import Neo4jModuleRepository
 from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGraphAdmin
+from architecture.infrastructure.repositories.neo4j_module_query_service import Neo4jModuleQueryService
 from architecture.infrastructure.unit_of_work import UnitOfWork
 from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
@@ -27,8 +29,8 @@ class Container(DeclarativeContainer):
         instance_of=FileSystemPort
     )
     
-    module_repository_factory: Provider[MemgraphModuleRepository] = Factory(
-        MemgraphModuleRepository
+    module_repository_factory: Provider[Neo4jModuleRepository] = Factory(
+        Neo4jModuleRepository
     ).provider
     
     db_driver: Resource[Driver] = Resource(
@@ -46,6 +48,11 @@ class Container(DeclarativeContainer):
         driver=db_driver
     )
 
+    module_query_service: Singleton[Neo4jModuleQueryService] = Singleton(
+        Neo4jModuleQueryService,
+        driver=db_driver
+    )
+
     code_scanner: Singleton[FileSystemCodeScanner] = Singleton(
         FileSystemCodeScanner,
         file_system=file_system_port,
@@ -55,6 +62,11 @@ class Container(DeclarativeContainer):
         InitProjectGraphHandler,
         graph_admin=graph_admin,
         code_scanner=code_scanner
+    )
+
+    remove_module_handler: Factory[RemoveModuleHandler] = Factory(
+        RemoveModuleHandler,
+        query_service=module_query_service
     )
 
     on_module_created: Singleton[OnModuleCreated] = Singleton(
@@ -67,7 +79,8 @@ class Container(DeclarativeContainer):
         uow=unit_of_work,
         command_handlers=Dict(
             {
-                InitProjectGraphCommand: init_project_graph_handler.provided.execute
+                InitProjectGraphCommand: init_project_graph_handler.provided.execute,
+                RemoveModuleCommand: remove_module_handler.provided.execute,
             }
         ),
         event_handlers=Dict(

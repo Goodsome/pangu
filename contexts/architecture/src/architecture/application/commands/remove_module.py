@@ -1,0 +1,33 @@
+from dataclasses import dataclass
+from architecture.application.ports.module_query_serivce import ModuleQueryService
+from architecture.domain.exceptions.module_in_use_exception import ModuleInUseException
+from architecture.domain.value_objects.fqn import ModuleFqn
+from architecture.infrastructure.unit_of_work import UnitOfWork
+from codegen.shared.domain.core.command import Command
+
+
+class RemoveModuleCommand(Command):
+    fqn: ModuleFqn
+
+
+@dataclass
+class RemoveModuleHandler:
+    query_service: ModuleQueryService
+
+    def execute(self, cmd: RemoveModuleCommand, uow: UnitOfWork):
+        module = uow.repository.find_by_fqn(cmd.fqn)
+        if module is None:
+            return
+        callers = self.query_service.get_external_dependencies(module.id)
+        if callers:
+            raise ModuleInUseException(module_fqn=cmd.fqn, callers=callers)
+            
+        module.mark_as_deleted()
+        
+        if module.is_package:
+            descendant_ids = self.query_service.get_descendant_ids(module.id)
+            all_ids_to_delete = [module.id] + descendant_ids
+            uow.repository.delete_all(all_ids_to_delete)
+        else:
+            uow.repository.delete(module)
+        

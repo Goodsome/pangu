@@ -11,23 +11,36 @@ from typing import override
 
 from neo4j import Transaction
 
+from architecture.domain.value_objects.fqn import ModuleFqn
 from codegen.shared.domain.core.mutation_collector import Mutation
 
 
 
 @dataclass
-class MemgraphModuleRepository(ModuleRepository):
+class Neo4jModuleRepository(ModuleRepository):
     transaction: Transaction
 
     @override
     def _add(self, aggregate: Module) -> None:
         query = """
-        CREATE (m:Module {
+        CREATE (m {
             id: $id,
             fqn: $fqn,
-            name: $name,
-            is_package: $is_package
+            name: $name
         })
+        WITH m
+        CALL {
+            WITH m
+            WITH m, $is_package AS is_pkg
+            WHERE is_pkg
+            SET m:Package
+        }
+        CALL {
+            WITH m
+            WITH m, $is_package AS is_pkg
+            WHERE NOT is_pkg
+            SET m:File
+        }
         """
         self.transaction.run(
             query,
@@ -48,9 +61,15 @@ class MemgraphModuleRepository(ModuleRepository):
         CREATE (m:Module {
             id: mod.id,
             fqn: mod.fqn,
-            name: mod.name,
-            is_package: mod.is_package
+            name: mod.name
         })
+        FOREACH (_ IN CASE WHEN mod.is_package THEN [1] ELSE [] END |
+            SET m:Package
+        )
+        
+        FOREACH (_ IN CASE WHEN NOT mod.is_package THEN [1] ELSE [] END |
+            SET m:File
+        )
         """
         
         modules_data: list[dict[str, object]] = []
@@ -98,7 +117,6 @@ class MemgraphModuleRepository(ModuleRepository):
         MERGE (m:Module {id: $id})
         SET m.fqn = $fqn,
             m.name = $name,
-            m.is_package = $is_package
         """
         self.transaction.run(
             query,
@@ -120,7 +138,6 @@ class MemgraphModuleRepository(ModuleRepository):
         MERGE (m:Module {id: mod.id})
         SET m.fqn = mod.fqn,
             m.name = mod.name,
-            m.is_package = mod.is_package
         """
         modules_data: list[dict[str, object]] = []
         mutations: list[Mutation] = []
@@ -138,6 +155,17 @@ class MemgraphModuleRepository(ModuleRepository):
         DETACH DELETE m
         """
         self.transaction.run(query, id=str(aggregate.id))
+
+    @override
+    def delete_all(self, ids: list[ModuleId]) -> None:
+        if not ids:
+            return
+        query = """
+        UNWIND $batch_ids AS mod_id
+        MATCH (m:Module {id: mod_id})
+        DETACH DELETE m
+        """
+        self.transaction.run(query, batch_ids=[str(id) for id in ids])
 
     def _aggregate_to_dict(self, aggregate: Module) -> dict[str, object]:
         """辅助方法：将 Aggregate Root 序列化为 Cypher UNWIND 兼容的字典"""
@@ -197,3 +225,33 @@ class MemgraphModuleRepository(ModuleRepository):
         self._batch_remove_depends_on_edges(mutations)
         self._batch_add_contains_edges(mutations)
         self._batch_remove_contains_edges(mutations)
+
+    @override
+    def find_by_fqn(self, fqn: ModuleFqn) -> Module | None:
+        query = """
+        MATCH (m:Module {fqn: $fqn})
+        OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)
+        OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)
+        RETURN 
+            m, 
+            collect(DISTINCT target.id) AS dependencies,
+            collect(DISTINCT child.id) AS contains
+        """
+        result = self.transaction.run(query, fqn=str(fqn)).single()
+        if not result:
+            return None
+
+        node = result["m"]
+        dependencies = result["dependencies"]
+        contains = result["contains"]
+
+        module = Module.reconstitute(
+            module_id=node["id"],
+            fqn=node["fqn"],
+            name=node["name"],
+            is_package=node["is_package"],
+            dependencies=dependencies,
+            contains=contains,
+        )
+
+        return module

@@ -1,6 +1,7 @@
 from architecture.domain.events.module_added_contains import ModuleAddedContains
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
 from architecture.domain.events.module_created import ModuleCreated
+from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.events.module_removed_contains import ModuleRemovedContains
 from architecture.domain.events.module_removed_dependency import ModuleRemovedDependency
 from architecture.domain.identities.module_id import ModuleId
@@ -61,6 +62,14 @@ class Module(AggregateRoot[ModuleId]):
         instance._contains = _contains
 
         return instance
+
+    def mark_as_deleted(self) -> None:
+        event = ModuleDeleted(
+            module_id=self.id,
+            module_fqn=self.fqn,
+            is_package=self.is_package,
+        )
+        self.add_domain_event(event)
 
     def add_dependency(self, target_module_id: ModuleId) -> None:
         if target_module_id == self.id:
