@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 from architecture.domain.aggregates.module import Module
 from architecture.domain.identities.module_id import ModuleId
+from architecture.domain.mutasions.add_contains_edge import AddContainsEdgeMutation
 from architecture.domain.mutasions.add_depends_on_edge import AddDependsEdgeMutation
+from architecture.domain.mutasions.remove_contains_edge import RemoveContainsEdgeMutation
 from architecture.domain.mutasions.remove_depends_on_edge import RemoveDependsEdgeMutation
 from architecture.domain.repositories.module_repository import ModuleRepository
 from typing import override
@@ -65,7 +67,11 @@ class MemgraphModuleRepository(ModuleRepository):
         query = """
         MATCH (m:Module {id: $id})
         OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)
-        RETURN m, collect(target.id) AS dependencies
+        OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)
+        RETURN 
+            m, 
+            collect(DISTINCT target.id) AS dependencies,
+            collect(DISTINCT child.id) AS contains
         """
         result = self.transaction.run(query, id=str(id)).single()
         if not result:
@@ -73,6 +79,7 @@ class MemgraphModuleRepository(ModuleRepository):
 
         node = result["m"]
         dependencies = result["dependencies"]
+        contains = result["contains"]
 
         module = Module.reconstitute(
             module_id=node["id"],
@@ -80,8 +87,9 @@ class MemgraphModuleRepository(ModuleRepository):
             name=node["name"],
             is_package=node["is_package"],
             dependencies=dependencies,
+            contains=contains,
         )
-        
+
         return module
 
     @override
@@ -162,6 +170,30 @@ class MemgraphModuleRepository(ModuleRepository):
         """
         self.transaction.run(merge_query, batch=batch_data)
 
+    def _batch_add_contains_edges(self, mutations: list[Mutation]):
+        batch_data = [m.model_dump() for m in mutations if isinstance(m, AddContainsEdgeMutation)]
+        if not batch_data:
+            return
+        merge_query = """
+        UNWIND $batch AS edge
+        MATCH (s:Module {id: edge.source}), (t:Module {id: edge.target})
+        MERGE (s)-[:CONTAINS]->(t)
+        """
+        self.transaction.run(merge_query, batch=batch_data)
+
+    def _batch_remove_contains_edges(self, mutations: list[Mutation]):
+        batch_data = [m.model_dump() for m in mutations if isinstance(m, RemoveContainsEdgeMutation)]
+        if not batch_data:
+            return
+        merge_query = """
+        UNWIND $batch AS edge
+        MATCH (s:Module {id: edge.source})-[r:CONTAINS]->(t:Module {id: edge.target})
+        DELETE r
+        """
+        self.transaction.run(merge_query, batch=batch_data)
+
     def _batch_handle_mutations(self, mutations: list[Mutation]):
         self._batch_add_depends_on_edges(mutations)
         self._batch_remove_depends_on_edges(mutations)
+        self._batch_add_contains_edges(mutations)
+        self._batch_remove_contains_edges(mutations)

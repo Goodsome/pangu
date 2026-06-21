@@ -2,14 +2,14 @@ import logging
 import asyncio
 from dependency_injector.wiring import Provide
 from dependency_injector.wiring import inject
-from codegen.shared.infrastructure.workers.outbox_worker import OutboxWorker
+from codegen.shared.infrastructure.workers.outbox_worker import SqlalchemyOutboxWorker
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def _run_outbox_worker(
-    worker: OutboxWorker = Provide["shared_container.outbox_worker"],
+    worker: SqlalchemyOutboxWorker = Provide["shared_container.outbox_worker"],
 ):
     """
     🚀 启动长期运行的发件箱中继进程 (Outbox Worker)

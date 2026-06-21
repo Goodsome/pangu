@@ -3,6 +3,7 @@ from dependency_injector.providers import Configuration, Dependency, Dict, Facto
 from neo4j import Driver
 
 from architecture.application.commands.init_project_graph import InitProjectGraphCommand, InitProjectGraphHandler
+from architecture.application.event_handlers.on_module_created import OnModuleCreated
 from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import FileSystemCodeScanner
 from architecture.infrastructure.message_bus import MessageBus
@@ -50,6 +51,11 @@ class Container(DeclarativeContainer):
         graph_admin=graph_admin,
         code_scanner=code_scanner
     )
+
+    on_module_created: Singleton[OnModuleCreated] = Singleton(
+        OnModuleCreated,
+        file_system=file_system_port,
+    )
     
     message_bus: Factory[MessageBus] = Factory(
         MessageBus,
@@ -59,5 +65,9 @@ class Container(DeclarativeContainer):
                 InitProjectGraphCommand: init_project_graph_handler.provided.execute
             }
         ),
-        event_handlers=Dict(),
+        event_handlers=Dict(
+            {
+                ModuleC
+            }
+        ),
     )

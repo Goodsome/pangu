@@ -28,6 +28,8 @@ class GraphBuilder:
             fqn = self._path_to_fqn(parsed_module.file_path)
             source_module = module_map[fqn]
 
+            self._build_contains_edge(source_module, module_map)
+
             for import_str in parsed_module.raw_imports:
                 if not import_str.startswith("architecture"):
                     continue
@@ -47,3 +49,15 @@ class GraphBuilder:
 
     def _module_path_to_fqn(self, path: str) -> ModuleFqn:
         return ModuleFqn(path)
+
+    def _build_contains_edge(self, module: Module, module_map: dict[ModuleFqn, Module]) -> None:
+        parent_fqn = module.fqn.parent_fqn
+        if parent_fqn not in module_map:
+            parent = Module.create(
+                fqn=parent_fqn,
+                name=parent_fqn.symbol,
+                is_package=True,
+            )
+            module_map[parent_fqn] = parent
+        parent = module_map[parent_fqn]
+        parent.add_contains(module.id)

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class OutboxWorker:
+class SqlalchemyOutboxWorker:
     session_factory: async_sessionmaker[AsyncSession]
     publisher: RedisStreamPublisher
     event_registry: EventRegistry

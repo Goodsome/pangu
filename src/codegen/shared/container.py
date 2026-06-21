@@ -14,7 +14,7 @@ from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
 )
 from codegen.shared.infrastructure.resources import init_async_db_engine
 from codegen.shared.infrastructure.resources import init_async_redis
-from codegen.shared.infrastructure.workers.outbox_worker import OutboxWorker
+from codegen.shared.infrastructure.workers.outbox_worker import SqlalchemyOutboxWorker
 
 
 class Container(DeclarativeContainer):
@@ -41,8 +41,8 @@ class Container(DeclarativeContainer):
         RedisStreamPublisher, client=redis_client
     )
     event_registry: Singleton[EventRegistry] = Singleton(EventRegistry.init)
-    outbox_worker: Singleton[OutboxWorker] = Singleton(
-        OutboxWorker,
+    outbox_worker: Singleton[SqlalchemyOutboxWorker] = Singleton(
+        SqlalchemyOutboxWorker,
         session_factory=async_session_factory,
         publisher=redis_publisher,
         event_registry=event_registry,

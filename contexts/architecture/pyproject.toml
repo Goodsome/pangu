@@ -13,5 +13,8 @@ build-backend = "hatchling.build"
 packages = ["src/architecture"]
 
 [tool.pyright]
+venvPath = "../../"
+venv = ".venv"
 include = ["src"]
-extraPaths = ["src"]
+extraPaths = ["src", "../../src"]
+reportUnusedCallResult = "none"
