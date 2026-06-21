@@ -36,3 +36,8 @@ class FileSystemPort(ABC):
     def delete_file(self, path: Path) -> bool:
         """Deletes a file. Returns True if deleted, False if file did not exist."""
         ...
+
+    @abstractmethod
+    def delete_directory(self, path: Path) -> bool:
+        """Deletes a directory and all its contents. Returns True if deleted, False if directory did not exist."""
+        ...

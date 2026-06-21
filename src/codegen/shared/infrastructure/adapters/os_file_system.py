@@ -1,4 +1,5 @@
 import logging
+import shutil
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -70,4 +71,13 @@ class OSFileSystem(FileSystemPort):
             logger.warning(f"full_path={full_path!r} is not fille, skip")
             return False
         full_path.unlink()
+        return True
+
+    @override
+    def delete_directory(self, path: Path) -> bool:
+        full_path = self.root / path
+        if not full_path.is_dir():
+            logger.warning(f"full_path={full_path!r} is not a directory, skip")
+            return False
+        shutil.rmtree(full_path)
         return True

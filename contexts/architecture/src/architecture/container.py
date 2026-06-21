@@ -6,7 +6,9 @@ from redis.asyncio import Redis
 from architecture.application.commands.init_project_graph import InitProjectGraphCommand, InitProjectGraphHandler
 from architecture.application.commands.remove_module import RemoveModuleCommand, RemoveModuleHandler
 from architecture.application.event_handlers.on_module_created import OnModuleCreated
+from architecture.application.event_handlers.on_module_deleted import OnModuleDeleted
 from architecture.domain.events.module_created import ModuleCreated
+from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import FileSystemCodeScanner
 from architecture.infrastructure.message_bus import MessageBus
@@ -73,6 +75,11 @@ class Container(DeclarativeContainer):
         OnModuleCreated,
         file_system=file_system_port,
     )
+
+    on_module_deleted: Singleton[OnModuleDeleted] = Singleton(
+        OnModuleDeleted,
+        file_system=file_system_port,
+    )
     
     message_bus: Factory[MessageBus] = Factory(
         MessageBus,
@@ -90,7 +97,10 @@ class Container(DeclarativeContainer):
                 ),
                 ModuleCreatedIntegrationEvent: List(
                     on_module_created.provided.create_file
-                )
+                ),
+                ModuleDeleted: List(
+                    on_module_deleted.provided.to_integration,
+                ),
             }
         ),
     )

@@ -40,6 +40,7 @@ include = ["src", "contexts"]
 extraPaths = [
     "src",
     "contexts/architecture/src",
+    "apps/pangu_cli/src",
 ]
 reportUnusedCallResult = "none"
 
