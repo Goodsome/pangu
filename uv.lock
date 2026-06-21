@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "architecture",
     "pangu",
+    "pangu-cli",
     "spike",
 ]
 
@@ -300,6 +301,7 @@ dependencies = [
     { name = "case-converter" },
     { name = "dependency-injector" },
     { name = "neo4j" },
+    { name = "pangu-cli" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -321,6 +323,7 @@ requires-dist = [
     { name = "case-converter", specifier = ">=1.2.0" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "neo4j", specifier = ">=6.2.0" },
+    { name = "pangu-cli", editable = "apps/pangu_cli" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
@@ -331,6 +334,17 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [{ name = "ruff", specifier = ">=0.15.16" }]
+
+[[package]]
+name = "pangu-cli"
+version = "0.1.0"
+source = { editable = "apps/pangu_cli" }
+dependencies = [
+    { name = "architecture" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "architecture", editable = "contexts/architecture" }]
 
 [[package]]
 name = "pathspec"

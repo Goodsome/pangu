@@ -1,7 +1,7 @@
 import asyncio
 import typer
 
-from apps.pangu_cli.container import create_container
+from pangu_cli.container import create_container
 from codegen.bootstrap.logging import setup_cli_logging
 from codegen.code_metadata.interfaces.cli.clean_node import clean_node
 from codegen.code_metadata.interfaces.cli.generate_code import generate_code

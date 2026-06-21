@@ -11,6 +11,7 @@ dependencies = [
     "case-converter>=1.2.0",
     "dependency-injector>=4.49.0",
     "neo4j>=6.2.0",
+    "pangu_cli",
     "psycopg[binary]>=3.3.4",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.1",
@@ -25,7 +26,7 @@ dev = [
 ]
 
 [project.scripts]
-pangu = "apps.pangu_cli.main:main"
+pangu = "pangu_cli.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -43,7 +44,8 @@ extraPaths = [
 reportUnusedCallResult = "none"
 
 [tool.uv.workspace]
-members = ["contexts/*"]
+members = ["contexts/*", "apps/*"]
 
 [tool.uv.sources]
 architecture = { workspace = true }
+pangu_cli = { workspace = true }
