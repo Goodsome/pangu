@@ -1,0 +1,6 @@
+from enum import StrEnum, auto
+
+
+class ContextName(StrEnum):
+    ARCHITECTURE = auto()
+    CODEGEN = auto()

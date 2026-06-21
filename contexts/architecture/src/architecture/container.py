@@ -1,12 +1,12 @@
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration, Dependency, Dict, Factory, List, Provider, Resource, Singleton
-from neo4j import AsyncDriver, Driver
+from neo4j import Driver
 from redis.asyncio import Redis
 
 from architecture.application.commands.init_project_graph import InitProjectGraphCommand, InitProjectGraphHandler
 from architecture.application.event_handlers.on_module_created import OnModuleCreated
 from architecture.domain.events.module_created import ModuleCreated
-from architecture.infrastructure.databases.neo4j_driver import init_async_neo4j_driver, init_neo4j_driver
+from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import FileSystemCodeScanner
 from architecture.infrastructure.message_bus import MessageBus
 from architecture.infrastructure.repositories.memgraph_module_repository import MemgraphModuleRepository
@@ -15,9 +15,7 @@ from architecture.infrastructure.unit_of_work import UnitOfWork
 from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
-from codegen.shared.infrastructure.gateways.redis_stream_publisher import RedisStreamPublisher
 from codegen.shared.infrastructure.gateways.redis_stream_subscriber import RedisStreamSubscriber
-from codegen.shared.infrastructure.workers.neo4j_outbox_worker import Neo4jOutboxWorker
 
 
 class Container(DeclarativeContainer):
