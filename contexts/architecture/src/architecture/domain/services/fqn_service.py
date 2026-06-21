@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from architecture.domain.services.context_registry import ContextRegistry
 from architecture.domain.value_objects.fqn import ModuleFqn
-
-_CONTEXT_REGISTRY: dict[str, str] = {
-    "architecture": "contexts/architecture/src"
-}
+from architecture.enums.context_name import ContextName
 
 @dataclass
 class FqnService:
@@ -15,10 +13,9 @@ class FqnService:
 
     @staticmethod
     def build_path(fqn: ModuleFqn, is_package: bool = False) -> Path:
-        if fqn.context not in _CONTEXT_REGISTRY:
-            raise ValueError(f"Unknown context: {fqn.context}")
-        context_path = Path(_CONTEXT_REGISTRY[fqn.context])
-        path = context_path / "/".join(fqn.parts)
+        context_name = ContextName(fqn.context)
+        root_path = ContextRegistry.get_context_root_path(context_name)
+        path = root_path / "/".join(fqn.parts)
         if is_package:
             path /= "__init__.py"
         else:

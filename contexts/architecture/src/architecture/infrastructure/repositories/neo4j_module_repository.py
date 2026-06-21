@@ -173,6 +173,7 @@ class Neo4jModuleRepository(ModuleRepository):
             "id": str(aggregate.id),
             "fqn": str(aggregate.fqn),
             "name": aggregate.name,
+            "is_package": aggregate.is_package
         }
 
     def _batch_add_depends_on_edges(self, mutations: list[Mutation]):

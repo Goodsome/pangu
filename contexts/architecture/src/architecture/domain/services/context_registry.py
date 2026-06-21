@@ -25,4 +25,3 @@ class ContextRegistry:
             if path.is_relative_to(Path(path_prefix)):
                 return path.relative_to(Path(path_prefix))
         raise ValueError(f"Path {path} does not belong to any supported context")
-        
