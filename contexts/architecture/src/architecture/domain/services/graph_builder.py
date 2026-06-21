@@ -51,6 +51,9 @@ class GraphBuilder:
         return ModuleFqn(path)
 
     def _build_contains_edge(self, module: Module, module_map: dict[ModuleFqn, Module]) -> None:
+        if module.fqn.is_root:
+            return
+        
         parent_fqn = module.fqn.parent_fqn
         if parent_fqn not in module_map:
             parent = Module.create(

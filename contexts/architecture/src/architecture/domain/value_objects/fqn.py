@@ -43,6 +43,10 @@ class BaseFqn(str):
         return "::" not in self
 
     @property
+    def is_root(self) -> bool:
+        return "::" not in self and "." not in self
+
+    @property
     def parent_fqn(self) -> Self:
         """
         获取上一层路径。
