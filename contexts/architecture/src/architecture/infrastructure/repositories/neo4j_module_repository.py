@@ -227,6 +227,19 @@ class Neo4jModuleRepository(ModuleRepository):
         self._batch_remove_contains_edges(mutations)
 
     @override
+    def update_fqn_prefix(self, old_fqn: ModuleFqn, new_fqn: ModuleFqn) -> None:
+        query = """
+        MATCH (m:Module)
+        WHERE m.fqn STARTS WITH $old_prefix + "."
+        SET m.fqn = $new_prefix + substring(m.fqn, size($old_prefix))
+        """
+        self.transaction.run(
+            query,
+            old_prefix=str(old_fqn),
+            new_prefix=str(new_fqn),
+        )
+
+    @override
     def find_by_fqn(self, fqn: ModuleFqn) -> Module | None:
         query = """
         MATCH (m:Module {fqn: $fqn})

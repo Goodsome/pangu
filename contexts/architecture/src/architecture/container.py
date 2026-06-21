@@ -5,11 +5,14 @@ from neo4j import Driver
 from redis.asyncio import Redis
 
 from architecture.application.commands.init_project_graph import InitProjectGraphCommand, InitProjectGraphHandler
+from architecture.application.commands.move_module import MoveModuleCommand, MoveModuleHandler
 from architecture.application.commands.remove_module import RemoveModuleCommand, RemoveModuleHandler
 from architecture.application.event_handlers.on_module_created import OnModuleCreated
 from architecture.application.event_handlers.on_module_deleted import OnModuleDeleted
+from architecture.application.event_handlers.on_module_moved import OnModuleMoved
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.domain.events.module_deleted import ModuleDeleted
+from architecture.domain.events.module_moved import ModuleMoved
 from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import FileSystemCodeScanner
 from architecture.infrastructure.message_bus import MessageBus
@@ -68,6 +71,10 @@ class Container(DeclarativeContainer):
         code_scanner=code_scanner
     )
 
+    move_module_handler: Factory[MoveModuleHandler] = Factory(
+        MoveModuleHandler,
+    )
+
     remove_module_handler: Factory[RemoveModuleHandler] = Factory(
         RemoveModuleHandler,
         query_service=module_query_service
@@ -82,6 +89,10 @@ class Container(DeclarativeContainer):
         OnModuleDeleted,
         file_system=file_system_port,
     )
+
+    on_module_moved: Singleton[OnModuleMoved] = Singleton(
+        OnModuleMoved,
+    )
     
     message_bus: Factory[MessageBus] = Factory(
         MessageBus,
@@ -89,6 +100,7 @@ class Container(DeclarativeContainer):
         command_handlers=Dict(
             {
                 InitProjectGraphCommand: init_project_graph_handler.provided.execute,
+                MoveModuleCommand: move_module_handler.provided.execute,
                 RemoveModuleCommand: remove_module_handler.provided.execute,
             }
         ),
@@ -102,6 +114,10 @@ class Container(DeclarativeContainer):
                 ),
                 ModuleDeleted: List(
                     on_module_deleted.provided.to_integration,
+                ),
+                ModuleMoved: List(
+                    on_module_moved.provided.update_fqn_prefix,
+                    on_module_moved.provided.to_integration,
                 ),
                 ModuleDeletedIntegrationEvent: List(
                     on_module_deleted.provided.clean_filesystem,

@@ -13,3 +13,6 @@ class ModuleRepository(Repository[Module, ModuleId], ABC):
 
     @abstractmethod
     def delete_all(self, ids: list[ModuleId]) -> None: ...
+
+    @abstractmethod
+    def update_fqn_prefix(self, old_fqn: ModuleFqn, new_fqn: ModuleFqn) -> None: ...

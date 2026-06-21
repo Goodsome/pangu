@@ -2,6 +2,7 @@ from architecture.domain.events.module_added_contains import ModuleAddedContains
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.domain.events.module_deleted import ModuleDeleted
+from architecture.domain.events.module_moved import ModuleMoved
 from architecture.domain.events.module_removed_contains import ModuleRemovedContains
 from architecture.domain.events.module_removed_dependency import ModuleRemovedDependency
 from architecture.domain.identities.module_id import ModuleId
@@ -68,6 +69,16 @@ class Module(AggregateRoot[ModuleId]):
             module_id=self.id,
             module_fqn=self.fqn,
             is_package=self.is_package,
+        )
+        self.add_domain_event(event)
+
+    def moved(self, new_fqn: ModuleFqn) -> None:
+        old_fqn = self.fqn
+        self.fqn = new_fqn
+        event = ModuleMoved(
+            module_id=self.id,
+            old_fqn=old_fqn,
+            new_fqn=new_fqn,
         )
         self.add_domain_event(event)
 

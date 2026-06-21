@@ -6,6 +6,7 @@ from codegen.shared.application.integration_events.batch_nodes_deleted import (
 )
 from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
 from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
+from codegen.shared.application.integration_events.module_moved import ModuleMovedIntegrationEvent
 from codegen.shared.application.integration_events.node_moved import (
     NodeMovedIntegrationEvent,
 )
@@ -59,4 +60,5 @@ class EventRegistry:
         registry.register(NodeMovedIntegrationEvent)
         registry.register(ModuleCreatedIntegrationEvent)
         registry.register(ModuleDeletedIntegrationEvent)
+        registry.register(ModuleMovedIntegrationEvent)
         return registry
