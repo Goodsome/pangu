@@ -89,6 +89,7 @@ class Neo4jModuleRepository(ModuleRepository):
         OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)
         RETURN 
             m, 
+            "Package" IN labels(m) AS is_package,
             collect(DISTINCT target.id) AS dependencies,
             collect(DISTINCT child.id) AS contains
         """
@@ -104,7 +105,7 @@ class Neo4jModuleRepository(ModuleRepository):
             module_id=node["id"],
             fqn=node["fqn"],
             name=node["name"],
-            is_package=node["is_package"],
+            is_package=result["is_package"],
             dependencies=dependencies,
             contains=contains,
         )
@@ -123,7 +124,6 @@ class Neo4jModuleRepository(ModuleRepository):
             id=str(aggregate.id),
             fqn=str(aggregate.fqn),
             name=aggregate.name,
-            is_package=aggregate.is_package,
         )
 
         self._batch_handle_mutations(aggregate.collect_mutations())
@@ -173,7 +173,6 @@ class Neo4jModuleRepository(ModuleRepository):
             "id": str(aggregate.id),
             "fqn": str(aggregate.fqn),
             "name": aggregate.name,
-            "is_package": aggregate.is_package,
         }
 
     def _batch_add_depends_on_edges(self, mutations: list[Mutation]):
@@ -234,6 +233,7 @@ class Neo4jModuleRepository(ModuleRepository):
         OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)
         RETURN 
             m, 
+            "Package" IN labels(m) AS is_package,
             collect(DISTINCT target.id) AS dependencies,
             collect(DISTINCT child.id) AS contains
         """
@@ -249,7 +249,7 @@ class Neo4jModuleRepository(ModuleRepository):
             module_id=node["id"],
             fqn=node["fqn"],
             name=node["name"],
-            is_package=node["is_package"],
+            is_package=result["is_package"],
             dependencies=dependencies,
             contains=contains,
         )
