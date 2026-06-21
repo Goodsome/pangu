@@ -34,7 +34,8 @@ class Neo4jOutboxWorker:
         processed_count = 0
         
         async with self.driver.session() as session:
-            async with session.begin_transaction() as tx:
+            transcaction = await session.begin_transaction()
+            async with transcaction as tx:
                 # 1. 获取未处理消息并立即标记以获取节点排他锁
                 # 使用 elementId 获取现代 Neo4j 的内部唯一标识符
                 fetch_query = """
@@ -45,7 +46,7 @@ class Neo4jOutboxWorker:
                 // 立即更新状态，阻止其他并行的 Worker 拉取到相同节点
                 SET m.processed = true
                 
-                RETURN elementId(m) AS id, m.event_type AS event_type, m.payload AS payload
+                RETURN id(m) AS id, m.event_type AS event_type, m.payload AS payload
                 """
                 
                 result = await tx.run(fetch_query, batch_size=batch_size)
@@ -83,7 +84,7 @@ class Neo4jOutboxWorker:
                 if failed_ids:
                     rollback_query = """
                     MATCH (m:OutboxMessage)
-                    WHERE elementId(m) IN $failed_ids
+                    WHERE id(m) IN $failed_ids
                     SET m.processed = false
                     """
                     await tx.run(rollback_query, failed_ids=failed_ids)

@@ -15,14 +15,16 @@ from codegen.shared.domain.ports.file_system_port import FileSystemPort
 class OnModuleCreated:
     file_system: FileSystemPort
 
-    def to_integration(self, event: ModuleCreated, uow: UnitOfWork) -> None:
+    def to_integration(self, event: ModuleCreated, uow: UnitOfWork):
         ie = ModuleCreatedIntegrationEvent(
             module_fqn=event.module_fqn, is_package=event.is_package
         )
         uow.save_outbox_message(ie)
+        yield from []
 
     def create_file(self, event: ModuleCreatedIntegrationEvent, uow: UnitOfWork):
         module_fqn = ModuleFqn(event.module_fqn)
         file_path = FqnService.build_path(module_fqn, event.is_package)
         
         self.file_system.write_file(file_path, content="")
+        yield from []

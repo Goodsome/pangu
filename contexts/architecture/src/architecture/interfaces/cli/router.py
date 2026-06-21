@@ -1,6 +1,7 @@
 import typer
 
 from architecture.interfaces.cli.init_project_graph import init_project_graph
+from architecture.interfaces.cli.listen import listen
 
 arch_app = typer.Typer(
     name="arch", 
@@ -8,3 +9,4 @@ arch_app = typer.Typer(
 )
 
 arch_app.command("init-graph")(init_project_graph)
+arch_app.command("listen")(listen)
