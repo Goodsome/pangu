@@ -7,8 +7,12 @@ from typing import Literal
 from pydantic import Field
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.domain_events.class_removed import ClassRemoved
-from codegen.code_metadata.domain.domain_events.module_defined_class import ModuleDefinedClass
-from codegen.code_metadata.domain.domain_events.module_undefined_class import ModuleUndefiedClass
+from codegen.code_metadata.domain.domain_events.module_defined_class import (
+    ModuleDefinedClass,
+)
+from codegen.code_metadata.domain.domain_events.module_undefined_class import (
+    ModuleUndefiedClass,
+)
 from codegen.code_metadata.domain.domain_events.node_deleted import NodeDeleted
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
@@ -16,7 +20,11 @@ from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
-from codegen.code_metadata.domain.value_objects.code_edge import CodeEdge, ReferencesEdge, TypedAsEdge
+from codegen.code_metadata.domain.value_objects.code_edge import (
+    CodeEdge,
+    ReferencesEdge,
+    TypedAsEdge,
+)
 from codegen.code_metadata.domain.value_objects.code_edge import ContainsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import DefinesEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ExportsEdge
@@ -24,7 +32,7 @@ from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import OverridesEdge
 from codegen.code_metadata.domain.value_objects.code_edge import create_edge
-from codegen.shared.domain.core.aggregate_root import AggregateRoot
+from foundation.building_blocks.aggregate_root import AggregateRoot
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +45,10 @@ class _BaseNode(AggregateRoot[Fqn]):
     def update_fqn(self, fqn: Fqn):
         self.id: Fqn = fqn
 
-    def _add_edge(self, edge: CodeEdge, raise_if_exists: bool=False):
+    def _add_edge(self, edge: CodeEdge, raise_if_exists: bool = False):
         if edge in self.outbound_edges:
             if raise_if_exists:
-                raise ValueError(f"{edge=} already exisits")
+                raise ValueError(f"edge={edge!r} already exisits")
             return
         self.outbound_edges.append(edge)
 
@@ -79,6 +87,7 @@ class _BaseNode(AggregateRoot[Fqn]):
 class ModuleNode(_BaseNode):
     """模块节点：kind 固定为 MODULE，由文件节点自动派生。"""
 
+    "模块节点：kind 固定为 MODULE，由文件节点自动派生。"
     kind: Literal[CodeNodeKind.MODULE] = CodeNodeKind.MODULE
     is_package: bool = False
     exprs: list[AstExpr] = Field(default_factory=list)
@@ -102,15 +111,11 @@ class ModuleNode(_BaseNode):
     def defines(self, node: ClassNode | FunctionNode | VariableNode):
         edge = DefinesEdge(fqn=node.id, direction=EdgeDirection.OUT)
         self._add_edge(edge)
-        
+
     def defines_v2(self, fqn: Fqn):
         edge = DefinesEdge(fqn=fqn, direction=EdgeDirection.OUT)
         self._add_edge(edge)
-
-        event = ModuleDefinedClass(
-            module_id=self.id,
-            class_id=fqn,
-        )
+        event = ModuleDefinedClass(module_id=self.id, class_id=fqn)
         self.add_domain_event(event)
 
     def imports(
@@ -148,15 +153,14 @@ class ModuleNode(_BaseNode):
                 yield edge
 
     def undefines(self, fqn: Fqn):
-        event = ModuleUndefiedClass(
-            module_id=self.id,
-            class_id=fqn
-        )
+        event = ModuleUndefiedClass(module_id=self.id, class_id=fqn)
         self.add_domain_event(event)
+
 
 class ClassNode(_BaseNode):
     """类节点：kind 固定为 CLASS，由模块节点的 AST 类定义派生。"""
 
+    "类节点：kind 固定为 CLASS，由模块节点的 AST 类定义派生。"
     kind: Literal[CodeNodeKind.CLASS] = CodeNodeKind.CLASS
     decorator_list: list[AstExpr] = Field(default_factory=list)
     bases: list[AstExpr] = Field(default_factory=list)
@@ -174,17 +178,14 @@ class ClassNode(_BaseNode):
         return [e for e in self.outbound_edges if isinstance(e, InheritsEdge)]
 
     def moved(self, from_: Fqn, to: Fqn):
-        event = ClassRemoved(
-            class_id=self.id,
-            from_module_id=from_,
-            to_module_id=to
-        )
+        event = ClassRemoved(class_id=self.id, from_module_id=from_, to_module_id=to)
         self.add_domain_event(event)
 
 
 class FunctionNode(_BaseNode):
     """函数节点：kind 固定为 FUNCTION，由模块节点的 AST 函数定义派生。"""
 
+    "函数节点：kind 固定为 FUNCTION，由模块节点的 AST 函数定义派生。"
     kind: Literal[CodeNodeKind.FUNCTION] = CodeNodeKind.FUNCTION
     is_async: bool = False
     decorator_list: list[AstExpr] = Field(default_factory=list)
@@ -202,6 +203,7 @@ class FunctionNode(_BaseNode):
 class MethodNode(_BaseNode):
     """方法节点：kind 固定为 METHOD，由类节点的 AST 函数定义派生。"""
 
+    "方法节点：kind 固定为 METHOD，由类节点的 AST 函数定义派生。"
     kind: Literal[CodeNodeKind.METHOD] = CodeNodeKind.METHOD
     is_async: bool = False
     decorator_list: list[AstExpr] = Field(default_factory=list)
@@ -224,6 +226,7 @@ class MethodNode(_BaseNode):
 class VariableNode(_BaseNode):
     """变量节点：kind 固定为 VARIABLE，由模块节点的 AST 赋值语句派生。"""
 
+    "变量节点：kind 固定为 VARIABLE，由模块节点的 AST 赋值语句派生。"
     kind: Literal[CodeNodeKind.VARIABLE] = CodeNodeKind.VARIABLE
     annotation: AstExpr | None = None
     value: AstExpr | None = None
@@ -234,9 +237,11 @@ class VariableNode(_BaseNode):
             if isinstance(edge, TypedAsEdge):
                 return edge
 
+
 class ParameterNode(_BaseNode):
     """参数节点：kind 固定为 PARAMETER，由函数/方法的参数定义派生。"""
 
+    "参数节点：kind 固定为 PARAMETER，由函数/方法的参数定义派生。"
     kind: Literal[CodeNodeKind.PARAMETER] = CodeNodeKind.PARAMETER
     annotation: AstExpr | None = None
     value: AstExpr | None = None
@@ -247,15 +252,18 @@ class ParameterNode(_BaseNode):
             if isinstance(edge, TypedAsEdge):
                 return edge
 
+
 class ExternalNode(_BaseNode):
     """外部节点：kind 固定为 EXTERNAL，表示项目外部的依赖（第三方库、标准库等）。"""
 
+    "外部节点：kind 固定为 EXTERNAL，表示项目外部的依赖（第三方库、标准库等）。"
     kind: Literal[CodeNodeKind.EXTERNAL] = CodeNodeKind.EXTERNAL
 
 
 class ClassTypeNode(_BaseNode):
     """类类型节点：kind 固定为 CLASS_TYPE，表示类型类定义。"""
 
+    "类类型节点：kind 固定为 CLASS_TYPE，表示类型类定义。"
     kind: Literal[CodeNodeKind.CLASS_TYPE] = CodeNodeKind.CLASS_TYPE
 
     @property
@@ -263,23 +271,27 @@ class ClassTypeNode(_BaseNode):
         for edge in self.outbound_edges:
             if isinstance(edge, ReferencesEdge):
                 return edge
-        raise ValueError(f"references_edge not found in {self.id=}")
+        raise ValueError(f"references_edge not found in self.id={self.id!r}")
+
 
 class UnionTypeNode(_BaseNode):
     """联合类型节点：kind 固定为 UNION_TYPE，表示联合类型定义。"""
 
+    "联合类型节点：kind 固定为 UNION_TYPE，表示联合类型定义。"
     kind: Literal[CodeNodeKind.UNION_TYPE] = CodeNodeKind.UNION_TYPE
 
 
 class GenericTypeNode(_BaseNode):
     """泛型类型节点：kind 固定为 GENERIC_TYPE，表示泛型类型定义。"""
 
+    "泛型类型节点：kind 固定为 GENERIC_TYPE，表示泛型类型定义。"
     kind: Literal[CodeNodeKind.GENERIC_TYPE] = CodeNodeKind.GENERIC_TYPE
 
 
 class TypeVarNode(_BaseNode):
     """类型变量节点：kind 固定为 TYPE_VAR，表示类型变量定义。"""
 
+    "类型变量节点：kind 固定为 TYPE_VAR，表示类型变量定义。"
     kind: Literal[CodeNodeKind.TYPE_VAR] = CodeNodeKind.TYPE_VAR
 
 

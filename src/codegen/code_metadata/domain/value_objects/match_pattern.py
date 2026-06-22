@@ -7,7 +7,7 @@ from pydantic import TypeAdapter
 from codegen.code_metadata.domain.enums.ast_match_pattern_kind import (
     AstMatchPatternKind,
 )
-from codegen.shared.domain.core.value_object import ValueObject
+from foundation.building_blocks.value_object import ValueObject
 
 
 class MatchValue(ValueObject):

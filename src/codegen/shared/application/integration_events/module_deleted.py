@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import ClassVar
-
-from codegen.shared.domain.core.event import IntegrationEvent
+from foundation.building_blocks.event import IntegrationEvent
 
 
 class ModuleDeletedIntegrationEvent(IntegrationEvent):

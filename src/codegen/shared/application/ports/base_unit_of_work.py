@@ -4,13 +4,12 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 from typing import Self
-from codegen.shared.domain.core.event import DomainEvent, IntegrationEvent
+from foundation.building_blocks.event import DomainEvent, IntegrationEvent
 
 logger = logging.getLogger(__name__)
 
 
 class BaseUnitOfWork(ABC):
-
     @abstractmethod
     def __enter__(self) -> Self:
         pass

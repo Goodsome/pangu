@@ -3,17 +3,21 @@ from typing import override
 from pydantic import BaseModel
 from pydantic import PrivateAttr
 from pydantic import ConfigDict
-from codegen.shared.domain.core.event import DomainEvent
-from codegen.shared.domain.core.mutation_collector import Mutation, MutationCollector
+from foundation.building_blocks.event import DomainEvent
+from foundation.building_blocks.mutation_collector import Mutation, MutationCollector
 
 
 class AggregateRoot[T_ID: Hashable](BaseModel):
     """聚合根基类 特征： 1. 继承 Entity 的所有特性 2. 管理领域事件的发布和收集 3. 确保聚合边界内的一致性"""
 
+    "聚合根基类 特征： 1. 继承 Entity 的所有特性 2. 管理领域事件的发布和收集 3. 确保聚合边界内的一致性"
+    "聚合根基类 特征： 1. 继承 Entity 的所有特性 2. 管理领域事件的发布和收集 3. 确保聚合边界内的一致性"
     model_config = ConfigDict(extra="forbid")
     id: T_ID
     _domain_events: list[DomainEvent] = PrivateAttr(default_factory=list)
-    _mutation_collector: MutationCollector = PrivateAttr(default_factory=MutationCollector)
+    _mutation_collector: MutationCollector = PrivateAttr(
+        default_factory=MutationCollector
+    )
 
     @override
     def __hash__(self) -> int:
@@ -56,4 +60,3 @@ class AggregateRoot[T_ID: Hashable](BaseModel):
 
     def collect_mutations(self) -> list[Mutation]:
         return self._mutation_collector.collect_mutations()
-        

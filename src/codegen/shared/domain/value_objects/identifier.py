@@ -4,7 +4,8 @@ from pydantic import model_serializer
 from pydantic import model_validator
 from uuid import UUID
 from uuid import uuid4
-from codegen.shared.domain.core.value_object import ValueObject
+
+from foundation.building_blocks.value_object import ValueObject
 
 
 class Identifier[T](ValueObject):

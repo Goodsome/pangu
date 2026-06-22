@@ -29,7 +29,7 @@ from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_try import AstTry
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
-from codegen.shared.domain.core.value_object import ValueObject
+from foundation.building_blocks.value_object import ValueObject
 
 
 class AstClassDef(ValueObject):

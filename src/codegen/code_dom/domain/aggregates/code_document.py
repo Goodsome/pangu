@@ -1,7 +1,7 @@
 from pathlib import Path
 from codegen.code_dom.domain.visitors.update_imports_visitor import UpdateImportsVisitor
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
-from codegen.shared.domain.core.aggregate_root import AggregateRoot
+from foundation.building_blocks.aggregate_root import AggregateRoot
 
 
 class CodeDocument(AggregateRoot[Path]):

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from codegen.shared.domain.core.value_object import ValueObject
+from foundation.building_blocks.value_object import ValueObject
 
 
 class AstAlias(ValueObject):

@@ -5,7 +5,7 @@ from pydantic import TypeAdapter
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
-from codegen.shared.domain.core.value_object import ValueObject
+from foundation.building_blocks.value_object import ValueObject
 
 
 class _BaseEdge(ValueObject):

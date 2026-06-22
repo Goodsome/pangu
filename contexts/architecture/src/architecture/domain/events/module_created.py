@@ -1,8 +1,7 @@
 from architecture.domain.value_objects.fqn import ModuleFqn
-from codegen.shared.domain.core.event import DomainEvent
+from foundation.building_blocks.event import DomainEvent
 
 
 class ModuleCreated(DomainEvent):
     module_fqn: ModuleFqn
     is_package: bool
-    

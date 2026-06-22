@@ -5,7 +5,7 @@ from typing import Protocol
 from typing import assert_never
 from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
 from foundation.building_blocks.command import Command
-from codegen.shared.domain.core.event import Event
+from foundation.building_blocks.event import Event
 
 logger = logging.getLogger(__name__)
 

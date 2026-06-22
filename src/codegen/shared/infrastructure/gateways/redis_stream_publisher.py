@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import logging
 from redis.asyncio import Redis
-from codegen.shared.domain.core.event import IntegrationEvent
+from foundation.building_blocks.event import IntegrationEvent
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class RedisStreamPublisher:
     """Redis Stream 集成事件发布器。"""
 
+    "Redis Stream 集成事件发布器。"
     client: Redis
     maxlen: int = 10000
 

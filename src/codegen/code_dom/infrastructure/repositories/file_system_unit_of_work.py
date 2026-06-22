@@ -5,14 +5,16 @@ from typing import Self, override
 from codegen.code_dom.application.ports.unit_of_work import UnitOfWork
 from codegen.code_dom.domain.repositories.codebase_repository import CodebaseRepository
 from codegen.code_dom.domain.repositories.document_repository import DocumentRepository
-from codegen.shared.domain.core.event import IntegrationEvent
-from codegen.shared.infrastructure.orm_models.outbox_message_module import OutboxMessageModel
+from foundation.building_blocks.event import IntegrationEvent
+from codegen.shared.infrastructure.orm_models.outbox_message_module import (
+    OutboxMessageModel,
+)
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class FileSystemUnitOfWork(UnitOfWork):
-   
     codebase_repository: CodebaseRepository | None
     document_repository: DocumentRepository | None
     session: None = None
@@ -69,6 +71,3 @@ class FileSystemUnitOfWork(UnitOfWork):
         payload = message.model_dump(mode="json")
         record = OutboxMessageModel(event_type=type(message).__name__, payload=payload)
         self.session.add(record)
-
-
-    

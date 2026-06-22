@@ -4,14 +4,13 @@ from abc import ABC
 from abc import abstractmethod
 from typing import Any, override
 from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
-from codegen.shared.domain.core.event import DomainEvent
+from foundation.building_blocks.event import DomainEvent
 from codegen.shared.domain.ports.repository import Repository
 
 logger = logging.getLogger(__name__)
 
 
 class UnitOfWork[T_Repo: Repository[Any, Any]](BaseUnitOfWork, ABC):
-
     @property
     @abstractmethod
     def repository(self) -> T_Repo:

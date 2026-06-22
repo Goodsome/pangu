@@ -4,13 +4,19 @@ import logging
 from codegen.shared.application.integration_events.batch_nodes_deleted import (
     BatchNodesDeletedIntegrationEvent,
 )
-from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
-from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
-from codegen.shared.application.integration_events.module_moved import ModuleMovedIntegrationEvent
+from codegen.shared.application.integration_events.module_created import (
+    ModuleCreatedIntegrationEvent,
+)
+from codegen.shared.application.integration_events.module_deleted import (
+    ModuleDeletedIntegrationEvent,
+)
+from codegen.shared.application.integration_events.module_moved import (
+    ModuleMovedIntegrationEvent,
+)
 from codegen.shared.application.integration_events.node_moved import (
     NodeMovedIntegrationEvent,
 )
-from codegen.shared.domain.core.event import IntegrationEvent
+from foundation.building_blocks.event import IntegrationEvent
 from codegen.shared.application.integration_events.node_deleted import (
     NodeDeletedIntegrationEvent,
 )
@@ -22,6 +28,7 @@ logger = logging.getLogger("event_hub.registry")
 class EventRegistry:
     """集成事件类型注册表。"""
 
+    "集成事件类型注册表。"
     _entries: dict[str, type[IntegrationEvent]] = field(default_factory=dict)
 
     def register(self, event_class: type[IntegrationEvent]) -> None:

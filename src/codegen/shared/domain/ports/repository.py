@@ -4,8 +4,8 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
-from codegen.shared.domain.core.aggregate_root import AggregateRoot
-from codegen.shared.domain.core.event import DomainEvent
+from foundation.building_blocks.aggregate_root import AggregateRoot
+from foundation.building_blocks.event import DomainEvent
 
 
 @dataclass

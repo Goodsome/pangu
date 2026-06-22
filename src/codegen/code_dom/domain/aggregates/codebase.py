@@ -1,6 +1,5 @@
 from pathlib import Path
-from codegen.shared.domain.core.aggregate_root import AggregateRoot
+from foundation.building_blocks.aggregate_root import AggregateRoot
 
 
-class Codebase(AggregateRoot[str]):
-    ...
+class Codebase(AggregateRoot[str]): ...

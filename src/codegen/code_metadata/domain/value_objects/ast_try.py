@@ -6,7 +6,7 @@ from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
 )
-from codegen.shared.domain.core.value_object import ValueObject
+from foundation.building_blocks.value_object import ValueObject
 
 if TYPE_CHECKING:
     from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt

@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import field_serializer
 from pydantic import field_validator
 from codegen.code_metadata.domain.enums.ast_expr_kind import AstExprKind
-from codegen.shared.domain.core.value_object import ValueObject
+from foundation.building_blocks.value_object import ValueObject
 
 _ELLIPSIS_REPRESENTATION = {"__type__": "builtin_singleton", "name": "Ellipsis"}
 

@@ -1,5 +1,5 @@
 from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.shared.domain.core.event import DomainEvent
+from foundation.building_blocks.event import DomainEvent
 
 
 class ModuleUndefiedClass(DomainEvent):

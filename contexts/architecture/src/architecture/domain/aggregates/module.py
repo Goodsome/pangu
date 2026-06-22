@@ -8,34 +8,28 @@ from architecture.domain.events.module_removed_dependency import ModuleRemovedDe
 from architecture.domain.identities.module_id import ModuleId
 from architecture.domain.mutasions.add_contains_edge import AddContainsEdgeMutation
 from architecture.domain.mutasions.add_depends_on_edge import AddDependsEdgeMutation
-from architecture.domain.mutasions.remove_contains_edge import RemoveContainsEdgeMutation
-from architecture.domain.mutasions.remove_depends_on_edge import RemoveDependsEdgeMutation
+from architecture.domain.mutasions.remove_contains_edge import (
+    RemoveContainsEdgeMutation,
+)
+from architecture.domain.mutasions.remove_depends_on_edge import (
+    RemoveDependsEdgeMutation,
+)
 from architecture.domain.value_objects.fqn import ModuleFqn
 from pydantic import PrivateAttr
-
-from codegen.shared.domain.core.aggregate_root import AggregateRoot
+from foundation.building_blocks.aggregate_root import AggregateRoot
 
 
 class Module(AggregateRoot[ModuleId]):
     fqn: ModuleFqn
     name: str
     is_package: bool
-
     _dependencies: set[ModuleId] = PrivateAttr(default_factory=set)
     _contains: set[ModuleId] = PrivateAttr(default_factory=set)
 
     @classmethod
     def create(cls, fqn: ModuleFqn, name: str, is_package: bool) -> Module:
-        module = cls(
-            id=ModuleId.create(),
-            fqn=fqn,
-            name=name,
-            is_package=is_package,
-        )
-        event = ModuleCreated(
-            module_fqn=fqn,
-            is_package=is_package,
-        )
+        module = cls(id=ModuleId.create(), fqn=fqn, name=name, is_package=is_package)
+        event = ModuleCreated(module_fqn=fqn, is_package=is_package)
         module.add_domain_event(event)
         return module
 
@@ -55,20 +49,15 @@ class Module(AggregateRoot[ModuleId]):
             name=name,
             is_package=is_package,
         )
-
         _dependencies = {ModuleId.reconstitute(i) for i in dependencies}
         instance._dependencies = _dependencies
-
         _contains = {ModuleId.reconstitute(i) for i in contains}
         instance._contains = _contains
-
         return instance
 
     def mark_as_deleted(self) -> None:
         event = ModuleDeleted(
-            module_id=self.id,
-            module_fqn=self.fqn,
-            is_package=self.is_package,
+            module_id=self.id, module_fqn=self.fqn, is_package=self.is_package
         )
         self.add_domain_event(event)
 
@@ -93,10 +82,7 @@ class Module(AggregateRoot[ModuleId]):
             module_id=self.id, target_module_id=target_module_id
         )
         self.add_domain_event(event)
-        mutation = AddDependsEdgeMutation(
-            source=self.id,
-            target=target_module_id
-        )
+        mutation = AddDependsEdgeMutation(source=self.id, target=target_module_id)
         self.add_mutation(mutation)
 
     def remove_dependency(self, target_module_id: ModuleId) -> None:
@@ -107,10 +93,7 @@ class Module(AggregateRoot[ModuleId]):
             module_id=self.id, target_module_id=target_module_id
         )
         self.add_domain_event(event)
-        mutation = RemoveDependsEdgeMutation(
-            source=self.id,
-            target=target_module_id
-        )
+        mutation = RemoveDependsEdgeMutation(source=self.id, target=target_module_id)
         self.add_mutation(mutation)
 
     def add_contains(self, child_module_id: ModuleId) -> None:
@@ -119,14 +102,9 @@ class Module(AggregateRoot[ModuleId]):
         if child_module_id in self._contains:
             return
         self._contains.add(child_module_id)
-        event = ModuleAddedContains(
-            module_id=self.id, child_module_id=child_module_id
-        )
+        event = ModuleAddedContains(module_id=self.id, child_module_id=child_module_id)
         self.add_domain_event(event)
-        mutation = AddContainsEdgeMutation(
-            source=self.id,
-            target=child_module_id
-        )
+        mutation = AddContainsEdgeMutation(source=self.id, target=child_module_id)
         self.add_mutation(mutation)
 
     def remove_contains(self, child_module_id: ModuleId) -> None:
@@ -137,8 +115,5 @@ class Module(AggregateRoot[ModuleId]):
             module_id=self.id, child_module_id=child_module_id
         )
         self.add_domain_event(event)
-        mutation = RemoveContainsEdgeMutation(
-            source=self.id,
-            target=child_module_id
-        )
+        mutation = RemoveContainsEdgeMutation(source=self.id, target=child_module_id)
         self.add_mutation(mutation)
