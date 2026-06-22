@@ -16,3 +16,4 @@ class OnModuleMoved:
             caller.update_imports(event.old_module_fqn, event.new_module_fqn)
             uow.documents.save(caller)
             
+        yield from []

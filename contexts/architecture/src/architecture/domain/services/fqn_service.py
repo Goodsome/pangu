@@ -5,8 +5,11 @@ from architecture.domain.services.context_registry import ContextRegistry
 from architecture.domain.value_objects.fqn import ModuleFqn
 from architecture.enums.context_name import ContextName
 
+
+#abc
 @dataclass
 class FqnService:
+    
 
     def build_module_fqn(self, path: Path) -> ModuleFqn:
         ...
