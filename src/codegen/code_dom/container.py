@@ -43,16 +43,10 @@ from codegen.code_dom.infrastructure.repositories.file_system_document_repositor
 from codegen.code_dom.infrastructure.repositories.file_system_unit_of_work import (
     FileSystemUnitOfWork,
 )
-from codegen.shared.application.integration_events.module_created import (
-    ModuleCreatedIntegrationEvent,
-)
-from codegen.shared.application.integration_events.module_deleted import (
-    ModuleDeletedIntegrationEvent,
-)
-from codegen.shared.application.integration_events.module_moved import (
-    ModuleMovedIntegrationEvent,
-)
-from codegen.shared.application.integration_events.registry import EventRegistry
+from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
+from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
+from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
+from foundation.integration_events.registry import EventRegistry
 from foundation.system.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,

@@ -44,7 +44,7 @@ from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGrap
 from architecture.infrastructure.repositories.neo4j_module_query_service import (
     Neo4jModuleQueryService,
 )
-from codegen.shared.application.integration_events.registry import EventRegistry
+from foundation.integration_events.registry import EventRegistry
 from foundation.system.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.adapters.memgraph_unit_of_work import (
     MemgraphUnitOfWork,

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy import not_
 from sqlalchemy import select
-from codegen.shared.application.integration_events.registry import EventRegistry
+from foundation.integration_events.registry import EventRegistry
 from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
     RedisStreamPublisher,
 )

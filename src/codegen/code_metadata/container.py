@@ -78,16 +78,12 @@ from codegen.code_metadata.infrastructure.repositories.sql_alchemy_code_node_rep
 from codegen.code_metadata.infrastructure.repositories.sql_alchemy_code_node_sync_service import (
     SqlAlchemyCodeNodeSyncService,
 )
-from codegen.shared.application.integration_events.batch_nodes_deleted import (
+from foundation.integration_events.batch_nodes_deleted import (
     BatchNodesDeletedIntegrationEvent,
 )
-from codegen.shared.application.integration_events.node_deleted import (
-    NodeDeletedIntegrationEvent,
-)
-from codegen.shared.application.integration_events.node_moved import (
-    NodeMovedIntegrationEvent,
-)
-from codegen.shared.application.integration_events.registry import EventRegistry
+from foundation.integration_events.node_deleted import NodeDeletedIntegrationEvent
+from foundation.integration_events.node_moved import NodeMovedIntegrationEvent
+from foundation.integration_events.registry import EventRegistry
 from foundation.system.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
     SqlAlchemyUnitOfWork,

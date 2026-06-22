@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.shared.application.integration_events.node_moved import (
-    NodeMovedIntegrationEvent,
-)
+from foundation.integration_events.node_moved import NodeMovedIntegrationEvent
 from foundation.building_blocks.command import Command
 
 

@@ -10,7 +10,7 @@ from codegen.code_metadata.application.commands.generate_code import GenerateCod
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
-from codegen.shared.application.integration_events.batch_nodes_deleted import (
+from foundation.integration_events.batch_nodes_deleted import (
     BatchNodesDeletedIntegrationEvent,
 )
 from foundation.building_blocks.command import Command

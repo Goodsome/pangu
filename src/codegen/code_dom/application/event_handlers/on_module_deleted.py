@@ -1,9 +1,7 @@
 import logging
 from dataclasses import dataclass
 from codegen.code_dom.application.ports.unit_of_work import UnitOfWork
-from codegen.shared.application.integration_events.module_deleted import (
-    ModuleDeletedIntegrationEvent,
-)
+from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from foundation.system.file_system_port import FileSystemPort
 
 logger = logging.getLogger(__name__)

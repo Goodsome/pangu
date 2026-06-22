@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from architecture.infrastructure.databases.neo4j_driver import init_async_neo4j_driver
-from codegen.shared.application.integration_events.registry import EventRegistry
+from foundation.integration_events.registry import EventRegistry
 from codegen.shared.infrastructure.database import Database
 from codegen.shared.infrastructure.database import init_database
 from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
@@ -23,6 +23,7 @@ from codegen.shared.infrastructure.workers.outbox_worker import SqlalchemyOutbox
 class Container(DeclarativeContainer):
     """Shared kernel DI container for cross-cutting concerns."""
 
+    "Shared kernel DI container for cross-cutting concerns."
     config: Configuration = Configuration()
     database: Resource[Database] = Resource(
         init_database, connection_string=config.database_url.as_(str)
@@ -43,11 +44,7 @@ class Container(DeclarativeContainer):
     redis_publisher: Singleton[RedisStreamPublisher] = Singleton(
         RedisStreamPublisher, client=redis_client
     )
-    
-    async_db_driver: Resource[AsyncDriver] = Resource(
-        init_async_neo4j_driver,
-    )
-    
+    async_db_driver: Resource[AsyncDriver] = Resource(init_async_neo4j_driver)
     event_registry: Singleton[EventRegistry] = Singleton(EventRegistry.init)
     outbox_worker: Singleton[SqlalchemyOutboxWorker] = Singleton(
         SqlalchemyOutboxWorker,
@@ -55,7 +52,6 @@ class Container(DeclarativeContainer):
         publisher=redis_publisher,
         event_registry=event_registry,
     )
-    
     neo4j_outbox_worker: Singleton[Neo4jOutboxWorker] = Singleton(
         Neo4jOutboxWorker,
         driver=async_db_driver,
