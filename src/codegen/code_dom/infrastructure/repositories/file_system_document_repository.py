@@ -7,6 +7,7 @@ from black import format_str, FileMode
 
 
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
+from codegen.code_dom.domain.ports.code_formatter import CodeFormatter
 from codegen.code_dom.domain.repositories.document_repository import DocumentRepository
 from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt
 from codegen.code_metadata.infrastructure.mappers.stmt_to_ast import StmtToAst
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FileSystemDocumentRepository(DocumentRepository):
     file_system: FileSystemPort
+    code_formatter: CodeFormatter
     
     @override
     def _add(self, aggregate: CodeDocument) -> None:
@@ -53,6 +55,7 @@ class FileSystemDocumentRepository(DocumentRepository):
         code = ast.unparse(module)
         code = format_str(code, mode=FileMode())
         self.file_system.write_file(aggregate.physical_path, code, overwrite=True)
+        self.code_formatter.format_path(aggregate.physical_path)
     
     @override
     def _delete(self, aggregate: CodeDocument) -> None:

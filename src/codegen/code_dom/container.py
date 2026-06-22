@@ -30,6 +30,7 @@ from codegen.code_dom.infrastructure.gateways.ast_code_similarity_calculator imp
 from codegen.code_dom.infrastructure.gateways.black_code_formatter import (
     BlackCodeFormatter,
 )
+from codegen.code_dom.infrastructure.gateways.ruff_code_formmater import RuffCodeFormatter
 from codegen.code_dom.infrastructure.repositories.file_system_codebase_repository import FileSystemCodebaseRepository
 from codegen.code_dom.infrastructure.repositories.file_system_document_repository import FileSystemDocumentRepository
 from codegen.code_dom.infrastructure.repositories.file_system_unit_of_work import FileSystemUnitOfWork
@@ -82,9 +83,14 @@ class Container(DeclarativeContainer):
         file_system=file_system_port,
     )
 
+    ruff_code_formatter: Singleton[RuffCodeFormatter] = Singleton(
+        RuffCodeFormatter,
+    )
+
     document_repository: Factory[FileSystemDocumentRepository] = Factory(
         FileSystemDocumentRepository,
         file_system=file_system_port,
+        code_formatter=ruff_code_formatter,
     )
     
     unit_of_work: Factory[FileSystemUnitOfWork] = Factory(
