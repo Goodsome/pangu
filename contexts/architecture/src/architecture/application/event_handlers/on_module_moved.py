@@ -13,15 +13,15 @@ from codegen.shared.application.integration_events.module_moved import (
 class OnModuleMoved:
 
     def to_integration(self, event: ModuleMoved, uow: UnitOfWork):
-        old_path = FqnService.build_path(event.old_fqn)
-        new_path = FqnService.build_path(event.new_fqn)
+        old_path = FqnService.build_path(event.old_fqn, is_package=event.is_package)
+        new_path = FqnService.build_path(event.new_fqn, is_package=event.is_package)
         dependencies = uow.repository.get_dependencies(event.module_id)
         ie = ModuleMovedIntegrationEvent(
             old_path=old_path,
             new_path=new_path,
             old_module_fqn=event.old_fqn,
             new_module_fqn=event.new_fqn,
-            affected_callers=[FqnService.build_path(d) for d in dependencies],
+            affected_callers=[FqnService.build_path(d, is_package=False) for d in dependencies],
         )
         uow.save_outbox_message(ie)
         yield from []

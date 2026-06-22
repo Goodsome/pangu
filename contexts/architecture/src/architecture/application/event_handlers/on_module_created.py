@@ -24,11 +24,9 @@ class OnModuleCreated:
 
     def create_file(self, event: ModuleCreatedIntegrationEvent, uow: UnitOfWork):
         module_fqn = ModuleFqn(event.module_fqn)
-        file_path = FqnService.build_path(module_fqn)
+        file_path = FqnService.build_path(module_fqn, is_package=event.is_package)
         if event.is_package:
             file_path /= "__init__.py"
-        else:
-            file_path = file_path.with_suffix(".py")
         
         self.file_system.write_file(file_path, content="")
         yield from []

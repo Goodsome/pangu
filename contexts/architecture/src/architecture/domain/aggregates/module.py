@@ -79,6 +79,7 @@ class Module(AggregateRoot[ModuleId]):
             module_id=self.id,
             old_fqn=old_fqn,
             new_fqn=new_fqn,
+            is_package=self.is_package,
         )
         self.add_domain_event(event)
 

@@ -12,9 +12,11 @@ class FqnService:
         ...
 
     @staticmethod
-    def build_path(fqn: ModuleFqn) -> Path:
+    def build_path(fqn: ModuleFqn, is_package: bool) -> Path:
         context_name = ContextName(fqn.context)
         root_path = ContextRegistry.get_context_root_path(context_name)
         path = root_path / "/".join(fqn.parts)
+        if not is_package:
+            path = path.with_suffix(".py")
         return path
         

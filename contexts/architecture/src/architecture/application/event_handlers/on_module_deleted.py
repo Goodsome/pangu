@@ -26,12 +26,11 @@ class OnModuleDeleted:
 
     def clean_filesystem(self, event: ModuleDeletedIntegrationEvent, uow: UnitOfWork):
         fqn = ModuleFqn(event.module_fqn)
-        module_path = FqnService.build_path(fqn)
+        module_path = FqnService.build_path(fqn, is_package=event.is_package)
         if event.is_package:
             self.file_system.delete_directory(module_path)
         else:
-            file_path = module_path.with_suffix(".py")
-            self.file_system.delete_file(file_path)
+            self.file_system.delete_file(module_path)
             
         yield from []
         

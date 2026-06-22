@@ -7,3 +7,4 @@ class ModuleMoved(DomainEvent):
     module_id: ModuleId
     old_fqn: ModuleFqn
     new_fqn: ModuleFqn
+    is_package: bool
