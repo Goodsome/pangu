@@ -19,4 +19,4 @@ class UnitOfWork[T_Repo: Repository[Any, Any]](BaseUnitOfWork, ABC):
 
     @override
     def collect_events(self) -> Iterator[DomainEvent]:
-        return self.repository.collect_events()
+        yield from self.repository.collect_events()

@@ -269,6 +269,7 @@ class Neo4jModuleRepository(ModuleRepository):
             contains=contains,
         )
 
+        self._seens.add(module)
         return module
         
     @override

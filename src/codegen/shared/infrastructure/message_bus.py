@@ -44,6 +44,7 @@ class BaseMessageBus:
 
     def _handle_command(self, command: Command) -> None:
         handler = self.command_handlers.get(type(command))
+        logger.info(f"Handling {command=}")
         if not handler:
             raise NotImplementedError(f"type(command)={type(command)!r}")
         try:
@@ -55,6 +56,7 @@ class BaseMessageBus:
     def _handle_event(self, event: Event) -> Iterable[Command]:
         for handler in self.event_handlers.get(type(event), []):
             try:
+                logger.info(f"Handling {handler=}")
                 yield from handler(event, self.uow)
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
