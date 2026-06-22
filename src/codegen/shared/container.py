@@ -11,9 +11,7 @@ from architecture.infrastructure.databases.neo4j_driver import init_async_neo4j_
 from foundation.integration_events.registry import EventRegistry
 from codegen.shared.infrastructure.database import Database
 from codegen.shared.infrastructure.database import init_database
-from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
-    RedisStreamPublisher,
-)
+from foundation.message_bus.gateways.redis_stream_publisher import RedisStreamPublisher
 from codegen.shared.infrastructure.resources import init_async_db_engine
 from codegen.shared.infrastructure.resources import init_async_redis
 from codegen.shared.infrastructure.workers.neo4j_outbox_worker import Neo4jOutboxWorker
@@ -22,8 +20,6 @@ from codegen.shared.infrastructure.workers.outbox_worker import SqlalchemyOutbox
 
 class Container(DeclarativeContainer):
     """Shared kernel DI container for cross-cutting concerns."""
-
-    "Shared kernel DI container for cross-cutting concerns."
     config: Configuration = Configuration()
     database: Resource[Database] = Resource(
         init_database, connection_string=config.database_url.as_(str)

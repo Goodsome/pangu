@@ -1,3 +1,3 @@
-from codegen.shared.infrastructure.message_bus import BaseMessageBus
+from foundation.message_bus.message_bus import BaseMessageBus
 
 MessageBus = BaseMessageBus

@@ -85,11 +85,11 @@ from foundation.integration_events.node_deleted import NodeDeletedIntegrationEve
 from foundation.integration_events.node_moved import NodeMovedIntegrationEvent
 from foundation.integration_events.registry import EventRegistry
 from foundation.system.file_system_port import FileSystemPort
-from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
+from foundation.persistence.adapters.sql_alchemy_unit_of_work import (
     SqlAlchemyUnitOfWork,
 )
 from codegen.shared.infrastructure.database import Database
-from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
+from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
 

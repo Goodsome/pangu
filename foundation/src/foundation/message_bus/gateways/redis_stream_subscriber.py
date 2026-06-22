@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from redis import asyncio as aioredis
 from foundation.integration_events.registry import EventRegistry
-from codegen.shared.infrastructure.message_bus import MessageBusFactory
+from foundation.message_bus.message_bus import MessageBusFactory
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class RedisStreamSubscriber:
     """Redis Stream 集成事件订阅器。"""
 
+    "Redis Stream 集成事件订阅器。"
     "Redis Stream 集成事件订阅器。"
     client: aioredis.Redis
     message_bus_factory: MessageBusFactory

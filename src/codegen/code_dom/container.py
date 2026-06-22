@@ -48,10 +48,10 @@ from foundation.integration_events.module_deleted import ModuleDeletedIntegratio
 from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
 from foundation.integration_events.registry import EventRegistry
 from foundation.system.file_system_port import FileSystemPort
-from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
+from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
-from codegen.shared.infrastructure.message_bus import BaseMessageBus
+from foundation.message_bus.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):

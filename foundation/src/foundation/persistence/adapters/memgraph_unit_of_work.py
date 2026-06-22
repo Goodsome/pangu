@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any, Protocol, override, Self
 from neo4j import Driver, Session, Transaction
-from codegen.shared.application.ports.unit_of_work import UnitOfWork
+from foundation.persistence.unit_of_work import UnitOfWork
 from foundation.building_blocks.event import IntegrationEvent
 from foundation.persistence.repository import Repository
 

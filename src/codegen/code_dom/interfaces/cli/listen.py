@@ -2,7 +2,7 @@ import logging
 import asyncio
 from dependency_injector.wiring import Provide
 from dependency_injector.wiring import inject
-from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
+from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
 
@@ -11,9 +11,7 @@ logger = logging.getLogger(__name__)
 
 @inject
 async def _listen_redis(
-    subscriber: RedisStreamSubscriber = Provide[
-        "code_dom_container.redis_subscriber"
-    ],
+    subscriber: RedisStreamSubscriber = Provide["code_dom_container.redis_subscriber"],
 ):
     logger.info("准备启动 subscriber ...")
     try:

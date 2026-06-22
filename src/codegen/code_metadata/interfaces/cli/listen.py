@@ -2,7 +2,7 @@ import logging
 import asyncio
 from dependency_injector.wiring import Provide
 from dependency_injector.wiring import inject
-from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
+from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
 

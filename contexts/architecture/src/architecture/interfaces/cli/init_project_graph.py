@@ -1,6 +1,7 @@
 from dependency_injector.wiring import Provide, inject
 from architecture.application.commands.init_project_graph import InitProjectGraphCommand
-from codegen.shared.infrastructure.message_bus import BaseMessageBus
+from foundation.message_bus.message_bus import BaseMessageBus
+
 
 @inject
 def _init_project_graph(
@@ -9,7 +10,7 @@ def _init_project_graph(
 ):
     message_bus.handle(cmd)
 
+
 def init_project_graph() -> None:
-    cmd = InitProjectGraphCommand(
-    )
+    cmd = InitProjectGraphCommand()
     _init_project_graph(cmd)

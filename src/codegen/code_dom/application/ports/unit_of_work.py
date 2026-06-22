@@ -5,7 +5,7 @@ from abc import abstractmethod
 from typing import override
 from codegen.code_dom.domain.repositories.codebase_repository import CodebaseRepository
 from codegen.code_dom.domain.repositories.document_repository import DocumentRepository
-from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.base_unit_of_work import BaseUnitOfWork
 from foundation.building_blocks.event import DomainEvent
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 from typing import Any, override
-from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.base_unit_of_work import BaseUnitOfWork
 from foundation.building_blocks.event import DomainEvent
 from foundation.persistence.repository import Repository
 

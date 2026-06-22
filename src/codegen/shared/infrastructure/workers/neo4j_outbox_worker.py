@@ -5,9 +5,7 @@ from dataclasses import dataclass
 from neo4j import AsyncDriver
 from neo4j.exceptions import ClientError, TransientError
 from foundation.integration_events.registry import EventRegistry
-from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
-    RedisStreamPublisher,
-)
+from foundation.message_bus.gateways.redis_stream_publisher import RedisStreamPublisher
 
 logger = logging.getLogger(__name__)
 

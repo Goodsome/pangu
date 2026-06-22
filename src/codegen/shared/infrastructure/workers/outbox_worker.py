@@ -6,9 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy import not_
 from sqlalchemy import select
 from foundation.integration_events.registry import EventRegistry
-from codegen.shared.infrastructure.gateways.redis_stream_publisher import (
-    RedisStreamPublisher,
-)
+from foundation.message_bus.gateways.redis_stream_publisher import RedisStreamPublisher
 from codegen.shared.infrastructure.orm_models.outbox_message_module import (
     OutboxMessageModel,
 )

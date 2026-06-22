@@ -46,13 +46,11 @@ from architecture.infrastructure.repositories.neo4j_module_query_service import 
 )
 from foundation.integration_events.registry import EventRegistry
 from foundation.system.file_system_port import FileSystemPort
-from codegen.shared.infrastructure.adapters.memgraph_unit_of_work import (
-    MemgraphUnitOfWork,
-)
-from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
+from foundation.persistence.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
+from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
-from codegen.shared.infrastructure.message_bus import BaseMessageBus
+from foundation.message_bus.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):

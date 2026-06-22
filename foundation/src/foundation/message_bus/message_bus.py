@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from typing import Protocol
 from typing import assert_never
-from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.base_unit_of_work import BaseUnitOfWork
 from foundation.building_blocks.command import Command
 from foundation.building_blocks.event import Event
 
