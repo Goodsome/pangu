@@ -35,5 +35,10 @@ class RuffCodeFormatter(CodeFormatter):
             )
             logger.info(f"Formatted path {path}: {result.stdout}")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to format path {path}: {e}")
+            logger.error(
+                f"Failed to format path {path}.\n"
+                + f"Exit code: {e.returncode}\n"
+                + f"Stdout: {e.stdout}\n"
+                + f"Stderr: {e.stderr}"
+            )
             raise e
