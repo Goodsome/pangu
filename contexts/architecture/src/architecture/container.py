@@ -123,5 +123,5 @@ class Container(DeclarativeContainer):
         message_bus_factory=message_bus.provider,
         registry=event_registry,
         service_name="architecture",
-        subscriptions=List("architecture_events"),
+        subscriptions=List(),
     )
