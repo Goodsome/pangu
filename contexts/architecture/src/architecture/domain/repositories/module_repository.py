@@ -16,3 +16,6 @@ class ModuleRepository(Repository[Module, ModuleId], ABC):
 
     @abstractmethod
     def update_fqn_prefix(self, old_fqn: ModuleFqn, new_fqn: ModuleFqn) -> None: ...
+
+    @abstractmethod
+    def get_dependencies(self, id: ModuleId) -> list[ModuleFqn]: ...

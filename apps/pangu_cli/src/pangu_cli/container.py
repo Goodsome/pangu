@@ -1,14 +1,14 @@
 from pathlib import Path
-from dependency_injector import containers
-from dependency_injector.providers import Singleton
-from dependency_injector.providers import Container
-from dependency_injector.providers import Configuration
-from codegen.bootstrap.config import AppConfig, load_all_configurations
-from codegen.shared.infrastructure.adapters.os_file_system import OSFileSystem
-from codegen.shared.container import Container as SharedContainer
-from codegen.code_metadata.container import Container as CodeMetadataContainer
-from codegen.code_dom.container import Container as CodeDomContainer
+
 from architecture.container import Container as ArchitectureContainer
+from dependency_injector import containers
+from dependency_injector.providers import Configuration, Container, Singleton
+
+from codegen.bootstrap.config import AppConfig, load_all_configurations
+from codegen.code_dom.container import Container as CodeDomContainer
+from codegen.code_metadata.container import Container as CodeMetadataContainer
+from codegen.shared.container import Container as SharedContainer
+from codegen.shared.infrastructure.adapters.os_file_system import OSFileSystem
 
 
 class AppContainer(containers.DeclarativeContainer):
@@ -20,7 +20,9 @@ class AppContainer(containers.DeclarativeContainer):
         SharedContainer, config=config.shared
     )
     code_dom_container: Container[CodeDomContainer] = Container(
-        CodeDomContainer, file_system_port=os_file_system
+        CodeDomContainer,
+        file_system_port=os_file_system,
+        redis_client=shared_container.redis_client,
     )
     code_metadata_container: Container[CodeMetadataContainer] = Container(
         CodeMetadataContainer,

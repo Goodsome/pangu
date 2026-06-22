@@ -91,7 +91,6 @@ class Container(DeclarativeContainer):
 
     on_module_moved: Singleton[OnModuleMoved] = Singleton(
         OnModuleMoved,
-        query_service=module_query_service
     )
     
     message_bus: Factory[BaseMessageBus] = Factory(

@@ -20,7 +20,12 @@ class ASTCodeParser(CodeParser):
         description = ast.get_docstring(ast_module)
         if description:
             body = body[1:]
-        return CodeDocument(physical_path=path, body=body, description=description)
+        return CodeDocument(
+            id=path,
+            physical_path=path, 
+            body=body, 
+            description=description
+        )
 
     @override
     def parse_directory(self, path: Path) -> list[CodeDocument]:

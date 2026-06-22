@@ -15,6 +15,8 @@ from codegen.code_metadata.interfaces.cli.rename_node import rename_node
 from codegen.shared.interfaces.cli.run_outbox_worker import run_worker
 
 from architecture.interfaces.cli import arch_app
+from codegen.code_dom.interfaces.cli import code_dom_app
+
 
 app = typer.Typer(
     name="pangu",
@@ -24,6 +26,7 @@ app = typer.Typer(
 )
 
 app.add_typer(arch_app, name="arch")
+app.add_typer(code_dom_app, name="dom")
 
 app.command()(generate_code)
 app.command()(get_dev_progress)

@@ -269,3 +269,24 @@ class Neo4jModuleRepository(ModuleRepository):
         )
 
         return module
+        
+    @override
+    def get_dependencies(self, id: ModuleId) -> list[ModuleFqn]:
+        query = """
+        MATCH (target:Module {id: $id})
+        WITH target,
+             CASE 
+               WHEN "Package" IN labels(target) THEN [(target)-[:CONTAINS*1..]->(child:File) | child]
+               ELSE []
+             END + target AS internals
+        UNWIND internals AS internal
+        MATCH (caller:Module)-[:DEPENDS_ON]->(internal)
+        RETURN DISTINCT caller.fqn AS caller_fqn
+        """
+        
+        result = self.transaction.run(query, id=str(id))
+        return [
+            ModuleFqn(record["caller_fqn"])
+            for record in result
+        ]
+            

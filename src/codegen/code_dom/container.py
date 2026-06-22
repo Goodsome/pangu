@@ -1,9 +1,11 @@
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import Configuration
+from dependency_injector.providers import Configuration, Dict, List
 from dependency_injector.providers import Dependency
 from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
+from redis.asyncio import Redis
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
+from codegen.code_dom.application.event_handlers.on_module_moved import OnModuleMoved
 from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
 )
@@ -26,11 +28,21 @@ from codegen.code_dom.infrastructure.gateways.ast_code_similarity_calculator imp
 from codegen.code_dom.infrastructure.gateways.black_code_formatter import (
     BlackCodeFormatter,
 )
+from codegen.code_dom.infrastructure.repositories.file_system_codebase_repository import FileSystemCodebaseRepository
+from codegen.code_dom.infrastructure.repositories.file_system_document_repository import FileSystemDocumentRepository
+from codegen.code_dom.infrastructure.repositories.file_system_unit_of_work import FileSystemUnitOfWork
+from codegen.shared.application.integration_events.module_moved import ModuleMovedIntegrationEvent
+from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from codegen.shared.infrastructure.gateways.redis_stream_subscriber import RedisStreamSubscriber
+from codegen.shared.infrastructure.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):
     config: Configuration = Configuration()
+    
+    redis_client: Dependency[Redis] = Dependency(instance_of=Redis)
+    
     file_system_port: Dependency[FileSystemPort] = Dependency(
         instance_of=FileSystemPort
     )
@@ -59,4 +71,49 @@ class Container(DeclarativeContainer):
         code_generator=code_generator,
         file_system=file_system_port,
         code_formatter=black_code_formatter,
+    )
+
+    codebase_repository: Factory[FileSystemCodebaseRepository] = Factory(
+        FileSystemCodebaseRepository,
+        file_system=file_system_port,
+    )
+
+    document_repository: Factory[FileSystemDocumentRepository] = Factory(
+        FileSystemDocumentRepository,
+        file_system=file_system_port,
+    )
+    
+    unit_of_work: Factory[FileSystemUnitOfWork] = Factory(
+        FileSystemUnitOfWork,
+        codebase_repository=codebase_repository,
+        document_repository=document_repository,
+    )
+
+    on_module_moved: Singleton[OnModuleMoved] = Singleton(
+        OnModuleMoved,
+        file_system=file_system_port,
+    )
+    
+    message_bus: Factory[BaseMessageBus] = Factory(
+        BaseMessageBus,
+        uow=unit_of_work,
+        command_handlers=Dict(),
+        event_handlers=Dict(
+            {
+                ModuleMovedIntegrationEvent: List(
+                    on_module_moved.provided.execute_physical_move
+                )
+            }
+        ),
+    )
+
+    event_registry: Singleton[EventRegistry] = Singleton(EventRegistry.init)
+    
+    redis_subscriber: Singleton[RedisStreamSubscriber] = Singleton(
+        RedisStreamSubscriber,
+        client=redis_client,
+        message_bus_factory=message_bus.provider,
+        registry=event_registry,
+        service_name="code_dom",
+        subscriptions=List("architecture_events"),
     )

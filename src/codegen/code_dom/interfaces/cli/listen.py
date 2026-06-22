@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @inject
 async def _listen_redis(
     subscriber: RedisStreamSubscriber = Provide[
-        "architecture_container.redis_subscriber"
+        "code_dom_container.redis_subscriber"
     ],
 ):
     logger.info("准备启动 subscriber ...")

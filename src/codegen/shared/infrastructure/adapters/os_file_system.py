@@ -81,3 +81,11 @@ class OSFileSystem(FileSystemPort):
             return False
         shutil.rmtree(full_path)
         return True
+
+    @override
+    def move(self, path: Path, target_path: Path):
+        full_path = self.root / path
+        full_target_path = self.root / target_path
+        full_target_path.mkdir(parents=True, exist_ok=True)
+
+        full_path.rename(full_target_path)
