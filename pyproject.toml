@@ -7,7 +7,6 @@ requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.18.4",
     "architecture",
-    "black>=26.5.1",
     "case-converter>=1.2.0",
     "dependency-injector>=4.49.0",
     "foundation",
@@ -19,12 +18,11 @@ dependencies = [
     "redis[hiredis]>=5.0",
     "sqlalchemy[asyncio]>=2.0.50",
     "typer>=0.26.7",
+    "ruff>=0.15.16",
 ]
 
 [dependency-groups]
-dev = [
-    "ruff>=0.15.16",
-]
+dev = []
 
 [project.scripts]
 pangu = "pangu_cli.main:main"

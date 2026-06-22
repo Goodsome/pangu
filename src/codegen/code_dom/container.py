@@ -27,9 +27,6 @@ from codegen.code_dom.infrastructure.gateways.ast_code_parser import ASTCodePars
 from codegen.code_dom.infrastructure.gateways.ast_code_similarity_calculator import (
     AstCodeSimilarityCalculator,
 )
-from codegen.code_dom.infrastructure.gateways.black_code_formatter import (
-    BlackCodeFormatter,
-)
 from codegen.code_dom.infrastructure.gateways.ruff_code_formmater import RuffCodeFormatter
 from codegen.code_dom.infrastructure.repositories.file_system_codebase_repository import FileSystemCodebaseRepository
 from codegen.code_dom.infrastructure.repositories.file_system_document_repository import FileSystemDocumentRepository
@@ -54,7 +51,11 @@ class Container(DeclarativeContainer):
     code_parser: Factory[CodeParser] = Factory(
         ASTCodeParser, file_system=file_system_port
     )
-    black_code_formatter: Singleton[BlackCodeFormatter] = Singleton(BlackCodeFormatter)
+    
+    ruff_code_formatter: Singleton[RuffCodeFormatter] = Singleton(
+        RuffCodeFormatter,
+    )
+    
     get_project_documents: Factory[GetProjectDocumentsHandler] = Factory(
         GetProjectDocumentsHandler, code_parser=code_parser
     )
@@ -75,7 +76,7 @@ class Container(DeclarativeContainer):
         GenerateCodeHandler,
         code_generator=code_generator,
         file_system=file_system_port,
-        code_formatter=black_code_formatter,
+        code_formatter=ruff_code_formatter,
     )
 
     codebase_repository: Factory[FileSystemCodebaseRepository] = Factory(
@@ -83,9 +84,6 @@ class Container(DeclarativeContainer):
         file_system=file_system_port,
     )
 
-    ruff_code_formatter: Singleton[RuffCodeFormatter] = Singleton(
-        RuffCodeFormatter,
-    )
 
     document_repository: Factory[FileSystemDocumentRepository] = Factory(
         FileSystemDocumentRepository,
