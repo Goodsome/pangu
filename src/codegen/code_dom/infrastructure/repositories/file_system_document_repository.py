@@ -1,7 +1,10 @@
+import logging
 import ast
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
+
+from dependency_injector.wiring import T
 
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.repositories.document_repository import DocumentRepository
@@ -9,6 +12,7 @@ from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt
 from codegen.code_metadata.infrastructure.mappers.stmt_to_ast import StmtToAst
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class FileSystemDocumentRepository(DocumentRepository):
@@ -47,7 +51,7 @@ class FileSystemDocumentRepository(DocumentRepository):
         module = ast.Module(body=body)
         ast.fix_missing_locations(module)
         code = ast.unparse(module)
-        self.file_system.write_file(aggregate.physical_path, code)
+        self.file_system.write_file(aggregate.physical_path, code, overwrite=True)
     
     @override
     def _delete(self, aggregate: CodeDocument) -> None:
