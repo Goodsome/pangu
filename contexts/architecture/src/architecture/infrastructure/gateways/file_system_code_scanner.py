@@ -2,11 +2,9 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import override
-
 from architecture.application.ports.code_scanner import CodeScanner
-
 from architecture.domain.value_objects.parsed_module import ParsedModule
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 
 
 @dataclass
@@ -55,5 +53,4 @@ class FileSystemCodeScanner(CodeScanner):
         code = self.file_system.read_file(path)
         extractor = ModuleDependencyExtractor()
         raw_imports = extractor.extract_imports_from_source(code)
-
         return ParsedModule(file_path=path, raw_imports=raw_imports)

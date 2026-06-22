@@ -2,12 +2,10 @@ from abc import ABC, abstractmethod
 from architecture.domain.aggregates.module import Module
 from architecture.domain.identities.module_id import ModuleId
 from architecture.domain.value_objects.fqn import ModuleFqn
-from codegen.shared.domain.ports.repository import Repository
-
+from foundation.persistence.repository import Repository
 
 
 class ModuleRepository(Repository[Module, ModuleId], ABC):
-
     @abstractmethod
     def find_by_fqn(self, fqn: ModuleFqn) -> Module | None: ...
 

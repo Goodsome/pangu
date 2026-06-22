@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.ports.code_formatter import CodeFormatter
 from codegen.code_dom.domain.ports.code_generator import CodeGenerator
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 
 
 class GenerateCodeCommand(BaseModel):

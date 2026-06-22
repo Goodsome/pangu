@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Self
-
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode, ExternalNode
 from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.shared.domain.enums import PythonBuiltinType
+from foundation.common_types.enums import PythonBuiltinType
 
 
 @dataclass

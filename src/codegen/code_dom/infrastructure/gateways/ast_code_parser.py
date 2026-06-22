@@ -5,7 +5,7 @@ from typing import override
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.ports.code_parser import CodeParser
 from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 
 
 @dataclass
@@ -21,10 +21,7 @@ class ASTCodeParser(CodeParser):
         if description:
             body = body[1:]
         return CodeDocument(
-            id=path,
-            physical_path=path, 
-            body=body, 
-            description=description
+            id=path, physical_path=path, body=body, description=description
         )
 
     @override

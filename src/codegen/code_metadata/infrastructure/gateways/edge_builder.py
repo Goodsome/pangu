@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import override
-
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
@@ -51,7 +50,7 @@ from codegen.code_metadata.infrastructure.gateways.document_context import (
 from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
-from codegen.shared.domain.enums import PythonBuiltinType
+from foundation.common_types.enums import PythonBuiltinType
 
 
 @dataclass
@@ -76,7 +75,7 @@ class EdgeBuilder(AstVisitor):
             fqn = Fqn(f"std::{name}")
             node = self.node_registry.ensure_external_node(fqn)
             return node
-        raise ValueError(f"not found {name=}")
+        raise ValueError(f"not found name={name!r}")
 
     def _find_fqn(self, alias: str) -> Fqn:
         node = self.resolve_alias(alias)
@@ -164,7 +163,6 @@ class EdgeBuilder(AstVisitor):
                 node, ExternalNode | ClassNode | FunctionNode | VariableNode
             ), f"node={node!r}"
             self.module.imports(node, is_type_checking=is_type_checking, asname=asname)
-
         self.add_alias(node, asname=asname)
 
     def _get_internel_node(self, import_name: str, from_name: str | None) -> CodeNode:
@@ -206,21 +204,14 @@ class EdgeBuilder(AstVisitor):
                 context = self.current_node.id.context
                 identify = self.current_node.id.identify
                 fqn = Fqn(f"{context}::{identify}::{name}")
-                type_var_node = TypeVarNode(
-                    id=fqn,
-                    name=name,
-                )
+                type_var_node = TypeVarNode(id=fqn, name=name)
                 self.node_registry.add_node(type_var_node)
                 self.add_alias(type_var_node)
-                self.current_node.add_edge(
-                    EdgeType.TYPE_ARGUMENT,
-                    fqn,
-                )
+                self.current_node.add_edge(EdgeType.TYPE_ARGUMENT, fqn)
                 with self.context.visit_node(type_var_node):
                     self._resolve_annotation(bound)
-
             case _:
-                raise NotImplementedError(f"{type_param=}")
+                raise NotImplementedError(f"type_param={type_param!r}")
 
     @override
     def visit_ast_function_def(self, node: AstFunctionDef):
@@ -342,7 +333,7 @@ class EdgeBuilder(AstVisitor):
             case UnionTypeNode():
                 return
             case _:
-                raise NotImplementedError(f"{type_node=}")
+                raise NotImplementedError(f"type_node={type_node!r}")
 
     def _resolve_expr_to_fqns(self, node: AstExpr) -> Iterable[Fqn]:
         match node:
@@ -375,8 +366,9 @@ class EdgeBuilder(AstVisitor):
             case AstAttribute():
                 node = self._get_attribute_type_node(annotation)
             case _:
-                raise NotImplementedError(f"{annotation=}, {self.current_node.id=}")
-
+                raise NotImplementedError(
+                    f"annotation={annotation!r}, self.current_node.id={self.current_node.id!r}"
+                )
         self.current_node.add_edge(edge_type, node.id)
 
     def _collect_class_types(
@@ -395,7 +387,7 @@ class EdgeBuilder(AstVisitor):
             case AstAttribute():
                 yield self._get_attribute_type_node(ast_expr)
             case _:
-                raise NotImplementedError(f"{ast_expr=}")
+                raise NotImplementedError(f"ast_expr={ast_expr!r}")
 
     def _collect_type_nodes(
         self, ast_expr: AstExpr
@@ -417,106 +409,80 @@ class EdgeBuilder(AstVisitor):
             case AstAttribute():
                 yield self._get_attribute_type_node(ast_expr)
             case _:
-                raise NotImplementedError(f"{ast_expr=}, {self.current_node.id=}")
+                raise NotImplementedError(
+                    f"ast_expr={ast_expr!r}, self.current_node.id={self.current_node.id!r}"
+                )
 
     def _get_attribute_type_node(self, attribute: AstAttribute) -> ClassTypeNode:
         reference_fqn = self._resolve_expr_to_fqn(attribute)
         if reference_fqn is None:
-            raise NotImplementedError(f"{attribute=}")
+            raise NotImplementedError(f"attribute={attribute!r}")
         assert "::" in reference_fqn, reference_fqn
         context = reference_fqn.parts[0]
         parts = reference_fqn.split("::")[1:]
         parts[0] = f"{context}::{parts[0]}"
-        fqn = Fqn(".".join(f"<{p}>" for p in parts))
-
+        fqn = Fqn(".".join((f"<{p}>" for p in parts)))
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, ClassTypeNode), existing
             return existing
-
-        node = ClassTypeNode(
-            id=fqn,
-            name=fqn.symbol,
-        )
+        node = ClassTypeNode(id=fqn, name=fqn.symbol)
         node.add_edge(EdgeType.REFERENCES, reference_fqn)
         self.node_registry.add_node(node)
         return node
 
     def _get_class_type_node(self, reference_name: str) -> ClassTypeNode:
         reference_fqn = self._find_fqn(reference_name)
-        
         context = reference_fqn.context
         if "::" in reference_fqn:
             parts = reference_fqn.split("::")[1:]
             parts[0] = f"{context}::{parts[0]}"
-            fqn = Fqn(".".join(f"<{p}>" for p in parts))
+            fqn = Fqn(".".join((f"<{p}>" for p in parts)))
         else:
             fqn = Fqn(f"<{context}::{reference_fqn.symbol}>")
-        
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, ClassTypeNode), existing
             return existing
-
-        node = ClassTypeNode(
-            id=fqn,
-            name=reference_name,
-        )
+        node = ClassTypeNode(id=fqn, name=reference_name)
         node.add_edge(EdgeType.REFERENCES, reference_fqn)
         self.node_registry.add_node(node)
-
         return node
 
     def _get_union_type_node(self, ast_bin_op: AstBinOp) -> UnionTypeNode:
         class_type_nodes = list(self._collect_class_types(ast_bin_op))
-        fqn = Fqn("|".join(n.id for n in class_type_nodes))
-        name = "|".join(n.name for n in class_type_nodes)
-        
+        fqn = Fqn("|".join((n.id for n in class_type_nodes)))
+        name = "|".join((n.name for n in class_type_nodes))
         if len(name) >= 100:
             name = name[:100] + "..."
-        
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, UnionTypeNode), existing
             return existing
-
         node = UnionTypeNode(id=fqn, name=name)
         for class_type_node in class_type_nodes:
             node.add_edge(EdgeType.UNION_MEMBER, fqn=class_type_node.id)
-
         self.node_registry.add_node(node)
         return node
 
-    def _resolve_ast_subscript(
-        self,
-        value: AstExpr,
-        slice: AstExpr,
-    ) -> GenericTypeNode:
+    def _resolve_ast_subscript(self, value: AstExpr, slice: AstExpr) -> GenericTypeNode:
         match value:
             case AstName():
                 base_type = self._get_class_type_node(value.id)
             case AstAttribute():
                 base_type = self._get_attribute_type_node(value)
             case _:
-                raise NotImplementedError(f"{value=}")
-
+                raise NotImplementedError(f"value={value!r}")
         slices = list(self._collect_type_nodes(slice))
-        fqn = Fqn(f"{base_type.id}[{','.join(s.id for s in slices)}]")
-        name = f"{base_type.name}[{','.join(s.name for s in slices)}]"
-
+        fqn = Fqn(f"{base_type.id}[{','.join((s.id for s in slices))}]")
+        name = f"{base_type.name}[{','.join((s.name for s in slices))}]"
         existing = self.node_registry.find_node(fqn)
         if existing:
             assert isinstance(existing, GenericTypeNode), existing
             return existing
-
-        node = GenericTypeNode(
-            id=fqn,
-            name=name,
-        )
+        node = GenericTypeNode(id=fqn, name=name)
         node.add_edge(EdgeType.BASE_TYPE, fqn=base_type.id)
         for n in slices:
             node.add_edge(EdgeType.TYPE_ARGUMENT, n.id)
-
         self.node_registry.add_node(node)
-
         return node

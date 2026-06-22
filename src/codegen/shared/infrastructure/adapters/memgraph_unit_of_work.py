@@ -6,7 +6,7 @@ from typing import Any, Protocol, override, Self
 from neo4j import Driver, Session, Transaction
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
 from foundation.building_blocks.event import IntegrationEvent
-from codegen.shared.domain.ports.repository import Repository
+from foundation.persistence.repository import Repository
 
 logger = logging.getLogger(__name__)
 

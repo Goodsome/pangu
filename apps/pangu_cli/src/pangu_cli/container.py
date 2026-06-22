@@ -1,14 +1,12 @@
 from pathlib import Path
-
 from architecture.container import Container as ArchitectureContainer
 from dependency_injector import containers
 from dependency_injector.providers import Configuration, Container, Singleton
-
 from codegen.bootstrap.config import AppConfig, load_all_configurations
 from codegen.code_dom.container import Container as CodeDomContainer
 from codegen.code_metadata.container import Container as CodeMetadataContainer
 from codegen.shared.container import Container as SharedContainer
-from codegen.shared.infrastructure.adapters.os_file_system import OSFileSystem
+from foundation.system.os_file_system import OSFileSystem
 
 
 class AppContainer(containers.DeclarativeContainer):

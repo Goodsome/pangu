@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class OSFileSystem(FileSystemPort):
     """OS file system adapter for reading/writing files."""
 
+    "OS file system adapter for reading/writing files."
     root: Path
     encoding: str = "utf-8"
 
@@ -87,5 +88,4 @@ class OSFileSystem(FileSystemPort):
         full_path = self.root / path
         full_target_path = self.root / target_path
         full_target_path.parent.mkdir(parents=True, exist_ok=True)
-
         full_path.rename(full_target_path)

@@ -34,4 +34,7 @@ def move_to_ast_stmt(name: Annotated[str, typer.Argument()]):
     fqn = Fqn(f"{vo_path}.{SnakeString(name)}::{PascalString(name)}")
     target_fqn = Fqn(f"{vo_path}.ast_stmt")
     cmd = MoveNodeCommand(node_fqn=Fqn(fqn), target_fqn=Fqn(target_fqn))
-    _move_node(cmd)
+    try:
+        _move_node(cmd)
+    except Exception as e:
+        console.print(f"Error: {e}")

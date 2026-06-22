@@ -1,7 +1,6 @@
 from abc import ABC
 from codegen.code_dom.domain.aggregates.codebase import Codebase
-from codegen.shared.domain.ports.repository import Repository
+from foundation.persistence.repository import Repository
 
 
-class CodebaseRepository(Repository[Codebase, str], ABC):
-    ...
+class CodebaseRepository(Repository[Codebase, str], ABC): ...

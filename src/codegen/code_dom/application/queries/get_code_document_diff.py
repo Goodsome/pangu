@@ -6,7 +6,7 @@ from codegen.code_dom.domain.ports.code_similarity_calculator import (
     CodeSimilarityCalculator,
 )
 from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 
 
 class GetCodeDocumentDiffQuery(BaseModel):

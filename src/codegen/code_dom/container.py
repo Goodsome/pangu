@@ -5,8 +5,12 @@ from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
 from redis.asyncio import Redis
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
-from codegen.code_dom.application.event_handlers.on_module_created import OnModuleCreated
-from codegen.code_dom.application.event_handlers.on_module_deleted import OnModuleDeleted
+from codegen.code_dom.application.event_handlers.on_module_created import (
+    OnModuleCreated,
+)
+from codegen.code_dom.application.event_handlers.on_module_deleted import (
+    OnModuleDeleted,
+)
 from codegen.code_dom.application.event_handlers.on_module_moved import OnModuleMoved
 from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
@@ -27,35 +31,45 @@ from codegen.code_dom.infrastructure.gateways.ast_code_parser import ASTCodePars
 from codegen.code_dom.infrastructure.gateways.ast_code_similarity_calculator import (
     AstCodeSimilarityCalculator,
 )
-from codegen.code_dom.infrastructure.gateways.ruff_code_formmater import RuffCodeFormatter
-from codegen.code_dom.infrastructure.repositories.file_system_codebase_repository import FileSystemCodebaseRepository
-from codegen.code_dom.infrastructure.repositories.file_system_document_repository import FileSystemDocumentRepository
-from codegen.code_dom.infrastructure.repositories.file_system_unit_of_work import FileSystemUnitOfWork
-from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
-from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
-from codegen.shared.application.integration_events.module_moved import ModuleMovedIntegrationEvent
+from codegen.code_dom.infrastructure.gateways.ruff_code_formmater import (
+    RuffCodeFormatter,
+)
+from codegen.code_dom.infrastructure.repositories.file_system_codebase_repository import (
+    FileSystemCodebaseRepository,
+)
+from codegen.code_dom.infrastructure.repositories.file_system_document_repository import (
+    FileSystemDocumentRepository,
+)
+from codegen.code_dom.infrastructure.repositories.file_system_unit_of_work import (
+    FileSystemUnitOfWork,
+)
+from codegen.shared.application.integration_events.module_created import (
+    ModuleCreatedIntegrationEvent,
+)
+from codegen.shared.application.integration_events.module_deleted import (
+    ModuleDeletedIntegrationEvent,
+)
+from codegen.shared.application.integration_events.module_moved import (
+    ModuleMovedIntegrationEvent,
+)
 from codegen.shared.application.integration_events.registry import EventRegistry
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
-from codegen.shared.infrastructure.gateways.redis_stream_subscriber import RedisStreamSubscriber
+from foundation.system.file_system_port import FileSystemPort
+from codegen.shared.infrastructure.gateways.redis_stream_subscriber import (
+    RedisStreamSubscriber,
+)
 from codegen.shared.infrastructure.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):
     config: Configuration = Configuration()
-    
     redis_client: Dependency[Redis] = Dependency(instance_of=Redis)
-    
     file_system_port: Dependency[FileSystemPort] = Dependency(
         instance_of=FileSystemPort
     )
     code_parser: Factory[CodeParser] = Factory(
         ASTCodeParser, file_system=file_system_port
     )
-    
-    ruff_code_formatter: Singleton[RuffCodeFormatter] = Singleton(
-        RuffCodeFormatter,
-    )
-    
+    ruff_code_formatter: Singleton[RuffCodeFormatter] = Singleton(RuffCodeFormatter)
     get_project_documents: Factory[GetProjectDocumentsHandler] = Factory(
         GetProjectDocumentsHandler, code_parser=code_parser
     )
@@ -78,40 +92,28 @@ class Container(DeclarativeContainer):
         file_system=file_system_port,
         code_formatter=ruff_code_formatter,
     )
-
     codebase_repository: Factory[FileSystemCodebaseRepository] = Factory(
-        FileSystemCodebaseRepository,
-        file_system=file_system_port,
+        FileSystemCodebaseRepository, file_system=file_system_port
     )
-
-
     document_repository: Factory[FileSystemDocumentRepository] = Factory(
         FileSystemDocumentRepository,
         file_system=file_system_port,
         code_formatter=ruff_code_formatter,
     )
-    
     unit_of_work: Factory[FileSystemUnitOfWork] = Factory(
         FileSystemUnitOfWork,
         codebase_repository=codebase_repository,
         document_repository=document_repository,
     )
-
     on_module_created: Singleton[OnModuleCreated] = Singleton(
-        OnModuleCreated,
-        file_system=file_system_port,
+        OnModuleCreated, file_system=file_system_port
     )
-
     on_module_deleted: Singleton[OnModuleDeleted] = Singleton(
-        OnModuleDeleted,
-        file_system=file_system_port,
+        OnModuleDeleted, file_system=file_system_port
     )
-
     on_module_moved: Singleton[OnModuleMoved] = Singleton(
-        OnModuleMoved,
-        file_system=file_system_port,
+        OnModuleMoved, file_system=file_system_port
     )
-
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
         uow=unit_of_work,
@@ -119,20 +121,18 @@ class Container(DeclarativeContainer):
         event_handlers=Dict(
             {
                 ModuleCreatedIntegrationEvent: List(
-                    on_module_created.provided.create_file,
+                    on_module_created.provided.create_file
                 ),
                 ModuleDeletedIntegrationEvent: List(
-                    on_module_deleted.provided.clean_filesystem,
+                    on_module_deleted.provided.clean_filesystem
                 ),
                 ModuleMovedIntegrationEvent: List(
-                    on_module_moved.provided.execute_physical_move,
+                    on_module_moved.provided.execute_physical_move
                 ),
             }
         ),
     )
-
     event_registry: Singleton[EventRegistry] = Singleton(EventRegistry.init)
-    
     redis_subscriber: Singleton[RedisStreamSubscriber] = Singleton(
         RedisStreamSubscriber,
         client=redis_client,

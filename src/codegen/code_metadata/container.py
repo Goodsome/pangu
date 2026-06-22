@@ -88,7 +88,7 @@ from codegen.shared.application.integration_events.node_moved import (
     NodeMovedIntegrationEvent,
 )
 from codegen.shared.application.integration_events.registry import EventRegistry
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
     SqlAlchemyUnitOfWork,
 )

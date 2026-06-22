@@ -1,11 +1,10 @@
 import logging
 from dataclasses import dataclass
-
 from codegen.code_dom.application.ports.unit_of_work import UnitOfWork
 from codegen.shared.application.integration_events.module_deleted import (
     ModuleDeletedIntegrationEvent,
 )
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from foundation.system.file_system_port import FileSystemPort
 
 logger = logging.getLogger(__name__)
 
@@ -19,5 +18,4 @@ class OnModuleDeleted:
             self.file_system.delete_directory(event.module_path)
         else:
             self.file_system.delete_file(event.module_path)
-
         yield from []

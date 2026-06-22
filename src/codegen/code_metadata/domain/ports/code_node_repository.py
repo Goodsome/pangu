@@ -5,11 +5,10 @@ from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
-from codegen.shared.domain.ports.repository import Repository
+from foundation.persistence.repository import Repository
 
 
 class CodeNodeRepository(Repository[CodeNode, Fqn], ABC):
-
     @abstractmethod
     def find_empty_modules(
         self, fqns: Collection[Fqn] | None = None

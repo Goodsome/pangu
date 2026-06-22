@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
 from foundation.building_blocks.event import IntegrationEvent
-from codegen.shared.domain.ports.repository import Repository
+from foundation.persistence.repository import Repository
 from codegen.shared.infrastructure.orm_models.outbox_message_module import (
     OutboxMessageModel,
 )
