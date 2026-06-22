@@ -3,7 +3,6 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-from black import format_str, FileMode
 
 
 from codegen.code_dom.domain.aggregates.code_document import CodeDocument
@@ -53,7 +52,6 @@ class FileSystemDocumentRepository(DocumentRepository):
         module = ast.Module(body=body)
         ast.fix_missing_locations(module)
         code = ast.unparse(module)
-        code = format_str(code, mode=FileMode())
         self.file_system.write_file(aggregate.physical_path, code, overwrite=True)
         self.code_formatter.format_path(aggregate.physical_path)
     
