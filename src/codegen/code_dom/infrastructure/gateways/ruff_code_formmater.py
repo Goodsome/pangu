@@ -1,9 +1,12 @@
-from pathlib import Path
+import logging
 import subprocess
 import sys
 from typing import override
+from pathlib import Path
 from codegen.code_dom.domain.ports.code_formatter import CodeFormatter
 
+
+logger = logging.getLogger(__name__)
 
 class RuffCodeFormatter(CodeFormatter):
 
@@ -24,11 +27,13 @@ class RuffCodeFormatter(CodeFormatter):
     @override
     def format_path(self, path: Path) -> None:
         try:
-            subprocess.run(
+            result = subprocess.run(
                 [sys.executable, "-m", "ruff", "format", str(path)],
                 capture_output=True,
                 text=True,
                 check=True
             )
+            logger.info(f"Formatted path {path}: {result.stdout}")
         except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to format path {path}: {e}")
             raise e
