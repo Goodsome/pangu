@@ -23,11 +23,9 @@ class RemoveModuleHandler:
             raise ModuleInUseException(module_fqn=cmd.fqn, callers=callers)
             
         module.mark_as_deleted()
+        uow.repository.delete(module)
         
         if module.is_package:
             descendant_ids = self.query_service.get_descendant_ids(module.id)
-            all_ids_to_delete = [module.id] + descendant_ids
-            uow.repository.delete_all(all_ids_to_delete)
-        else:
-            uow.repository.delete(module)
+            uow.repository.delete_all(descendant_ids)
         
