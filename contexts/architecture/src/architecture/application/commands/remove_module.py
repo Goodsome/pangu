@@ -3,7 +3,7 @@ from architecture.application.ports.module_query_serivce import ModuleQueryServi
 from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.exceptions.module_in_use_exception import ModuleInUseException
 from architecture.domain.value_objects.fqn import ModuleFqn
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 
 
 class RemoveModuleCommand(Command):
@@ -21,11 +21,8 @@ class RemoveModuleHandler:
         callers = self.query_service.get_external_dependencies(module.id)
         if callers:
             raise ModuleInUseException(module_fqn=cmd.fqn, callers=callers)
-            
         module.mark_as_deleted()
         uow.repository.delete(module)
-        
         if module.is_package:
             descendant_ids = self.query_service.get_descendant_ids(module.id)
             uow.repository.delete_all(descendant_ids)
-        

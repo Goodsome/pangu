@@ -8,7 +8,7 @@ from codegen.code_metadata.application.ports.code_node_sync_service import (
 from codegen.code_metadata.application.unit_of_work import UnitOfWork
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
 from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 
 
 class CleanNodeCommand(Command):
@@ -20,9 +20,7 @@ class CleanNodeHandler:
     query_service: CodeNodeQueryService
     sync_service: CodeNodeSyncService
 
-    def execute(
-        self, cmd: CleanNodeCommand, uow: UnitOfWork
-    ) -> None:
+    def execute(self, cmd: CleanNodeCommand, uow: UnitOfWork) -> None:
         fqn = Fqn(cmd.fqn)
         node = uow.repository.get(id=fqn)
         match node:

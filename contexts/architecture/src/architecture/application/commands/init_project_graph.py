@@ -8,10 +8,11 @@ from architecture.domain.services.graph_builder import GraphBuilder
 from architecture.domain.value_objects.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 from architecture.domain.enums.context_name import ContextName
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 
-class InitProjectGraphCommand(Command):
-    ...
+
+class InitProjectGraphCommand(Command): ...
+
 
 @dataclass
 class InitProjectGraphHandler:

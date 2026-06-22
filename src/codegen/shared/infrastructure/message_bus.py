@@ -4,20 +4,19 @@ from dataclasses import dataclass
 from typing import Protocol
 from typing import assert_never
 from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 from codegen.shared.domain.core.event import Event
 
 logger = logging.getLogger(__name__)
 
 
 class CommandHandler[T_Command: Command](Protocol):
-
     def __call__(self, cmd: T_Command, uow: BaseUnitOfWork) -> None: ...
 
 
 class EventHanlder(Protocol):
-
     def __call__(self, event: Event, uow: BaseUnitOfWork) -> Iterable[Command]: ...
+
 
 @dataclass
 class BaseMessageBus:
@@ -44,7 +43,7 @@ class BaseMessageBus:
 
     def _handle_command(self, command: Command) -> None:
         handler = self.command_handlers.get(type(command))
-        logger.info(f"Handling {command=}")
+        logger.info(f"Handling command={command!r}")
         if not handler:
             raise NotImplementedError(f"type(command)={type(command)!r}")
         try:
@@ -56,7 +55,7 @@ class BaseMessageBus:
     def _handle_event(self, event: Event) -> Iterable[Command]:
         for handler in self.event_handlers.get(type(event), []):
             try:
-                logger.info(f"Handling {handler=}")
+                logger.info(f"Handling handler={handler!r}")
                 yield from handler(event, self.uow)
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
@@ -64,6 +63,4 @@ class BaseMessageBus:
 
 
 class MessageBusFactory(Protocol):
-
-    def __call__(self) -> BaseMessageBus:
-        ...
+    def __call__(self) -> BaseMessageBus: ...

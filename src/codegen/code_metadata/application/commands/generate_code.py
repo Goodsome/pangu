@@ -10,7 +10,7 @@ from codegen.code_metadata.application.registry.node_registry import NodeRegistr
 from codegen.code_metadata.domain.ports.code_generator import CodeGenerator
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 
 logger = logging.getLogger(__name__)
 

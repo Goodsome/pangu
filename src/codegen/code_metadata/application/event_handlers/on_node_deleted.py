@@ -11,12 +11,11 @@ from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.shared.application.integration_events.node_deleted import (
     NodeDeletedIntegrationEvent,
 )
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 
 
 @dataclass
 class OnNodeDeleted:
-
     def send_to_outbox(self, event: NodeDeleted, uow: UnitOfWork) -> Iterable[Command]:
         integration_event = NodeDeletedIntegrationEvent(
             node_id=event.node_id, node_kind=event.node_kind

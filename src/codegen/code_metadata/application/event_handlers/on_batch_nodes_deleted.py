@@ -13,12 +13,11 @@ from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.shared.application.integration_events.batch_nodes_deleted import (
     BatchNodesDeletedIntegrationEvent,
 )
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 
 
 @dataclass
 class OnBatchNodesDeleted:
-
     def handle_nodes_deleted(
         self, event: BatchNodesDeletedIntegrationEvent, uow: UnitOfWork
     ) -> Iterable[Command]:

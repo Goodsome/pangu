@@ -4,7 +4,7 @@ from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.factories.fqn_factory import FqnFactory
 from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
 from codegen.shared.application.ports.unit_of_work import UnitOfWork
-from codegen.shared.domain.core.command import Command
+from foundation.building_blocks.command import Command
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 
 logger = logging.getLogger(__name__)
