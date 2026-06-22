@@ -8,25 +8,21 @@ from architecture.domain.value_objects.fqn import ModuleFqn
 from codegen.shared.application.integration_events.module_created import (
     ModuleCreatedIntegrationEvent,
 )
-from codegen.shared.domain.ports.file_system_port import FileSystemPort
 
 
 @dataclass
 class OnModuleCreated:
-    file_system: FileSystemPort
 
     def to_integration(self, event: ModuleCreated, uow: UnitOfWork):
+        module_fqn = ModuleFqn(event.module_fqn)
+        module_path = FqnService.build_path(module_fqn, is_package=event.is_package)
+        if event.is_package:
+            module_path /= "__init__.py"
+
         ie = ModuleCreatedIntegrationEvent(
-            module_fqn=event.module_fqn, is_package=event.is_package
+            module_fqn=event.module_fqn,
+            module_path=module_path,
+            is_package=event.is_package,
         )
         uow.save_outbox_message(ie)
-        yield from []
-
-    def create_file(self, event: ModuleCreatedIntegrationEvent, uow: UnitOfWork):
-        module_fqn = ModuleFqn(event.module_fqn)
-        file_path = FqnService.build_path(module_fqn, is_package=event.is_package)
-        if event.is_package:
-            file_path /= "__init__.py"
-        
-        self.file_system.write_file(file_path, content="")
         yield from []

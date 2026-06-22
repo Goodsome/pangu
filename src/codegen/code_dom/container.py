@@ -5,6 +5,8 @@ from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
 from redis.asyncio import Redis
 from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
+from codegen.code_dom.application.event_handlers.on_module_created import OnModuleCreated
+from codegen.code_dom.application.event_handlers.on_module_deleted import OnModuleDeleted
 from codegen.code_dom.application.event_handlers.on_module_moved import OnModuleMoved
 from codegen.code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
@@ -31,6 +33,8 @@ from codegen.code_dom.infrastructure.gateways.black_code_formatter import (
 from codegen.code_dom.infrastructure.repositories.file_system_codebase_repository import FileSystemCodebaseRepository
 from codegen.code_dom.infrastructure.repositories.file_system_document_repository import FileSystemDocumentRepository
 from codegen.code_dom.infrastructure.repositories.file_system_unit_of_work import FileSystemUnitOfWork
+from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
+from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from codegen.shared.application.integration_events.module_moved import ModuleMovedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
@@ -89,20 +93,36 @@ class Container(DeclarativeContainer):
         document_repository=document_repository,
     )
 
+    on_module_created: Singleton[OnModuleCreated] = Singleton(
+        OnModuleCreated,
+        file_system=file_system_port,
+    )
+
+    on_module_deleted: Singleton[OnModuleDeleted] = Singleton(
+        OnModuleDeleted,
+        file_system=file_system_port,
+    )
+
     on_module_moved: Singleton[OnModuleMoved] = Singleton(
         OnModuleMoved,
         file_system=file_system_port,
     )
-    
+
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
         uow=unit_of_work,
         command_handlers=Dict(),
         event_handlers=Dict(
             {
+                ModuleCreatedIntegrationEvent: List(
+                    on_module_created.provided.create_file,
+                ),
+                ModuleDeletedIntegrationEvent: List(
+                    on_module_deleted.provided.clean_filesystem,
+                ),
                 ModuleMovedIntegrationEvent: List(
-                    on_module_moved.provided.execute_physical_move
-                )
+                    on_module_moved.provided.execute_physical_move,
+                ),
             }
         ),
     )

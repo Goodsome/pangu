@@ -17,8 +17,6 @@ from architecture.infrastructure.gateways.file_system_code_scanner import FileSy
 from architecture.infrastructure.repositories.neo4j_module_repository import Neo4jModuleRepository
 from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGraphAdmin
 from architecture.infrastructure.repositories.neo4j_module_query_service import Neo4jModuleQueryService
-from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
-from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 from codegen.shared.infrastructure.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
@@ -81,12 +79,10 @@ class Container(DeclarativeContainer):
 
     on_module_created: Singleton[OnModuleCreated] = Singleton(
         OnModuleCreated,
-        file_system=file_system_port,
     )
 
     on_module_deleted: Singleton[OnModuleDeleted] = Singleton(
         OnModuleDeleted,
-        file_system=file_system_port,
     )
 
     on_module_moved: Singleton[OnModuleMoved] = Singleton(
@@ -108,9 +104,6 @@ class Container(DeclarativeContainer):
                 ModuleCreated: List(
                     on_module_created.provided.to_integration,
                 ),
-                ModuleCreatedIntegrationEvent: List(
-                    on_module_created.provided.create_file
-                ),
                 ModuleDeleted: List(
                     on_module_deleted.provided.to_integration,
                 ),
@@ -118,9 +111,6 @@ class Container(DeclarativeContainer):
                     on_module_moved.provided.update_fqn_prefix,
                     on_module_moved.provided.to_integration,
                 ),
-                ModuleDeletedIntegrationEvent: List(
-                    on_module_deleted.provided.clean_filesystem,
-                )
             }
         ),
     )
