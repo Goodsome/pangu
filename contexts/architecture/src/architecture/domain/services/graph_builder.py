@@ -15,21 +15,25 @@ class GraphBuilder:
     module_registry: dict[ModuleFqn, Module]
 
     def build_from_parsed_modules(self, parsed_modules: list[ParsedModule]):
-        parsed_edges: list[ParsedEdge] = []
+        contains_edges: list[ParsedEdge] = []
+        depends_on_edges: list[ParsedEdge] = []
         for parsed_module in parsed_modules:
             fqn = self._path_to_fqn(parsed_module.file_path)
             is_package = parsed_module.file_path.name == '__init__.py'
             module = Module(id=ModuleId.create(), fqn=fqn, name=fqn.symbol, is_package=is_package)
             self.module_registry[module.fqn] = module
             if not fqn.is_root:
-                parsed_edges.append(ParsedEdge(kind=EdgeKind.CONTAINS, source=fqn.parent_fqn, target=fqn))
+                contains_edges.append(ParsedEdge(kind=EdgeKind.CONTAINS, source=fqn.parent_fqn, target=fqn))
             for import_str in parsed_module.raw_imports:
                 target_fqn = self._module_path_to_fqn(import_str)
                 if target_fqn.context not in ContextName._value2member_map_:
                     continue
-                parsed_edges.append(ParsedEdge(kind=EdgeKind.DEPENDS_ON, source=fqn, target=target_fqn))
-        for parsed_edge in parsed_edges:
-            self._build_edge(parsed_edge)
+                depends_on_edges.append(ParsedEdge(kind=EdgeKind.DEPENDS_ON, source=fqn, target=target_fqn))
+                
+        for parsed_edge in contains_edges:
+            self._build_contains_edge(parsed_edge)
+        for parsed_edge in depends_on_edges:
+            self._build_depends_on_edge(parsed_edge)
 
     def _path_to_fqn(self, path: Path) -> ModuleFqn:
         rel_path = ContextRegistry.get_relative_path(path)
@@ -40,7 +44,11 @@ class GraphBuilder:
     def _module_path_to_fqn(self, path: str) -> ModuleFqn:
         return ModuleFqn(path)
 
-    def _build_contains_edge(self, parent_fqn: ModuleFqn, target_fqn: ModuleFqn) -> None:
+    def _build_contains_edge(self, parsed_edge: ParsedEdge) -> None:
+        if parsed_edge.kind != EdgeKind.CONTAINS:
+            return
+        target_fqn = parsed_edge.target
+        parent_fqn = parsed_edge.source
         if target_fqn.is_root:
             return
         if parent_fqn not in self.module_registry:
@@ -50,13 +58,18 @@ class GraphBuilder:
         module = self.module_registry[target_fqn]
         parent.add_contains(module.id)
 
+    def _build_depends_on_edge(self, parsed_edge: ParsedEdge) -> None:
+        if parsed_edge.kind != EdgeKind.DEPENDS_ON:
+            return
+        source = self.module_registry[parsed_edge.source]
+        target = self.module_registry[parsed_edge.target]
+        source.add_dependency(target.id)
+
     def _build_edge(self, parsed_edge: ParsedEdge) -> None:
         match parsed_edge.kind:
             case EdgeKind.DEPENDS_ON:
-                source = self.module_registry[parsed_edge.source]
-                target = self.module_registry[parsed_edge.target]
-                source.add_dependency(target.id)
+                self._build_depends_on_edge(parsed_edge)
             case EdgeKind.CONTAINS:
-                self._build_contains_edge(parsed_edge.source, parsed_edge.target)
+                self._build_contains_edge(parsed_edge)
             case _:
                 assert_never(parsed_edge.kind)

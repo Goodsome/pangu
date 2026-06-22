@@ -77,6 +77,8 @@ class Module(AggregateRoot[ModuleId]):
             raise ValueError("module can not dep self")
         if target_module_id in self._dependencies:
             return
+        if self.is_package and target_module_id not in self._contains:
+            raise ValueError("package can not depend on module not contained")
         self._dependencies.add(target_module_id)
         event = ModuleAddedDependency(
             module_id=self.id, target_module_id=target_module_id
@@ -110,6 +112,8 @@ class Module(AggregateRoot[ModuleId]):
     def remove_contains(self, child_module_id: ModuleId) -> None:
         if child_module_id not in self._contains:
             return
+        if child_module_id in self._dependencies:
+            raise ValueError("module can not remove module that is a dependency")
         self._contains.remove(child_module_id)
         event = ModuleRemovedContains(
             module_id=self.id, child_module_id=child_module_id

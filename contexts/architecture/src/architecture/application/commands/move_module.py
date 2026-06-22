@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 from architecture.application.ports.unit_of_work import UnitOfWork
-from architecture.domain.aggregates.module import Module
-from architecture.domain.identities.module_id import ModuleId
 from architecture.domain.value_objects.fqn import ModuleFqn
 from foundation.building_blocks.command import Command
 
