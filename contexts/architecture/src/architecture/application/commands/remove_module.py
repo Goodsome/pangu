@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from architecture.application.ports.module_query_serivce import ModuleQueryService
+from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.exceptions.module_in_use_exception import ModuleInUseException
 from architecture.domain.value_objects.fqn import ModuleFqn
-from architecture.infrastructure.unit_of_work import UnitOfWork
 from codegen.shared.domain.core.command import Command
 
 

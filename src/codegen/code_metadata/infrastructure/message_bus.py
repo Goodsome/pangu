@@ -1,7 +1,3 @@
-from codegen.code_metadata.domain.ports.code_node_repository import CodeNodeRepository
-from codegen.shared.infrastructure.adapters.sql_alchemy_unit_of_work import (
-    SqlAlchemyUnitOfWork,
-)
 from codegen.shared.infrastructure.message_bus import BaseMessageBus
 
-MessageBus = BaseMessageBus[SqlAlchemyUnitOfWork[CodeNodeRepository]]
+MessageBus = BaseMessageBus

@@ -1,4 +1,3 @@
-from re import L
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration, Dependency, Dict, Factory, List, Provider, Resource, Singleton
 from neo4j import Driver
@@ -15,16 +14,16 @@ from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.events.module_moved import ModuleMoved
 from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import FileSystemCodeScanner
-from architecture.infrastructure.message_bus import MessageBus
 from architecture.infrastructure.repositories.neo4j_module_repository import Neo4jModuleRepository
 from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGraphAdmin
 from architecture.infrastructure.repositories.neo4j_module_query_service import Neo4jModuleQueryService
-from architecture.infrastructure.unit_of_work import UnitOfWork
 from codegen.shared.application.integration_events.module_created import ModuleCreatedIntegrationEvent
 from codegen.shared.application.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from codegen.shared.application.integration_events.registry import EventRegistry
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
+from codegen.shared.infrastructure.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
 from codegen.shared.infrastructure.gateways.redis_stream_subscriber import RedisStreamSubscriber
+from codegen.shared.infrastructure.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):
@@ -44,8 +43,8 @@ class Container(DeclarativeContainer):
         init_neo4j_driver,
     )
 
-    unit_of_work: Factory[UnitOfWork] = Factory(
-        UnitOfWork,
+    unit_of_work: Factory[MemgraphUnitOfWork[Neo4jModuleRepository]] = Factory(
+        MemgraphUnitOfWork[Neo4jModuleRepository],
         driver=db_driver,
         repository_factory=module_repository_factory
     )
@@ -92,10 +91,11 @@ class Container(DeclarativeContainer):
 
     on_module_moved: Singleton[OnModuleMoved] = Singleton(
         OnModuleMoved,
+        query_service=module_query_service
     )
     
-    message_bus: Factory[MessageBus] = Factory(
-        MessageBus,
+    message_bus: Factory[BaseMessageBus] = Factory(
+        BaseMessageBus,
         uow=unit_of_work,
         command_handlers=Dict(
             {

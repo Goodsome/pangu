@@ -1,14 +1,20 @@
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
 from codegen.shared.domain.core.aggregate_root import AggregateRoot
+from codegen.shared.domain.core.event import DomainEvent
 
 
 @dataclass
 class Repository[T_AR: AggregateRoot[Any], T_ID](ABC):
     _seens: set[T_AR] = field(default_factory=set, init=False)
+
+    def collect_events(self) -> Iterator[DomainEvent]:
+        for aggregate in self._seens:
+            yield from aggregate.collect_events()
 
     def collect_seens(self) -> set[T_AR]:
         return self._seens

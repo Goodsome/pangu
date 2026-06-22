@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
+from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.value_objects.fqn import ModuleFqn
-from architecture.infrastructure.unit_of_work import UnitOfWork
 
 from codegen.shared.application.integration_events.module_created import (
     ModuleCreatedIntegrationEvent,

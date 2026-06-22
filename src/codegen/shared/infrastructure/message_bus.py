@@ -1,30 +1,29 @@
 from collections.abc import Iterable
 import logging
 from dataclasses import dataclass
-from typing import Any
 from typing import Protocol
 from typing import assert_never
-from codegen.shared.application.ports.unit_of_work import UnitOfWork
+from codegen.shared.application.ports.base_unit_of_work import BaseUnitOfWork
 from codegen.shared.domain.core.command import Command
 from codegen.shared.domain.core.event import Event
 
 logger = logging.getLogger(__name__)
 
 
-class CommandHandler[T_Command: Command, T_UnitOfWork](Protocol):
+class CommandHandler[T_Command: Command](Protocol):
 
-    def __call__(self, cmd: T_Command, uow: T_UnitOfWork) -> None: ...
+    def __call__(self, cmd: T_Command, uow: BaseUnitOfWork) -> None: ...
 
 
-class EventHanlder[T](Protocol):
+class EventHanlder(Protocol):
 
-    def __call__(self, event: Event, uow: T) -> Iterable[Command]: ...
+    def __call__(self, event: Event, uow: BaseUnitOfWork) -> Iterable[Command]: ...
 
 @dataclass
-class BaseMessageBus[T: UnitOfWork[Any]]:
-    uow: T
-    command_handlers: dict[type[Command], CommandHandler[Command, T]]
-    event_handlers: dict[type[Event], list[EventHanlder[T]]]
+class BaseMessageBus:
+    uow: BaseUnitOfWork
+    command_handlers: dict[type[Command], CommandHandler[Command]]
+    event_handlers: dict[type[Event], list[EventHanlder]]
 
     def handle(self, message: Command | Event) -> None:
         queue = [message]
@@ -34,8 +33,8 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
                 match msg:
                     case Command():
                         self._handle_command(msg)
-                        for aggregate in self.uow.repository.collect_seens():
-                            queue.extend(aggregate.collect_events())
+                        for event in self.uow.collect_events():
+                            queue.append(event)
                     case Event():
                         for cmd in self._handle_event(msg):
                             queue.append(cmd)
@@ -64,5 +63,5 @@ class BaseMessageBus[T: UnitOfWork[Any]]:
 
 class MessageBusFactory(Protocol):
 
-    def __call__(self) -> BaseMessageBus[Any]:
+    def __call__(self) -> BaseMessageBus:
         ...

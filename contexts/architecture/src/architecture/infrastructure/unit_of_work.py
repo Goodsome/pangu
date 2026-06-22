@@ -1,5 +1,0 @@
-from architecture.domain.repositories.module_repository import ModuleRepository
-from codegen.shared.infrastructure.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
-
-
-UnitOfWork = MemgraphUnitOfWork[ModuleRepository]

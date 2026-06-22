@@ -1,9 +1,9 @@
 from pathlib import Path
-from pydantic import BaseModel
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
+from codegen.shared.domain.core.aggregate_root import AggregateRoot
 
 
-class CodeDocument(BaseModel):
+class CodeDocument(AggregateRoot[Path]):
     physical_path: Path
     body: list[AstStmt]
     description: str | None

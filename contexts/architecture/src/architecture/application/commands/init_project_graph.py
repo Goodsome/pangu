@@ -2,13 +2,13 @@ from dataclasses import dataclass
 
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.application.ports.graph_admin import GraphAdmin
+from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.aggregates.module import Module
 from architecture.domain.services.context_registry import ContextRegistry
 from architecture.domain.services.graph_builder import GraphBuilder
 from architecture.domain.value_objects.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 from architecture.enums.context_name import ContextName
-from architecture.infrastructure.unit_of_work import UnitOfWork
 from codegen.shared.domain.core.command import Command
 
 

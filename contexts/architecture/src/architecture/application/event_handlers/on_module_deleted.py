@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.value_objects.fqn import ModuleFqn
-from architecture.infrastructure.unit_of_work import UnitOfWork
 
 from codegen.shared.application.integration_events.module_deleted import (
     ModuleDeletedIntegrationEvent,
