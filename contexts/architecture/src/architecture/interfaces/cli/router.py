@@ -12,5 +12,5 @@ arch_app = typer.Typer(
 
 arch_app.command("init-graph")(init_project_graph)
 arch_app.command("listen")(listen)
-arch_app.command("move-node")(move_module)
+arch_app.command("move-module")(move_module)
 arch_app.command("remove-module")(remove_module)

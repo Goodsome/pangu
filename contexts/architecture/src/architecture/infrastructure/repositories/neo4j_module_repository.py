@@ -117,7 +117,7 @@ class Neo4jModuleRepository(ModuleRepository):
         query = """
         MERGE (m:Module {id: $id})
         SET m.fqn = $fqn,
-            m.name = $name,
+            m.name = $name
         """
         self.transaction.run(
             query,
@@ -230,14 +230,15 @@ class Neo4jModuleRepository(ModuleRepository):
     def update_fqn_prefix(self, old_fqn: ModuleFqn, new_fqn: ModuleFqn) -> None:
         query = """
         MATCH (m:Module)
-        WHERE m.fqn STARTS WITH $old_prefix + "."
+        WHERE m.fqn STARTS WITH ($old_prefix + ".")
         SET m.fqn = $new_prefix + substring(m.fqn, size($old_prefix))
         """
-        self.transaction.run(
+        result = self.transaction.run(
             query,
             old_prefix=str(old_fqn),
             new_prefix=str(new_fqn),
         )
+        result.consume()
 
     @override
     def find_by_fqn(self, fqn: ModuleFqn) -> Module | None:
@@ -274,11 +275,9 @@ class Neo4jModuleRepository(ModuleRepository):
     def get_dependencies(self, id: ModuleId) -> list[ModuleFqn]:
         query = """
         MATCH (target:Module {id: $id})
-        WITH target,
-             CASE 
-               WHEN "Package" IN labels(target) THEN [(target)-[:CONTAINS*1..]->(child:File) | child]
-               ELSE []
-             END + target AS internals
+        OPTIONAL MATCH (target)-[:CONTAINS*1..]->(child:File)
+        WHERE "Package" IN labels(target)
+        WITH target, collect(DISTINCT child) + [target] AS internals
         UNWIND internals AS internal
         MATCH (caller:Module)-[:DEPENDS_ON]->(internal)
         RETURN DISTINCT caller.fqn AS caller_fqn

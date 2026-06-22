@@ -1,4 +1,5 @@
 import ast
+from dataclasses import dataclass
 from pathlib import Path
 from typing import override
 
@@ -9,6 +10,7 @@ from codegen.code_metadata.infrastructure.mappers.stmt_to_ast import StmtToAst
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 
 
+@dataclass
 class FileSystemDocumentRepository(DocumentRepository):
     file_system: FileSystemPort
     

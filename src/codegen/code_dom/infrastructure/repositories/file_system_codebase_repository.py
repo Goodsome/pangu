@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from typing import override
 from codegen.code_dom.domain.aggregates.codebase import Codebase
 from codegen.code_dom.domain.repositories.codebase_repository import CodebaseRepository
 from codegen.shared.domain.ports.file_system_port import FileSystemPort
 
 
+@dataclass
 class FileSystemCodebaseRepository(CodebaseRepository):
     file_system: FileSystemPort
 
