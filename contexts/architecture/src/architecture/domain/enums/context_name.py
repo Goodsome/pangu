@@ -5,3 +5,4 @@ class ContextName(StrEnum):
     ARCHITECTURE = auto()
     CODEGEN = auto()
     PANGU_CLI = auto()
+    FOUNDATION = auto()
