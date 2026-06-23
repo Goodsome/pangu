@@ -6,8 +6,8 @@ from rich.console import Console
 from codegen.code_metadata.application.commands.move_node import MoveNodeCommand
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.infrastructure.message_bus import MessageBus
-from codegen.shared.domain.value_objects.pascal_string import PascalString
-from codegen.shared.domain.value_objects.snake_string import SnakeString
+from foundation.common_types.pascal_string import PascalString
+from foundation.common_types.snake_string import SnakeString
 
 console = Console()
 

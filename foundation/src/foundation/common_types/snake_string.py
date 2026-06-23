@@ -1,10 +1,9 @@
 import caseconverter
 import re
-from codegen.shared.domain.value_objects.naming_string import NamingString
+from foundation.common_types.naming_string import NamingString
 
 
 class SnakeString(NamingString):
-
     def __new__(cls, value: str):
         match = re.match("^(_*)(.*?)(_*)$", value)
         if match:

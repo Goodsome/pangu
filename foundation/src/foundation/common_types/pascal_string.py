@@ -1,6 +1,5 @@
 import caseconverter
-
-from codegen.shared.domain.value_objects.naming_string import NamingString
+from foundation.common_types.naming_string import NamingString
 
 
 class PascalString(NamingString):
