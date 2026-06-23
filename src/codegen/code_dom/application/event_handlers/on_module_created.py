@@ -12,5 +12,6 @@ class OnModuleCreated:
     file_system: FileSystemPort
 
     def create_file(self, event: ModuleCreatedIntegrationEvent, uow: UnitOfWork):
-        self.file_system.write_file(event.module_path, content="")
+        if not self.file_system.exists(event.module_path):
+            self.file_system.write_file(event.module_path, content="")
         yield from []
