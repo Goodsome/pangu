@@ -10,10 +10,8 @@ from sqlalchemy.orm import sessionmaker
 from foundation.persistence.unit_of_work import UnitOfWork
 from foundation.building_blocks.event import IntegrationEvent
 from foundation.persistence.repository import Repository
-from codegen.shared.infrastructure.orm_models.outbox_message_module import (
-    OutboxMessageModel,
-)
-from codegen.shared.infrastructure.repository_factory import RepositoryFactory
+from foundation.persistence.orm.outbox_message_module import OutboxMessageModel
+from foundation.persistence.repository_factory import RepositoryFactory
 
 logger = logging.getLogger(__name__)
 

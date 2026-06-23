@@ -6,9 +6,7 @@ from codegen.code_dom.application.ports.unit_of_work import UnitOfWork
 from codegen.code_dom.domain.repositories.codebase_repository import CodebaseRepository
 from codegen.code_dom.domain.repositories.document_repository import DocumentRepository
 from foundation.building_blocks.event import IntegrationEvent
-from codegen.shared.infrastructure.orm_models.outbox_message_module import (
-    OutboxMessageModel,
-)
+from foundation.persistence.orm.outbox_message_module import OutboxMessageModel
 
 logger = logging.getLogger(__name__)
 

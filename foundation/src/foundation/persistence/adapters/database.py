@@ -6,13 +6,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
-from codegen.shared.infrastructure.orm_models.base import BaseORM
+from foundation.persistence.orm.base import BaseORM
 
 
 @dataclass
 class Database:
     """Database connection handling using SQLAlchemy."""
 
+    "Database connection handling using SQLAlchemy."
     connection_string: str
     _engine: Engine = field(init=False)
     _session_factory: sessionmaker[Session] = field(init=False)

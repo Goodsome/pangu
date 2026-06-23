@@ -6,7 +6,7 @@ from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from codegen.shared.infrastructure.orm_models.base import BaseORM
+from foundation.persistence.orm.base import BaseORM
 
 
 class OutboxMessageModel(BaseORM):

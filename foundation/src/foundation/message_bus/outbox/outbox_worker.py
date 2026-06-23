@@ -7,9 +7,7 @@ from sqlalchemy import not_
 from sqlalchemy import select
 from foundation.integration_events.registry import EventRegistry
 from foundation.message_bus.gateways.redis_stream_publisher import RedisStreamPublisher
-from codegen.shared.infrastructure.orm_models.outbox_message_module import (
-    OutboxMessageModel,
-)
+from foundation.persistence.orm.outbox_message_module import OutboxMessageModel
 
 logger = logging.getLogger(__name__)
 

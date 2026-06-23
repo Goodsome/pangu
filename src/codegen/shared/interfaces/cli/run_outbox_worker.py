@@ -2,15 +2,17 @@ import logging
 import asyncio
 from dependency_injector.wiring import Provide
 from dependency_injector.wiring import inject
-from codegen.shared.infrastructure.workers.neo4j_outbox_worker import Neo4jOutboxWorker
-from codegen.shared.infrastructure.workers.outbox_worker import SqlalchemyOutboxWorker
+from foundation.message_bus.outbox.neo4j_outbox_worker import Neo4jOutboxWorker
+from foundation.message_bus.outbox.outbox_worker import SqlalchemyOutboxWorker
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def _run_outbox_worker(
-    sqlalchemy_worker: SqlalchemyOutboxWorker = Provide["shared_container.outbox_worker"],
+    sqlalchemy_worker: SqlalchemyOutboxWorker = Provide[
+        "shared_container.outbox_worker"
+    ],
     neo4j_worker: Neo4jOutboxWorker = Provide["shared_container.neo4j_outbox_worker"],
 ):
     """

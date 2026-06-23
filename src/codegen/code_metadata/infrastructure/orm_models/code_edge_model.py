@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-from codegen.shared.infrastructure.orm_models.base import BaseORM
+from foundation.persistence.orm.base import BaseORM
 
 if TYPE_CHECKING:
     from codegen.code_metadata.infrastructure.orm_models.code_node_model import (
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 class CodeEdgeModel(BaseORM):
     """统一的关联实体表（图谱边表）"""
 
+    "统一的关联实体表（图谱边表）"
     __tablename__: str = "code_edges"
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     source_id: Mapped[UUID] = mapped_column(

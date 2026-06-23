@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import ColumnElement
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
-from codegen.shared.infrastructure.orm_models.base import BaseORM
+from foundation.persistence.orm.base import BaseORM
 
 if TYPE_CHECKING:
     from codegen.code_metadata.infrastructure.orm_models.code_edge_model import (
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 class CodeNodeModel(BaseORM):
     """统一节点表"""
 
+    "统一节点表"
     __tablename__: str = "code_nodes"
     __mapper_args__: dict[str, str] = {"polymorphic_on": "kind"}
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -254,7 +255,9 @@ class UnionTypeNodeModel(CodeNodeModel):
 
 
 class GenericTypeNodeModel(CodeNodeModel):
-    __mapper_args__: dict[str, str] = {"polymorphic_identity": CodeNodeKind.GENERIC_TYPE}
+    __mapper_args__: dict[str, str] = {
+        "polymorphic_identity": CodeNodeKind.GENERIC_TYPE
+    }
 
 
 class TypeVarNodeModel(CodeNodeModel):

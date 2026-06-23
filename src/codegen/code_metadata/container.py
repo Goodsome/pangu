@@ -88,7 +88,7 @@ from foundation.system.file_system_port import FileSystemPort
 from foundation.persistence.adapters.sql_alchemy_unit_of_work import (
     SqlAlchemyUnitOfWork,
 )
-from codegen.shared.infrastructure.database import Database
+from foundation.persistence.adapters.database import Database
 from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
