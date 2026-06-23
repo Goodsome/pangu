@@ -29,4 +29,4 @@ def move_module(
         )
         _move_module(cmd)
     except Exception as e:
-        console.print(f"Error: {e}")
+        console.print(f"[red]Error: {e}[/red]")
