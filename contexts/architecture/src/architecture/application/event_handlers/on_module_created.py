@@ -8,6 +8,7 @@ from foundation.integration_events.module_created import ModuleCreatedIntegratio
 
 @dataclass
 class OnModuleCreated:
+    
     def to_integration(self, event: ModuleCreated, uow: UnitOfWork):
         module_fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(module_fqn, is_package=event.is_package)

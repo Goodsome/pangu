@@ -9,8 +9,16 @@ from dependency_injector.providers import (
     Resource,
     Singleton,
 )
+from foundation.integration_events.registry import EventRegistry
+from foundation.message_bus.gateways.redis_stream_subscriber import (
+    RedisStreamSubscriber,
+)
+from foundation.message_bus.message_bus import BaseMessageBus
+from foundation.persistence.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
+from foundation.system.file_system_port import FileSystemPort
 from neo4j import Driver
 from redis.asyncio import Redis
+
 from architecture.application.commands.create_package import (
     CreatePackageCommand,
     CreatePackageHandler,
@@ -27,6 +35,10 @@ from architecture.application.commands.remove_module import (
     RemoveModuleCommand,
     RemoveModuleHandler,
 )
+from architecture.application.commands.sync_staged_modules import (
+    SyncStagedModulesCommand,
+    SyncStagedModulesHandler,
+)
 from architecture.application.event_handlers.on_module_created import OnModuleCreated
 from architecture.application.event_handlers.on_module_deleted import OnModuleDeleted
 from architecture.application.event_handlers.on_module_moved import OnModuleMoved
@@ -37,20 +49,13 @@ from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import (
     FileSystemCodeScanner,
 )
-from architecture.infrastructure.repositories.neo4j_module_repository import (
-    Neo4jModuleRepository,
-)
 from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGraphAdmin
 from architecture.infrastructure.repositories.neo4j_module_query_service import (
     Neo4jModuleQueryService,
 )
-from foundation.integration_events.registry import EventRegistry
-from foundation.system.file_system_port import FileSystemPort
-from foundation.persistence.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
-from foundation.message_bus.gateways.redis_stream_subscriber import (
-    RedisStreamSubscriber,
+from architecture.infrastructure.repositories.neo4j_module_repository import (
+    Neo4jModuleRepository,
 )
-from foundation.message_bus.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):
@@ -78,7 +83,13 @@ class Container(DeclarativeContainer):
         FileSystemCodeScanner, file_system=file_system_port
     )
     init_project_graph_handler: Factory[InitProjectGraphHandler] = Factory(
-        InitProjectGraphHandler, graph_admin=graph_admin, code_scanner=code_scanner
+        InitProjectGraphHandler,
+        graph_admin=graph_admin,
+        code_scanner=code_scanner,
+    )
+    sync_staged_modules_handler: Factory[SyncStagedModulesHandler] = Factory(
+        SyncStagedModulesHandler,
+        code_scanner=code_scanner,
     )
     create_package_handler: Factory[CreatePackageHandler] = Factory(
         CreatePackageHandler
@@ -99,6 +110,7 @@ class Container(DeclarativeContainer):
                 InitProjectGraphCommand: init_project_graph_handler.provided.execute,
                 MoveModuleCommand: move_module_handler.provided.execute,
                 RemoveModuleCommand: remove_module_handler.provided.execute,
+                SyncStagedModulesCommand: sync_staged_modules_handler.provided.execute,
             }
         ),
         event_handlers=Dict(

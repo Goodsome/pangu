@@ -1,3 +1,6 @@
+from foundation.building_blocks.aggregate_root import AggregateRoot
+from pydantic import PrivateAttr
+
 from architecture.domain.events.module_added_contains import ModuleAddedContains
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
 from architecture.domain.events.module_created import ModuleCreated
@@ -15,8 +18,6 @@ from architecture.domain.mutasions.remove_depends_on_edge import (
     RemoveDependsEdgeMutation,
 )
 from architecture.domain.value_objects.fqn import ModuleFqn
-from pydantic import PrivateAttr
-from foundation.building_blocks.aggregate_root import AggregateRoot
 
 
 class Module(AggregateRoot[ModuleId]):
@@ -29,7 +30,11 @@ class Module(AggregateRoot[ModuleId]):
     @classmethod
     def create(cls, fqn: ModuleFqn, name: str, is_package: bool) -> Module:
         module = cls(id=ModuleId.create(), fqn=fqn, name=name, is_package=is_package)
-        event = ModuleCreated(module_fqn=fqn, is_package=is_package)
+        event = ModuleCreated(
+            module_id=module.id,
+            module_fqn=fqn,
+            is_package=is_package,
+        )
         module.add_domain_event(event)
         return module
 
@@ -121,3 +126,16 @@ class Module(AggregateRoot[ModuleId]):
         self.add_domain_event(event)
         mutation = RemoveContainsEdgeMutation(source=self.id, target=child_module_id)
         self.add_mutation(mutation)
+
+    def sync_dependencies(self, dependencies: set[ModuleId]) -> bool:
+        add_dependencies = dependencies - self._dependencies
+        remove_dependencies = self._dependencies - dependencies
+        if not add_dependencies and not remove_dependencies:
+            return False
+            
+        for dependency in add_dependencies:
+            self.add_dependency(dependency)
+        for dependency in remove_dependencies:
+            self.remove_dependency(dependency)
+            
+        return True

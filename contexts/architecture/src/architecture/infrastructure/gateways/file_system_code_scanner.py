@@ -2,9 +2,9 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import override
+from foundation.system.file_system_port import FileSystemPort
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.domain.value_objects.parsed_module import ParsedModule
-from foundation.system.file_system_port import FileSystemPort
 
 
 @dataclass
@@ -46,10 +46,18 @@ class FileSystemCodeScanner(CodeScanner):
         )
         results: list[ParsedModule] = []
         for file in files:
-            results.append(self._parse_file(file))
+            results.append(self.parse_file(file))
         return results
 
-    def _parse_file(self, path: Path) -> ParsedModule:
+    @override
+    def scan_files(self, paths: list[Path]) -> list[ParsedModule]:
+        results: list[ParsedModule] = []
+        for path in paths:
+            results.append(self.parse_file(path))
+        return results
+
+    @override
+    def parse_file(self, path: Path) -> ParsedModule:
         code = self.file_system.read_file(path)
         extractor = ModuleDependencyExtractor()
         raw_imports = extractor.extract_imports_from_source(code)

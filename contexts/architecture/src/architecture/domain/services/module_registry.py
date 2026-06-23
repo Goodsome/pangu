@@ -32,6 +32,7 @@ class ModuleRegistry:
     def register(self, module: Module):
         self._store_by_fqn[module.fqn] = module
         self._store_by_id[module.id] = module
+        self._fqn_id_map[module.fqn] = module.id
         self.dirty_modules.add(module)
 
     def has_fqn(self, fqn: ModuleFqn) -> bool:
