@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from architecture.infrastructure.databases.neo4j_driver import init_async_neo4j_driver
+from foundation.persistence.adapters.neo4j_driver import init_async_neo4j_driver
 from foundation.integration_events.registry import EventRegistry
 from foundation.persistence.adapters.database import Database
 from foundation.persistence.adapters.database import init_database
@@ -21,10 +21,6 @@ from foundation.message_bus.outbox.outbox_worker import SqlalchemyOutboxWorker
 class Container(DeclarativeContainer):
     """Shared kernel DI container for cross-cutting concerns."""
 
-    "Shared kernel DI container for cross-cutting concerns."
-    "Shared kernel DI container for cross-cutting concerns."
-    "Shared kernel DI container for cross-cutting concerns."
-    "Shared kernel DI container for cross-cutting concerns."
     config: Configuration = Configuration()
     database: Resource[Database] = Resource(
         init_database, connection_string=config.database_url.as_(str)

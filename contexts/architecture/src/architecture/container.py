@@ -18,7 +18,6 @@ from foundation.persistence.adapters.memgraph_unit_of_work import MemgraphUnitOf
 from foundation.system.file_system_port import FileSystemPort
 from neo4j import Driver
 from redis.asyncio import Redis
-
 from architecture.application.commands.create_package import (
     CreatePackageCommand,
     CreatePackageHandler,
@@ -45,7 +44,7 @@ from architecture.application.event_handlers.on_module_moved import OnModuleMove
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.events.module_moved import ModuleMoved
-from architecture.infrastructure.databases.neo4j_driver import init_neo4j_driver
+from foundation.persistence.adapters.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import (
     FileSystemCodeScanner,
 )
@@ -83,13 +82,10 @@ class Container(DeclarativeContainer):
         FileSystemCodeScanner, file_system=file_system_port
     )
     init_project_graph_handler: Factory[InitProjectGraphHandler] = Factory(
-        InitProjectGraphHandler,
-        graph_admin=graph_admin,
-        code_scanner=code_scanner,
+        InitProjectGraphHandler, graph_admin=graph_admin, code_scanner=code_scanner
     )
     sync_staged_modules_handler: Factory[SyncStagedModulesHandler] = Factory(
-        SyncStagedModulesHandler,
-        code_scanner=code_scanner,
+        SyncStagedModulesHandler, code_scanner=code_scanner
     )
     create_package_handler: Factory[CreatePackageHandler] = Factory(
         CreatePackageHandler
