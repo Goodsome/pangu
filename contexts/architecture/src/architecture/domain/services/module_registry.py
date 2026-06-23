@@ -56,6 +56,8 @@ class ModuleRegistry:
             return module
         parent_module = self.ensure_module(fqn=fqn.parent_fqn, is_package=True)
         parent_module.add_contains(module.id)
+        self.mark_dirty(parent_module)
+        
         return module
 
     def mark_dirty(self, module: Module):
