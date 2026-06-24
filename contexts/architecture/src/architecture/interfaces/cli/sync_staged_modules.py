@@ -21,5 +21,6 @@ def sync_staged_modules(
 ) -> None:
     if not files:
         raise Exit()
+    files = [file for file in files if file.suffix == ".py"]
     cmd = SyncStagedModulesCommand(file_path=files)
     _sync_staged_modules(cmd)
