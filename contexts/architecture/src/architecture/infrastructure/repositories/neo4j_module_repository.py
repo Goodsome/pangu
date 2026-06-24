@@ -305,7 +305,7 @@ class Neo4jModuleRepository(ModuleRepository):
             WHERE "Package" IN labels(target)
             WITH target, collect(DISTINCT child) + [target] AS internals
             UNWIND internals AS internal
-            MATCH (caller:Module)-[:DEPENDS_ON]->(internal)
+            MATCH (caller:Module:File)-[:DEPENDS_ON]->(internal)
             RETURN DISTINCT caller.fqn AS caller_fqn
         """
         result = self.transaction.run(query, id=str(id))
