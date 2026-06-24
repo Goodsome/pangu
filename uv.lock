@@ -5,6 +5,7 @@ requires-python = ">=3.14"
 [manifest]
 members = [
     "architecture",
+    "code-dom",
     "foundation",
     "pangu",
     "pangu-cli",
@@ -56,6 +57,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/83/09/f5b4cf1f5da361e7c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/8e/32a7ab1ac97de46e6a0d45b1fcfe1ad7ba9a523a6fb449662ccf39b9591e/case_converter-1.2.0-py3-none-any.whl", hash = "sha256:bb5bc6b1e121c394a6de6526cd3f8be0f5c5817c40d32251cce28a2cf4a72d8c", size = 16250, upload-time = "2025-02-19T16:49:30.48Z" },
 ]
+
+[[package]]
+name = "code-dom"
+version = "0.1.0"
+source = { editable = "contexts/code_dom" }
 
 [[package]]
 name = "colorama"
@@ -252,6 +258,7 @@ dependencies = [
     { name = "alembic" },
     { name = "architecture" },
     { name = "case-converter" },
+    { name = "code-dom" },
     { name = "dependency-injector" },
     { name = "foundation" },
     { name = "neo4j" },
@@ -270,6 +277,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.18.4" },
     { name = "architecture", editable = "contexts/architecture" },
     { name = "case-converter", specifier = ">=1.2.0" },
+    { name = "code-dom", editable = "contexts/code_dom" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
     { name = "neo4j", specifier = ">=6.2.0" },

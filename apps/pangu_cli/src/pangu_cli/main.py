@@ -39,7 +39,6 @@ app.command()(rename_node)
 
 def main():
     """Bootstrap the DI container and run the CLI app."""
-    # setup_cli_logging()
     configure_logging(
         app_name="cli",
         log_dir=Path.cwd() / "logs",
