@@ -6,8 +6,8 @@ from typing import override
 from code_dom.domain.aggregates.code_document import CodeDocument
 from code_dom.domain.ports.code_formatter import CodeFormatter
 from code_dom.domain.repositories.document_repository import DocumentRepository
-from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt
-from codegen.code_metadata.infrastructure.mappers.stmt_to_ast import StmtToAst
+from code_dom.infrastructure.mappers.ast_to_stmt import AstToStmt
+from code_dom.infrastructure.mappers.stmt_to_ast import StmtToAst
 from foundation.system.file_system_port import FileSystemPort
 
 logger = logging.getLogger(__name__)

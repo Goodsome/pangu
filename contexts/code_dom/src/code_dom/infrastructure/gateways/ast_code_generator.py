@@ -2,7 +2,7 @@ import ast
 from typing import override
 from code_dom.domain.aggregates.code_document import CodeDocument
 from code_dom.domain.ports.code_generator import CodeGenerator
-from codegen.code_metadata.infrastructure.mappers.stmt_to_ast import StmtToAst
+from code_dom.infrastructure.mappers.stmt_to_ast import StmtToAst
 
 
 class AstCodeGenerator(CodeGenerator):

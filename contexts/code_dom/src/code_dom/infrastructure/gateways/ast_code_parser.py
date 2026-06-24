@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import override
 from code_dom.domain.aggregates.code_document import CodeDocument
 from code_dom.domain.ports.code_parser import CodeParser
-from codegen.code_metadata.infrastructure.mappers.ast_to_stmt import AstToStmt
+from code_dom.infrastructure.mappers.ast_to_stmt import AstToStmt
 from foundation.system.file_system_port import FileSystemPort
 
 
