@@ -1,15 +1,10 @@
 from dataclasses import dataclass
 from dataclasses import field
 import logging
-from foundation.integration_events.batch_nodes_deleted import (
-    BatchNodesDeletedIntegrationEvent,
-)
 from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
 from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
-from foundation.integration_events.node_moved import NodeMovedIntegrationEvent
 from foundation.building_blocks.event import IntegrationEvent
-from foundation.integration_events.node_deleted import NodeDeletedIntegrationEvent
 
 logger = logging.getLogger("event_hub.registry")
 
@@ -17,9 +12,7 @@ logger = logging.getLogger("event_hub.registry")
 @dataclass
 class EventRegistry:
     """集成事件类型注册表。"""
-
-    "集成事件类型注册表。"
-    "集成事件类型注册表。"
+    
     _entries: dict[str, type[IntegrationEvent]] = field(default_factory=dict)
 
     def register(self, event_class: type[IntegrationEvent]) -> None:
@@ -53,9 +46,6 @@ class EventRegistry:
     @classmethod
     def init(cls) -> EventRegistry:
         registry = cls()
-        registry.register(NodeDeletedIntegrationEvent)
-        registry.register(BatchNodesDeletedIntegrationEvent)
-        registry.register(NodeMovedIntegrationEvent)
         registry.register(ModuleCreatedIntegrationEvent)
         registry.register(ModuleDeletedIntegrationEvent)
         registry.register(ModuleMovedIntegrationEvent)
