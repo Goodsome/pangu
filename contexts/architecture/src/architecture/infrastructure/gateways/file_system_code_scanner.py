@@ -53,6 +53,8 @@ class FileSystemCodeScanner(CodeScanner):
     def scan_files(self, paths: list[Path]) -> list[ParsedModule]:
         results: list[ParsedModule] = []
         for path in paths:
+            if path.suffix != ".py":
+                continue
             results.append(self.parse_file(path))
         return results
 
