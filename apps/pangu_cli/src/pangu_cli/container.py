@@ -3,7 +3,7 @@ from architecture.container import Container as ArchitectureContainer
 from dependency_injector import containers
 from dependency_injector.providers import Configuration, Container, Singleton
 from pangu_cli.bootstrap.config import AppConfig, load_all_configurations
-from codegen.code_dom.container import Container as CodeDomContainer
+from code_dom.container import Container as CodeDomContainer
 from codegen.code_metadata.container import Container as CodeMetadataContainer
 from pangu_cli.infrastructure.container import Container as SharedContainer
 from foundation.system.os_file_system import OSFileSystem

@@ -1,8 +1,8 @@
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import override
-from codegen.code_dom.domain.aggregates.code_document import CodeDocument
-from codegen.code_dom.domain.services.ast_visitor import AstVisitor
+from code_dom.domain.aggregates.code_document import CodeDocument
+from code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.aggregates.code_node import (
     ClassNode,

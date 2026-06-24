@@ -301,7 +301,7 @@ class Neo4jModuleRepository(ModuleRepository):
     def get_dependencies(self, id: ModuleId) -> list[ModuleFqn]:
         query = """
             MATCH (target:Module {id: $id})
-            OPTIONAL MATCH (target)-[:CONTAINS*1..]->(child:File)
+            OPTIONAL MATCH (target)-[:CONTAINS*1..]->(child)
             WHERE "Package" IN labels(target)
             WITH target, collect(DISTINCT child) + [target] AS internals
             UNWIND internals AS internal

@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-
-from codegen.code_dom.application.queries.get_project_documents import (
+from code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
     GetProjectDocumentsQuery,
 )
-from codegen.code_dom.domain.aggregates.code_document import CodeDocument
+from code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.ports.code_graph_builder import CodeGraphBuilder
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.aggregates.code_node import ModuleNode
@@ -22,6 +21,8 @@ from codegen.code_metadata.infrastructure.gateways.node_builder import NodeBuild
 class FileSystemCodeGraphBuilder(CodeGraphBuilder):
     """从文件系统构建 CodeNode 图的实现。"""
 
+    "从文件系统构建 CodeNode 图的实现。"
+    "从文件系统构建 CodeNode 图的实现。"
     get_project_documents: GetProjectDocumentsHandler
 
     @override
@@ -61,7 +62,6 @@ class FileSystemCodeGraphBuilder(CodeGraphBuilder):
             module = node_registry.get_node(module_fqn)
             assert isinstance(module, ModuleNode)
             module_builder = EdgeBuilder(
-                module, node_registry,
-                document_context=document_context
+                module, node_registry, document_context=document_context
             )
             module_builder.build(code_document)

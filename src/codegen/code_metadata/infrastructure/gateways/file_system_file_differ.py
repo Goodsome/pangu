@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from typing import override
-from codegen.code_dom.application.queries.get_code_document_diff import (
+from code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
 )
-from codegen.code_dom.application.queries.get_code_document_diff import (
-    GetCodeDocumentDiffQuery,
-)
-from codegen.code_dom.domain.aggregates.code_document import CodeDocument
+from code_dom.application.queries.get_code_document_diff import GetCodeDocumentDiffQuery
+from code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
 from codegen.code_metadata.application.ports.file_differ import FileDiffer
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry

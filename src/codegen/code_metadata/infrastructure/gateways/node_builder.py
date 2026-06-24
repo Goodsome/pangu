@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import assert_never, override
-
-from codegen.code_dom.domain.aggregates.code_document import CodeDocument
-from codegen.code_dom.domain.services.ast_visitor import AstVisitor
+from code_dom.domain.aggregates.code_document import CodeDocument
+from code_dom.domain.services.ast_visitor import AstVisitor
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.domain.aggregates.code_node import (
     ClassNode,
@@ -66,7 +65,8 @@ class NodeBuilder(AstVisitor):
         | AstFunctionDef
         | CodeDocument
         | AstAnnAssign
-        | AstAssign | None = None,
+        | AstAssign
+        | None = None,
     ) -> None:
         if ast_node:
             self.document_context.store(ast_node=ast_node, node=node)
@@ -217,17 +217,12 @@ class NodeBuilder(AstVisitor):
     def visit_ast_ann_assign(self, node: AstAnnAssign):
         self._create_variable_node(node)
 
-    def _create_variable_node(
-        self,
-        ast_node: AstAnnAssign | AstAssign,
-    ) -> None:
+    def _create_variable_node(self, ast_node: AstAnnAssign | AstAssign) -> None:
         if self._in_function_body:
             return
-
         target = ast_node.target
         annotation = ast_node.annotation
         value = ast_node.value
-
         if not isinstance(target, AstName):
             return
         assert isinstance(

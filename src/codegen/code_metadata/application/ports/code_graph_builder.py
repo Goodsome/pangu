@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-
-from codegen.code_dom.domain.aggregates.code_document import CodeDocument
+from code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.application.registry.node_registry import NodeRegistry
 from codegen.code_metadata.infrastructure.gateways.document_context import (
     DocumentContext,
@@ -10,6 +9,8 @@ from codegen.code_metadata.infrastructure.gateways.document_context import (
 
 class CodeGraphBuilder(ABC):
     """应用层 Port：从文件系统构建 CodeNode 图。"""
+
+    "应用层 Port：从文件系统构建 CodeNode 图。"
 
     @abstractmethod
     def get_code_documents(self, module_path: Path) -> list[CodeDocument]:

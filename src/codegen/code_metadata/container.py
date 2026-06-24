@@ -7,11 +7,11 @@ from dependency_injector.providers import Factory
 from dependency_injector.providers import List
 from dependency_injector.providers import Singleton
 from redis.asyncio import Redis
-from codegen.code_dom.application.commands.generate_code import GenerateCodeHandler
-from codegen.code_dom.application.queries.get_code_document_diff import (
+from code_dom.application.commands.generate_code import GenerateCodeHandler
+from code_dom.application.queries.get_code_document_diff import (
     GetCodeDocumentDiffHandler,
 )
-from codegen.code_dom.application.queries.get_project_documents import (
+from code_dom.application.queries.get_project_documents import (
     GetProjectDocumentsHandler,
 )
 from codegen.code_metadata.application.commands.clean_node import CleanNodeCommand

@@ -14,7 +14,7 @@ from codegen.code_metadata.interfaces.cli.move_node import move_node, move_to_as
 from codegen.code_metadata.interfaces.cli.rename_node import rename_node
 from pangu_cli.run_outbox_worker import run_worker
 from architecture.interfaces.cli import arch_app
-from codegen.code_dom.interfaces.cli import code_dom_app
+from code_dom.interfaces.cli import code_dom_app
 
 app = typer.Typer(
     name="pangu",
@@ -53,8 +53,8 @@ def main():
     container.wire(
         packages=[
             "architecture.interfaces.cli",
+            "code_dom.interfaces.cli",
             "codegen.code_metadata.interfaces.cli",
-            "codegen.code_dom.interfaces.cli",
             "pangu_cli",
         ]
     )
