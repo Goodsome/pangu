@@ -95,6 +95,7 @@ class Neo4jModuleQueryService(ModuleQueryService):
             MATCH (m)<-[:DEPENDS_ON]-()
         }
         AND m.name != "main"
+        AND NOT m.fqn STARTS WITH "foundation"
         RETURN m.fqn AS fqn
         """
         with self.driver.session() as session:

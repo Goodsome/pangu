@@ -35,7 +35,6 @@ def main():
         packages=[
             "architecture.interfaces.cli",
             "code_dom.interfaces.cli",
-            "codegen.code_metadata.interfaces.cli",
             "pangu_cli",
         ]
     )
