@@ -28,10 +28,10 @@ class FqnService:
     def collect_fqns(cls, parsed_modules: list[ParsedModule]) -> set[ModuleFqn]:
         fqns: set[ModuleFqn] = set()
         for parsed_module in parsed_modules:
-            module_fqn = cls.build_module_fqn(parsed_module.file_path)
+            module_fqn = parsed_module.fqn
             fqns.add(module_fqn)
             if not module_fqn.is_root:
-                fqns.add(ModuleFqn(module_fqn.parent_fqn))
-            for import_str in parsed_module.raw_imports:
-                fqns.add(ModuleFqn(import_str))
+                fqns.add(module_fqn.parent_fqn)
+            for import_str in parsed_module.import_module_fqns:
+                fqns.add(import_str)
         return fqns

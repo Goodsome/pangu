@@ -351,10 +351,13 @@ class AstToStmt:
         ]
         type_params = [AstToStmt.to_type_param(tp) for tp in node.type_params]
         body = [AstToStmt.to_stmt(stmt) for stmt in node.body]
+        description=ast.get_docstring(node)
+        if description:
+            body = body[1:]
         decorator_list = [AstToExpr.to_expr(dec) for dec in node.decorator_list]
         return AstClassDef(
             name=node.name,
-            description=ast.get_docstring(node),
+            description=description,
             bases=bases,
             keywords=keywords,
             type_params=type_params,

@@ -13,7 +13,7 @@ from architecture.infrastructure.message_bus import MessageBus
 def _query_empty_packages(
     query_service: ModuleQueryService = Provide["architecture_container.module_query_service"],
 ) -> list[ModuleFqn]:
-    return [fqn for fqn in query_service.find_empty_leaf_packages()]
+    return query_service.find_empty_leaf_packages()
 
 
 @inject

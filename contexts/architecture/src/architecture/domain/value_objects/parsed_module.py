@@ -1,7 +1,9 @@
-from pathlib import Path
 from pydantic import BaseModel
+
+from architecture.domain.value_objects.fqn import ModuleFqn
 
 
 class ParsedModule(BaseModel):
-    file_path: Path
-    raw_imports: list[str]
+    import_module_fqns: list[ModuleFqn]
+    fqn: ModuleFqn
+    is_package: bool

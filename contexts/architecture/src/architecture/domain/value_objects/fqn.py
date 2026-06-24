@@ -97,3 +97,12 @@ _MODULE_REGEX = r"[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*"
 class ModuleFqn(BaseFqn):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_MODULE_REGEX}$")
+
+
+    def get_parent_by_level(self, level: int) -> Self:
+        if level == 0:
+            return self
+        parts = self.parts
+        if len(parts) <= level:
+            raise ValueError(f"Level {level} is out of range for FQN: {self!r}")
+        return self.__class__(".".join(parts[:-level]))

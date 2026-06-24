@@ -18,14 +18,14 @@ class GraphBuilder:
         contains_edges: list[ParsedEdge] = []
         depends_on_edges: list[ParsedEdge] = []
         for parsed_module in parsed_modules:
-            fqn = self._path_to_fqn(parsed_module.file_path)
-            is_package = parsed_module.file_path.name == '__init__.py'
+            fqn = parsed_module.fqn
+            is_package = parsed_module.is_package
             module = Module(id=ModuleId.create(), fqn=fqn, name=fqn.symbol, is_package=is_package)
             self.module_registry[module.fqn] = module
             if not fqn.is_root:
                 contains_edges.append(ParsedEdge(kind=EdgeKind.CONTAINS, source=fqn.parent_fqn, target=fqn))
-            for import_str in parsed_module.raw_imports:
-                target_fqn = self._module_path_to_fqn(import_str)
+            for import_str in parsed_module.import_module_fqns:
+                target_fqn = import_str
                 if target_fqn.context not in ContextName._value2member_map_:
                     continue
                 depends_on_edges.append(ParsedEdge(kind=EdgeKind.DEPENDS_ON, source=fqn, target=target_fqn))
