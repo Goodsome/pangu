@@ -4,7 +4,7 @@ from dependency_injector.wiring import inject
 from rich.console import Console
 from typer import Argument
 from codegen.code_metadata.application.dtos.dev_progress import DevProgress
-from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
+from code_dom.application.dtos.file_metrics import FileMetrics
 from codegen.code_metadata.application.queries.get_dev_progress import (
     GetDevProgressHandler,
 )

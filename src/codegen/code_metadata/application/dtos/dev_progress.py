@@ -1,7 +1,7 @@
 from typing import Self
 from pydantic import BaseModel
 from pydantic import Field
-from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
+from code_dom.application.dtos.file_metrics import FileMetrics
 from foundation.common_types.snake_string import SnakeString
 
 

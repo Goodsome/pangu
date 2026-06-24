@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from code_dom.domain.aggregates.code_document import CodeDocument
 from code_dom.domain.ports.code_generator import CodeGenerator
 from code_dom.domain.ports.code_similarity_calculator import CodeSimilarityCalculator
-from codegen.code_metadata.application.dtos.file_metrics import FileMetrics
+from code_dom.application.dtos.file_metrics import FileMetrics
 from foundation.system.file_system_port import FileSystemPort
 
 
