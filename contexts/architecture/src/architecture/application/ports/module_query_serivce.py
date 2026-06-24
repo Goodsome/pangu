@@ -17,3 +17,6 @@ class ModuleQueryService(ABC):
 
     @abstractmethod
     def find_empty_leaf_packages(self) -> list[ModuleFqn]: ...
+
+    @abstractmethod
+    def find_unused_modules(self) -> list[ModuleFqn]: ...

@@ -36,9 +36,8 @@ class Database:
         """Create database tables if they don't exist."""
         try:
             BaseORM.metadata.create_all(self._engine)
-            logging.info("Database tables created successfully.")
         except Exception as e:
-            logging.error(f"Failed to create database tables: {e}")
+            logging.exception(f"Failed to create database tables: {e}")
             raise e
 
     @property
@@ -58,10 +57,8 @@ def init_database(connection_string: str) -> Iterator[Database]:
         with db.engine.connect() as _:
             pass
         db.init_db()
-        logging.info("Database initialized and connected successfully.")
     except Exception as e:
-        logging.error(f"Database initialization failed: {e}")
+        logging.exception(f"Database initialization failed: {e}")
         raise e
     yield db
-    logging.info("Closing database connection pool...")
     db.close()

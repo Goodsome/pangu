@@ -86,3 +86,19 @@ class Neo4jModuleQueryService(ModuleQueryService):
                 result = tx.run(query)
                 return [ModuleFqn(record["fqn"]) for record in result]
             return session.execute_read(_read_tx)
+
+    @override
+    def find_unused_modules(self) -> list[ModuleFqn]:
+        query = """
+        MATCH (m:Module:File)
+        WHERE NOT EXISTS {
+            MATCH (m)<-[:DEPENDS_ON]-()
+        }
+        AND m.name != "main"
+        RETURN m.fqn AS fqn
+        """
+        with self.driver.session() as session:
+            def _read_tx(tx):
+                result = tx.run(query)
+                return [ModuleFqn(record["fqn"]) for record in result]
+            return session.execute_read(_read_tx)
