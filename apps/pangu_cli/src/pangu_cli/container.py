@@ -4,7 +4,6 @@ from dependency_injector import containers
 from dependency_injector.providers import Configuration, Container, Singleton
 from pangu_cli.bootstrap.config import AppConfig, load_all_configurations
 from code_dom.container import Container as CodeDomContainer
-from codegen.code_metadata.container import Container as CodeMetadataContainer
 from pangu_cli.infrastructure.container import Container as SharedContainer
 from foundation.system.os_file_system import OSFileSystem
 
@@ -20,16 +19,6 @@ class AppContainer(containers.DeclarativeContainer):
     code_dom_container: Container[CodeDomContainer] = Container(
         CodeDomContainer,
         file_system_port=os_file_system,
-        redis_client=shared_container.redis_client,
-    )
-    code_metadata_container: Container[CodeMetadataContainer] = Container(
-        CodeMetadataContainer,
-        database=shared_container.database,
-        file_system_port=os_file_system,
-        project_root=config.project_root,
-        get_project_documents=code_dom_container.get_project_documents,
-        get_code_document_diff=code_dom_container.get_code_document_diff,
-        generate_code_handler=code_dom_container.generate_code_handler,
         redis_client=shared_container.redis_client,
     )
     architecture_container: Container[ArchitectureContainer] = Container(
