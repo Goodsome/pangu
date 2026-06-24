@@ -14,3 +14,6 @@ class ModuleQueryService(ABC):
     
     @abstractmethod
     def get_descendant_ids(self, id: ModuleId) -> list[ModuleId]: ...
+
+    @abstractmethod
+    def find_empty_leaf_packages(self) -> list[ModuleFqn]: ...

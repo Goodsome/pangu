@@ -1,5 +1,6 @@
 import typer
 
+from architecture.interfaces.cli.clean_empty_modules import clean_empty_modules
 from architecture.interfaces.cli.create_package import create_package
 from architecture.interfaces.cli.init_project_graph import init_project_graph
 from architecture.interfaces.cli.listen import listen
@@ -12,6 +13,7 @@ arch_app = typer.Typer(
     help="Architecture Context Commands (架构上下文指令)"
 )
 
+arch_app.command("clean")(clean_empty_modules)
 arch_app.command("create-package")(create_package)
 arch_app.command("init-graph")(init_project_graph)
 arch_app.command("listen")(listen)

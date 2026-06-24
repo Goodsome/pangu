@@ -63,3 +63,26 @@ class Neo4jModuleQueryService(ModuleQueryService):
                 
             descendant_s_strings = session.execute_read(_read_tx)
             return [ModuleId.reconstitute(did) for did in descendant_s_strings]
+
+    @override
+    def find_empty_leaf_packages(self) -> list[ModuleFqn]:
+        query = """
+        MATCH (p:Package)
+        WHERE NOT EXISTS {
+            MATCH (p)-[:CONTAINS*0..]->(desc:Module)
+            WHERE "File" IN labels(desc)
+        }
+        AND NOT EXISTS {
+          MATCH (parent:Package)-[:CONTAINS]->(p)
+          WHERE NOT EXISTS {
+              MATCH (parent)-[:CONTAINS*0..]->(desc:Module)
+              WHERE "File" IN labels(desc)
+          }
+        }
+        RETURN p.fqn AS fqn
+        """
+        with self.driver.session() as session:
+            def _read_tx(tx):
+                result = tx.run(query)
+                return [ModuleFqn(record["fqn"]) for record in result]
+            return session.execute_read(_read_tx)
