@@ -75,4 +75,4 @@ def configure_logging(
         root_logger.addHandler(console_handler)
 
     # 4. 接管第三方 SDK
-    _configure_sdk_loggers(root_logger.handlers, log_level)
+    # _configure_sdk_loggers(root_logger.handlers, log_level)

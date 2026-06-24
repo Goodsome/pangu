@@ -1,7 +1,8 @@
 import asyncio
+from pathlib import Path
 import typer
+from foundation.logging_setup import configure_logging
 from pangu_cli.container import create_container
-from pangu_cli.bootstrap.logging import setup_cli_logging
 from codegen.code_metadata.interfaces.cli.clean_node import clean_node
 from codegen.code_metadata.interfaces.cli.generate_code import generate_code
 from codegen.code_metadata.interfaces.cli.get_code_node import get_code_node
@@ -38,7 +39,12 @@ app.command()(rename_node)
 
 def main():
     """Bootstrap the DI container and run the CLI app."""
-    setup_cli_logging()
+    # setup_cli_logging()
+    configure_logging(
+        app_name="cli",
+        log_dir=Path.cwd() / "logs",
+        console_output=True,
+    )
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -50,7 +56,6 @@ def main():
             "architecture.interfaces.cli",
             "codegen.code_metadata.interfaces.cli",
             "codegen.code_dom.interfaces.cli",
-            "codegen.shared.interfaces.cli",
             "pangu_cli",
         ]
     )
