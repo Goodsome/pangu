@@ -1,10 +1,8 @@
 from typing import Annotated
-
 from dependency_injector.wiring import Provide, inject
 from typer import Argument
-
 from architecture.application.commands.remove_module import RemoveModuleCommand
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.infrastructure.message_bus import MessageBus
 
 

@@ -2,12 +2,10 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import override
-
 from foundation.system.file_system_port import FileSystemPort
-
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.domain.services.fqn_service import FqnService
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 
 
@@ -74,11 +72,9 @@ class FileSystemCodeScanner(CodeScanner):
     def parse_file(self, path: Path) -> ParsedModule:
         code = self.file_system.read_file(path)
         fqn = FqnService.build_module_fqn(path)
-        is_package = path.name == '__init__.py'
+        is_package = path.name == "__init__.py"
         extractor = ModuleDependencyExtractor(fqn=fqn)
         raw_imports = extractor.extract_imports_from_source(code)
         return ParsedModule(
-            fqn=fqn,
-            import_module_fqns=raw_imports,
-            is_package=is_package,
+            fqn=fqn, import_module_fqns=raw_imports, is_package=is_package
         )

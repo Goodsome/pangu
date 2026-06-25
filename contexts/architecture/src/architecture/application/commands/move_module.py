@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from architecture.application.ports.unit_of_work import UnitOfWork
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.building_blocks.command import Command
 
 

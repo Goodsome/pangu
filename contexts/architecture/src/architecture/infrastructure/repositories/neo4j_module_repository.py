@@ -13,7 +13,7 @@ from architecture.domain.mutasions.remove_depends_on_edge import (
     RemoveDependsEdgeMutation,
 )
 from architecture.domain.repositories.module_repository import ModuleRepository
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.building_blocks.mutation_collector import Mutation
 
 

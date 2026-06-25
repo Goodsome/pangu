@@ -16,7 +16,7 @@ from architecture.domain.mutasions.remove_contains_edge import (
 from architecture.domain.mutasions.remove_depends_on_edge import (
     RemoveDependsEdgeMutation,
 )
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 class Module(AggregateRoot[ModuleId]):

@@ -4,7 +4,7 @@ from typing import assert_never
 from architecture.domain.aggregates.module import Module
 from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.services.context_registry import ContextRegistry
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_edge import ParsedEdge
 from architecture.domain.value_objects.parsed_module import ParsedModule
 from architecture.domain.enums.context_name import ContextName

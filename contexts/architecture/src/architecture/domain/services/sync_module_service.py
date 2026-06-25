@@ -4,7 +4,7 @@ from architecture.domain.enums.context_name import ContextName
 from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.services.module_registry import ModuleRegistry
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 
 

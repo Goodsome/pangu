@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Collection
 from architecture.domain.aggregates.module import Module
 from foundation.common_types.identities.module_id import ModuleId
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.persistence.repository import Repository
 
 

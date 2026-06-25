@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 class ParsedModule(BaseModel):

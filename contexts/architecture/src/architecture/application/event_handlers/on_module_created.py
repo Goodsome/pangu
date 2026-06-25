@@ -2,13 +2,12 @@ from dataclasses import dataclass
 from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.domain.services.fqn_service import FqnService
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
 
 
 @dataclass
 class OnModuleCreated:
-    
     def to_integration(self, event: ModuleCreated, uow: UnitOfWork):
         module_fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(module_fqn, is_package=event.is_package)

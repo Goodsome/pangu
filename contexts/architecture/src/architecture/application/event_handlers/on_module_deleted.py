@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.services.fqn_service import FqnService
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 
 

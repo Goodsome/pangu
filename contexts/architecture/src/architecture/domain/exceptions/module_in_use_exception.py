@@ -1,8 +1,7 @@
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 class ModuleInUseException(Exception):
-
     def __init__(self, module_fqn: ModuleFqn, callers: list[ModuleFqn]):
         self.module_fqn: ModuleFqn = module_fqn
         self.callers: list[ModuleFqn] = callers

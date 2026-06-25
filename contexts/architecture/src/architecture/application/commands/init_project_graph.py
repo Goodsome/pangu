@@ -5,7 +5,7 @@ from architecture.application.ports.unit_of_work import UnitOfWork
 from architecture.domain.aggregates.module import Module
 from architecture.domain.services.context_registry import ContextRegistry
 from architecture.domain.services.graph_builder import GraphBuilder
-from architecture.domain.value_objects.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 from architecture.domain.enums.context_name import ContextName
 from foundation.building_blocks.command import Command
