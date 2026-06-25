@@ -1,0 +1,17 @@
+from foundation.common_types.identifier import UuidIdentifier
+
+
+class ClassId(UuidIdentifier):
+    ...
+
+class FunctionId(UuidIdentifier):
+    ...
+
+class VariableId(UuidIdentifier):
+    ...
+
+class MethodId(UuidIdentifier):
+    ...
+
+class AttributeId(UuidIdentifier):
+    ...

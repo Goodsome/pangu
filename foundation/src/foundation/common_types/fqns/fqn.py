@@ -91,13 +91,20 @@ class BaseFqn(str):
             return cls(input_value)
         raise ValueError(f"Invalid FQN format: {input_value}")
 
+_NAME_REGEX = r"[a-zA-Z_]\w*"
 
-_MODULE_REGEX = r"[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*"
+_MODULE_REGEX = rf"{_NAME_REGEX}(?:\.{_NAME_REGEX})*"
+
+_CLASS_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
+_FUNCTION_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
+_VARIABLE_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
+
+_METHOD_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
+_ATTRIBUTE_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
 
 class ModuleFqn(BaseFqn):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_MODULE_REGEX}$")
-
 
     def get_parent_by_level(self, level: int) -> Self:
         if level == 0:
@@ -106,3 +113,28 @@ class ModuleFqn(BaseFqn):
         if len(parts) <= level:
             raise ValueError(f"Level {level} is out of range for FQN: {self!r}")
         return self.__class__(".".join(parts[:-level]))
+
+
+class ClassFqn(BaseFqn):
+
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_CLASS_REGEX}$")
+
+
+class FunctionFqn(BaseFqn):
+
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_FUNCTION_REGEX}$")
+
+
+class VariableFqn(BaseFqn):
+
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_VARIABLE_REGEX}$")
+    
+
+class MethodFqn(BaseFqn):
+
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_METHOD_REGEX}$")
+
+
+class AttributeFqn(BaseFqn):
+
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_ATTRIBUTE_REGEX}$")
