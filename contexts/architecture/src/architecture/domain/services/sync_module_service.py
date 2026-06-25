@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-
 from architecture.domain.aggregates.module import Module
 from architecture.domain.enums.context_name import ContextName
-from architecture.domain.identities.module_id import ModuleId
+from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.services.module_registry import ModuleRegistry
 from architecture.domain.value_objects.fqn import ModuleFqn
@@ -13,12 +12,13 @@ from architecture.domain.value_objects.parsed_module import ParsedModule
 class SyncModuleService:
     module_registry: ModuleRegistry
 
-    def sync_from_parsed_modules(self, parsed_modules: list[ParsedModule]) -> list[Module]:
+    def sync_from_parsed_modules(
+        self, parsed_modules: list[ParsedModule]
+    ) -> list[Module]:
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
             is_package = parsed_module.is_package
             module = self.module_registry.ensure_module(fqn, is_package)
-            
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
             module = self.module_registry.get_by_fqn(fqn)
@@ -28,10 +28,7 @@ class SyncModuleService:
                 if target_fqn.context not in ContextName._value2member_map_:
                     continue
                 dependencies.add(self.module_registry.get_id_by_fqn(target_fqn))
-                
             synced = module.sync_dependencies(dependencies)
             if synced:
                 self.module_registry.mark_dirty(module)
-            
         return list(self.module_registry.dirty_modules)
-

@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
-
 from architecture.domain.aggregates.module import Module
-from architecture.domain.identities.module_id import ModuleId
+from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.value_objects.fqn import ModuleFqn
 
 
@@ -10,7 +9,6 @@ class ModuleRegistry:
     _store_by_fqn: dict[ModuleFqn, Module] = field(init=False)
     _store_by_id: dict[ModuleId, Module] = field(init=False)
     _fqn_id_map: dict[ModuleFqn, ModuleId] = field(init=False)
-    
     dirty_modules: set[Module] = field(init=False)
 
     def __post_init__(self):
@@ -26,7 +24,6 @@ class ModuleRegistry:
             registry._store_by_fqn[module.fqn] = module
             registry._store_by_id[module.id] = module
             registry._fqn_id_map[module.fqn] = module.id
-
         return registry
 
     def register(self, module: Module):
@@ -57,7 +54,6 @@ class ModuleRegistry:
         parent_module = self.ensure_module(fqn=fqn.parent_fqn, is_package=True)
         parent_module.add_contains(module.id)
         self.mark_dirty(parent_module)
-        
         return module
 
     def mark_dirty(self, module: Module):

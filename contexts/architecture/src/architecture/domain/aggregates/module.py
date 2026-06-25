@@ -1,6 +1,5 @@
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from pydantic import PrivateAttr
-
 from architecture.domain.events.module_added_contains import ModuleAddedContains
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
 from architecture.domain.events.module_created import ModuleCreated
@@ -8,7 +7,7 @@ from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.events.module_moved import ModuleMoved
 from architecture.domain.events.module_removed_contains import ModuleRemovedContains
 from architecture.domain.events.module_removed_dependency import ModuleRemovedDependency
-from architecture.domain.identities.module_id import ModuleId
+from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.mutasions.add_contains_edge import AddContainsEdgeMutation
 from architecture.domain.mutasions.add_depends_on_edge import AddDependsEdgeMutation
 from architecture.domain.mutasions.remove_contains_edge import (
@@ -31,9 +30,7 @@ class Module(AggregateRoot[ModuleId]):
     def create(cls, fqn: ModuleFqn, name: str, is_package: bool) -> Module:
         module = cls(id=ModuleId.create(), fqn=fqn, name=name, is_package=is_package)
         event = ModuleCreated(
-            module_id=module.id,
-            module_fqn=fqn,
-            is_package=is_package,
+            module_id=module.id, module_fqn=fqn, is_package=is_package
         )
         module.add_domain_event(event)
         return module
@@ -130,12 +127,10 @@ class Module(AggregateRoot[ModuleId]):
     def sync_dependencies(self, dependencies: set[ModuleId]) -> bool:
         add_dependencies = dependencies - self._dependencies
         remove_dependencies = self._dependencies - dependencies
-        if not add_dependencies and not remove_dependencies:
+        if not add_dependencies and (not remove_dependencies):
             return False
-            
         for dependency in add_dependencies:
             self.add_dependency(dependency)
         for dependency in remove_dependencies:
             self.remove_dependency(dependency)
-            
         return True
