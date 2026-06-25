@@ -9,6 +9,7 @@ dependencies = [
     "architecture",
     "case-converter>=1.2.0",
     "code_dom",
+    "code_structure",
     "dependency-injector>=4.49.0",
     "foundation",
     "neo4j>=6.2.0",
@@ -40,6 +41,7 @@ include = ["src", "contexts"]
 extraPaths = [
     "src",
     "contexts/architecture/src",
+    "contexts/code_structure/src",
     "contexts/code_dom/src",
     "apps/pangu_cli/src",
     "foundation/src"
@@ -51,6 +53,7 @@ members = ["contexts/*", "apps/*", "foundation"]
 
 [tool.uv.sources]
 architecture = { workspace = true }
+code_structure = { workspace = true }
 code_dom = { workspace = true }
 pangu_cli = { workspace = true }
 foundation = { workspace = true }

@@ -15,7 +15,7 @@ class CommandHandler[T_Command: Command](Protocol):
 
 
 class EventHanlder(Protocol):
-    def __call__(self, event: Event, uow: BaseUnitOfWork) -> Iterable[Command]: ...
+    def __call__(self, event: Event, uow: BaseUnitOfWork) -> Iterable[Command] | None: ...
 
 
 @dataclass
@@ -56,7 +56,7 @@ class BaseMessageBus:
         for handler in self.event_handlers.get(type(event), []):
             try:
                 logger.info(f"Handling handler={handler!r}")
-                yield from handler(event, self.uow)
+                yield from handler(event, self.uow) or []
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
                 raise

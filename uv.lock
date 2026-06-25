@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "architecture",
     "code-dom",
+    "code-structure",
     "foundation",
     "pangu",
     "pangu-cli",
@@ -62,6 +63,11 @@ wheels = [
 name = "code-dom"
 version = "0.1.0"
 source = { editable = "contexts/code_dom" }
+
+[[package]]
+name = "code-structure"
+version = "0.1.0"
+source = { editable = "contexts/code_structure" }
 
 [[package]]
 name = "colorama"
@@ -259,6 +265,7 @@ dependencies = [
     { name = "architecture" },
     { name = "case-converter" },
     { name = "code-dom" },
+    { name = "code-structure" },
     { name = "dependency-injector" },
     { name = "foundation" },
     { name = "neo4j" },
@@ -278,6 +285,7 @@ requires-dist = [
     { name = "architecture", editable = "contexts/architecture" },
     { name = "case-converter", specifier = ">=1.2.0" },
     { name = "code-dom", editable = "contexts/code_dom" },
+    { name = "code-structure", editable = "contexts/code_structure" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
     { name = "neo4j", specifier = ">=6.2.0" },
