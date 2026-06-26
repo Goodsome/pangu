@@ -20,6 +20,10 @@ class MoveModuleHandler:
             raise ValueError(f"Target module not found: {cmd.target_fqn}")
         old_fqn = module.fqn
         new_fqn = ModuleFqn(f"{target.fqn}.{old_fqn.symbol}")
+        new_module = uow.repository.find_by_fqn(new_fqn)
+        if new_module is not None:
+            raise ValueError(f"Module already exists: {new_fqn}")
+        
         old_parent_fqn = old_fqn.parent_fqn
         old_parent = uow.repository.find_by_fqn(old_parent_fqn)
         if old_parent is not None:

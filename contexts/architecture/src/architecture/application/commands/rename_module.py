@@ -16,10 +16,13 @@ class RenameModuleHandler:
         if module is None:
             raise ValueError(f"Module not found: {cmd.module_fqn}")
         old_fqn = module.fqn
+        if old_fqn.is_root:
+            raise ValueError("Cannot rename root module")
         parent_fqn = old_fqn.parent_fqn
-        if parent_fqn is not None:
-            new_fqn = ModuleFqn(f"{parent_fqn}.{cmd.new_name}")
-        else:
-            new_fqn = ModuleFqn(cmd.new_name)
+        new_fqn = ModuleFqn(f"{parent_fqn}.{cmd.new_name}")
+        target_module = uow.repository.find_by_fqn(new_fqn)
+        if target_module is not None:
+            raise ValueError(f"Module already exists: {new_fqn}")
+        
         module.moved(new_fqn)
         uow.repository.save(module)
