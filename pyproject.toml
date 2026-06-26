@@ -37,15 +37,18 @@ build-backend = "hatchling.build"
 packages = ["src/codegen", "apps"]
 
 [tool.pyright]
-include = ["src", "contexts"]
-extraPaths = [
-    "src",
-    "contexts/architecture/src",
-    "contexts/code_structure/src",
-    "contexts/code_dom/src",
-    "apps/pangu_cli/src",
-    "foundation/src"
-]
+venvPath = "."
+venv = ".venv"
+# include = ["src", "contexts", "foundation"]
+pythonVersion = "3.14"
+# extraPaths = [
+#     "src",
+#     "contexts/architecture/src",
+#     "contexts/code_structure/src",
+#     "contexts/code_dom/src",
+#     "apps/pangu_cli/src",
+#     "foundation/src"
+# ]
 reportUnusedCallResult = "none"
 
 [tool.uv.workspace]
