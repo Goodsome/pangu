@@ -5,7 +5,7 @@ from codegen.code_metadata.domain.aggregates.code_edge import CodeEdgeAggregate
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
 from codegen.code_metadata.domain.core.fqn import Fqn
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
-from foundation.persistence.repository import Repository
+from foundation.persistence.ports.repository import Repository
 
 
 class CodeNodeRepository(Repository[CodeNode, Fqn], ABC):

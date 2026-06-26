@@ -1,6 +1,6 @@
 from typing import Protocol, Any
 from sqlalchemy.orm import Session
-from foundation.persistence.repository import Repository
+from foundation.persistence.ports.repository import Repository
 
 
 class RepositoryFactory[T: Repository[Any, Any]](Protocol):

@@ -7,11 +7,11 @@ from typing import override
 from typing import Self
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
-from foundation.persistence.unit_of_work import UnitOfWork
+from foundation.persistence.ports.unit_of_work import UnitOfWork
 from foundation.building_blocks.event import IntegrationEvent
-from foundation.persistence.repository import Repository
+from foundation.persistence.ports.repository import Repository
 from foundation.persistence.orm.outbox_message_module import OutboxMessageModel
-from foundation.persistence.repository_factory import RepositoryFactory
+from foundation.persistence.ports.repository_factory import RepositoryFactory
 
 logger = logging.getLogger(__name__)
 

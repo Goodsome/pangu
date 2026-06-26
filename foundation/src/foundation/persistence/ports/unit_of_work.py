@@ -3,9 +3,9 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 from typing import Any, override
-from foundation.persistence.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.ports.base_unit_of_work import BaseUnitOfWork
 from foundation.building_blocks.event import DomainEvent
-from foundation.persistence.repository import Repository
+from foundation.persistence.ports.repository import Repository
 
 logger = logging.getLogger(__name__)
 

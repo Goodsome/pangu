@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from typing import Protocol
 from typing import assert_never
-from foundation.persistence.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.ports.base_unit_of_work import BaseUnitOfWork
 from foundation.building_blocks.command import Command
 from foundation.building_blocks.event import Event
 
@@ -15,7 +15,9 @@ class CommandHandler[T_Command: Command](Protocol):
 
 
 class EventHanlder(Protocol):
-    def __call__(self, event: Event, uow: BaseUnitOfWork) -> Iterable[Command] | None: ...
+    def __call__(
+        self, event: Event, uow: BaseUnitOfWork
+    ) -> Iterable[Command] | None: ...
 
 
 @dataclass
@@ -56,7 +58,7 @@ class BaseMessageBus:
         for handler in self.event_handlers.get(type(event), []):
             try:
                 logger.info(f"Handling handler={handler!r}")
-                yield from handler(event, self.uow) or []
+                yield from (handler(event, self.uow) or [])
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
                 raise

@@ -3,12 +3,10 @@ import logging
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any, Protocol, Self, override
-
 from neo4j import Driver, Session, Transaction
-
 from foundation.building_blocks.event import IntegrationEvent
-from foundation.persistence.repository import Repository
-from foundation.persistence.unit_of_work import UnitOfWork
+from foundation.persistence.ports.repository import Repository
+from foundation.persistence.ports.unit_of_work import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +72,5 @@ class MemgraphUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
             raise RuntimeError("Transaction is not active")
         payload = message.model_dump(mode="json")
         event_type = type(message).__name__
-        query = """
-            CREATE (o:OutboxMessage {
-                event_type: $event_type,
-                payload: $payload,
-                created_at: timestamp()
-            })
-        """
+        query = "\n            CREATE (o:OutboxMessage {\n                event_type: $event_type,\n                payload: $payload,\n                created_at: timestamp()\n            })\n        "
         self.transaction.run(query, event_type=event_type, payload=json.dumps(payload))
