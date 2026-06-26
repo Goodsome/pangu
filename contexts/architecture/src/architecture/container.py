@@ -30,6 +30,10 @@ from architecture.application.commands.move_module import (
     MoveModuleCommand,
     MoveModuleHandler,
 )
+from architecture.application.commands.rename_module import (
+    RenameModuleCommand,
+    RenameModuleHandler,
+)
 from architecture.application.commands.remove_module import (
     RemoveModuleCommand,
     RemoveModuleHandler,
@@ -91,6 +95,7 @@ class Container(DeclarativeContainer):
         CreatePackageHandler
     )
     move_module_handler: Factory[MoveModuleHandler] = Factory(MoveModuleHandler)
+    rename_module_handler: Factory[RenameModuleHandler] = Factory(RenameModuleHandler)
     remove_module_handler: Factory[RemoveModuleHandler] = Factory(
         RemoveModuleHandler, query_service=module_query_service
     )
@@ -105,6 +110,7 @@ class Container(DeclarativeContainer):
                 CreatePackageCommand: create_package_handler.provided.execute,
                 InitProjectGraphCommand: init_project_graph_handler.provided.execute,
                 MoveModuleCommand: move_module_handler.provided.execute,
+                RenameModuleCommand: rename_module_handler.provided.execute,
                 RemoveModuleCommand: remove_module_handler.provided.execute,
                 SyncStagedModulesCommand: sync_staged_modules_handler.provided.execute,
             }
