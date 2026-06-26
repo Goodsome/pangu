@@ -14,7 +14,7 @@ from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
 from foundation.message_bus.message_bus import BaseMessageBus
-from foundation.persistence.adapters.memgraph_unit_of_work import MemgraphUnitOfWork
+from foundation.persistence.adapters.neo4j_unit_of_work import MemgraphUnitOfWork
 from foundation.system.file_system_port import FileSystemPort
 from neo4j import Driver
 from redis.asyncio import Redis
