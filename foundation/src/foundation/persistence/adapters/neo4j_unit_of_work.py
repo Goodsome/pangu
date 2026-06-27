@@ -3,7 +3,8 @@ import logging
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any, Protocol, Self, override
-from neo4j import Driver, Session, Transaction
+from foundation.persistence.sessions.neo4j_session import Neo4jSession
+from neo4j import Driver
 from foundation.building_blocks.event import IntegrationEvent
 from foundation.persistence.ports.repository import Repository
 from foundation.persistence.ports.unit_of_work import UnitOfWork
@@ -12,22 +13,20 @@ logger = logging.getLogger(__name__)
 
 
 class RepositoryFactory[T: Repository[Any, Any]](Protocol):
-    def __call__(self, transaction: Transaction) -> T: ...
+    def __call__(self, session: Neo4jSession) -> T: ...
 
 
 @dataclass
 class MemgraphUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
     driver: Driver
     repository_factory: RepositoryFactory[T_Repo]
-    session: Session | None = field(default=None, init=False)
-    transaction: Transaction | None = field(default=None, init=False)
+    _session: Neo4jSession | None = field(default=None, init=False)
     _repository: T_Repo | None = field(default=None, init=False)
 
     @override
     def __enter__(self) -> Self:
-        self.session = self.driver.session()
-        self.transaction = self.session.begin_transaction()
-        self._repository = self.repository_factory(self.transaction)
+        self._session = Neo4jSession(driver=self.driver)
+        self._repository = self.repository_factory(self._session)
         return self
 
     @override
@@ -41,12 +40,9 @@ class MemgraphUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
             self.rollback()
         else:
             pass
-        if self.transaction:
-            self.transaction.close()
-            self.transaction = None
-        if self.session:
-            self.session.close()
-            self.session = None
+        if self._session:
+            self._session.close()
+            self._session = None
         self._repository = None
 
     @property
@@ -58,19 +54,19 @@ class MemgraphUnitOfWork[T_Repo: Repository[Any, Any]](UnitOfWork[T_Repo]):
 
     @override
     def commit(self):
-        if self.transaction:
-            self.transaction.commit()
+        if self._session:
+            self._session.commit()
 
     @override
     def rollback(self):
-        if self.transaction:
-            self.transaction.rollback()
+        if self._session:
+            self._session.rollback()
 
     @override
     def save_outbox_message(self, message: IntegrationEvent):
-        if not self.transaction:
+        if not self._session:
             raise RuntimeError("Transaction is not active")
         payload = message.model_dump(mode="json")
         event_type = type(message).__name__
-        query = "\n            CREATE (o:OutboxMessage {\n                event_type: $event_type,\n                payload: $payload,\n                created_at: timestamp()\n            })\n        "
-        self.transaction.run(query, event_type=event_type, payload=json.dumps(payload))
+        query = "CREATE (o:OutboxMessage { event_type: $event_type, payload: $payload, created_at: timestamp() })"
+        self._session.execute(query, event_type=event_type, payload=json.dumps(payload))
