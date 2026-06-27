@@ -27,7 +27,7 @@ class Neo4jSession:
     _transaction: Transaction = field(init=False)
     
     _pending_nodes_save: defaultdict[tuple[str, ...], list[NodeModel]] = field(default_factory=lambda: defaultdict(list))
-    _pending_nodes_delete: list[str] = []
+    _pending_nodes_delete: list[str] = field(default_factory=list)
 
     _pending_edges_save: defaultdict[str, list[EdgeModel]] = field(default_factory=lambda: defaultdict(list))
     _pending_edges_delete: defaultdict[str, list[EdgeModel]] = field(default_factory=lambda: defaultdict(list))
