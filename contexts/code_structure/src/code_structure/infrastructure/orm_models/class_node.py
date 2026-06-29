@@ -1,9 +1,10 @@
 from typing import ClassVar
+from code_structure.infrastructure.orm_models.variables import Variables
 from foundation.persistence.orm.neo4j_base import NodeModel
 
 
 class ClassNode(NodeModel):
-    __labels__: ClassVar[tuple[str, ...]] = ("Class", "Symbol")
+    __labels__: ClassVar[tuple[str, ...]] = ("Class",)
 
     name: str
     fqn: str
@@ -11,3 +12,6 @@ class ClassNode(NodeModel):
     start_column: int
     end_line: int
     end_column: int
+
+    variables: Variables
+    
