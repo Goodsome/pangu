@@ -36,16 +36,8 @@ class Neo4jModuleRepository(ModuleRepository):
 
     @override
     def _add_all(self, aggregates: list[Module]) -> None:
-        if not aggregates:
-            return
-        query = " UNWIND $modules AS mod CREATE (m:Module {     id: mod.id,     fqn: mod.fqn,     name: mod.name }) FOREACH (_ IN CASE WHEN mod.is_package THEN [1] ELSE [] END |     SET m:Package ) FOREACH (_ IN CASE WHEN NOT mod.is_package THEN [1] ELSE [] END |     SET m:File ) "
-        modules_data: list[dict[str, object]] = []
-        mutations: list[Mutation] = []
         for agg in aggregates:
-            modules_data.append(self._aggregate_to_dict(agg))
-            mutations.extend(agg.collect_mutations())
-        self.session.execute(query, modules=modules_data)
-        self._batch_handle_mutations(mutations)
+            self._add(agg)
 
     @override
     def _get(self, id: ModuleId) -> Module:
@@ -68,85 +60,24 @@ class Neo4jModuleRepository(ModuleRepository):
 
     @override
     def _save(self, aggregate: Module) -> None:
-        query = " MERGE (m:Module {id: $id}) SET m.fqn = $fqn,     m.name = $name "
-        self.session.execute(
-            query, id=str(aggregate.id), fqn=str(aggregate.fqn), name=aggregate.name
-        )
+        module_node = module_to_module_node(aggregate)
+        self.session.save_node(module_node)
         self._batch_handle_mutations(aggregate.collect_mutations())
 
     @override
     def _save_all(self, aggregates: list[Module]) -> None:
-        if not aggregates:
-            return
-        query = " UNWIND $modules AS mod MERGE (m:Module {id: mod.id}) SET m.fqn = mod.fqn,     m.name = mod.name "
-        modules_data: list[dict[str, object]] = []
-        mutations: list[Mutation] = []
         for agg in aggregates:
-            modules_data.append(self._aggregate_to_dict(agg))
-            mutations.extend(agg.collect_mutations())
-        self.session.execute(query, modules=modules_data)
-        self._batch_handle_mutations(mutations)
+            self._save(agg)
 
     @override
     def _delete(self, aggregate: Module) -> None:
-        query = " MATCH (m:Module {id: $id}) DETACH DELETE m "
-        self.session.execute(query, id=str(aggregate.id))
+        self.session.delete_node(node_id=str(aggregate.id))
 
     @override
     def delete_all(self, ids: list[ModuleId]) -> None:
-        if not ids:
-            return
-        query = " UNWIND $batch_ids AS mod_id MATCH (m:Module {id: mod_id}) DETACH DELETE m "
-        self.session.execute(query, batch_ids=[str(id) for id in ids])
+        for id in ids:
+            self.session.delete_node(node_id=str(id))
 
-    def _aggregate_to_dict(self, aggregate: Module) -> dict[str, object]:
-        """辅助方法：将 Aggregate Root 序列化为 Cypher UNWIND 兼容的字典"""
-        return {
-            "id": str(aggregate.id),
-            "fqn": str(aggregate.fqn),
-            "name": aggregate.name,
-            "is_package": aggregate.is_package,
-        }
-
-    def _batch_add_depends_on_edges(self, mutations: list[Mutation]):
-        batch_data = [
-            m.model_dump() for m in mutations if isinstance(m, AddDependsEdgeMutation)
-        ]
-        if not batch_data:
-            return
-        query = " UNWIND $batch AS edge MATCH (s:Module {id: edge.source}), (t:Module {id: edge.target}) MERGE (s)-[:DEPENDS_ON]->(t) "
-        self.session.execute(query, batch=batch_data)
-
-    def _batch_remove_depends_on_edges(self, mutations: list[Mutation]):
-        batch_data = [
-            m.model_dump()
-            for m in mutations
-            if isinstance(m, RemoveDependsEdgeMutation)
-        ]
-        if not batch_data:
-            return
-        query = " UNWIND $batch AS edge MATCH (s:Module {id: edge.source})-[r:DEPENDS_ON]->(t:Module {id: edge.target}) DELETE r "
-        self.session.execute(query, batch=batch_data)
-
-    def _batch_add_contains_edges(self, mutations: list[Mutation]):
-        batch_data = [
-            m.model_dump() for m in mutations if isinstance(m, AddContainsEdgeMutation)
-        ]
-        if not batch_data:
-            return
-        query = " UNWIND $batch AS edge MATCH (s:Module {id: edge.source}), (t:Module {id: edge.target}) MERGE (s)-[:CONTAINS]->(t) "
-        self.session.execute(query, batch=batch_data)
-
-    def _batch_remove_contains_edges(self, mutations: list[Mutation]):
-        batch_data = [
-            m.model_dump()
-            for m in mutations
-            if isinstance(m, RemoveContainsEdgeMutation)
-        ]
-        if not batch_data:
-            return
-        query = " UNWIND $batch AS edge MATCH (s:Module {id: edge.source})-[r:CONTAINS]->(t:Module {id: edge.target}) DELETE r "
-        self.session.execute(query, batch=batch_data)
 
     def _batch_handle_mutations(self, mutations: list[Mutation]):
         for mutation in mutations:
