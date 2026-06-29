@@ -46,3 +46,9 @@ class Neo4jFileModuleRepository(FileModuleRepository):
     @override
     def _delete(self, aggregate: FileModule) -> None:
         raise NotImplementedError
+
+
+    @override
+    def get_all_modules(self) -> list[FileModule]:
+        nodes = self.session.find(FileModuleNode)
+        return [file_module_node_to_file_module(node) for node in nodes]

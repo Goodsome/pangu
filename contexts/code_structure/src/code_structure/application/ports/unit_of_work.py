@@ -12,7 +12,7 @@ from foundation.persistence.ports.base_unit_of_work import BaseUnitOfWork
 class UnitOfWork(BaseUnitOfWork, ABC):
     @property
     @abstractmethod
-    def modules(self) -> FileModuleRepository: ...
+    def file_modules(self) -> FileModuleRepository: ...
 
     @property
     @abstractmethod
@@ -28,7 +28,7 @@ class UnitOfWork(BaseUnitOfWork, ABC):
 
     @override
     def collect_events(self) -> Iterator[DomainEvent]:
-        yield from self.modules.collect_events()
+        yield from self.file_modules.collect_events()
         yield from self.classes.collect_events()
         yield from self.functions.collect_events()
         yield from self.variables.collect_events()

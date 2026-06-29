@@ -1,5 +1,6 @@
 from pathlib import Path
 from architecture.container import Container as ArchitectureContainer
+from code_structure.container import Container as CodeStructureContainer
 from dependency_injector import containers
 from dependency_injector.providers import Configuration, Container, Singleton
 from pangu_cli.bootstrap.config import AppConfig, load_all_configurations
@@ -23,7 +24,13 @@ class AppContainer(containers.DeclarativeContainer):
     )
     architecture_container: Container[ArchitectureContainer] = Container(
         ArchitectureContainer,
+        db_driver=shared_container.db_driver,
         file_system_port=os_file_system,
+        redis_client=shared_container.redis_client,
+    )
+    code_structure_container: Container[CodeStructureContainer] = Container(
+        CodeStructureContainer,
+        db_driver=shared_container.db_driver,
         redis_client=shared_container.redis_client,
     )
 

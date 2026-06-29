@@ -1,5 +1,7 @@
 import asyncio
 from pathlib import Path
+from architecture.interfaces.cli.init_project_graph import init_project_graph
+from code_structure.interfaces.cli.init_symbol_graph import init_symbol_graph
 import typer
 from foundation.logging_setup import configure_logging
 from pangu_cli.container import create_container
@@ -17,6 +19,11 @@ app.add_typer(arch_app, name="arch")
 app.add_typer(code_dom_app, name="dom")
 app.command()(run_worker)
 
+@app.command(name="init-graph")
+def init_graph() -> None:
+    # init_project_graph()
+    init_symbol_graph()
+    
 
 def main():
     """Bootstrap the DI container and run the CLI app."""
@@ -34,6 +41,7 @@ def main():
     container.wire(
         packages=[
             "architecture.interfaces.cli",
+            "code_structure.interfaces.cli",
             "code_dom.interfaces.cli",
             "pangu_cli",
         ]

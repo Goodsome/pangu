@@ -70,7 +70,7 @@ class Container(DeclarativeContainer):
     module_repository_factory: Provider[Neo4jModuleRepository] = Factory(
         Neo4jModuleRepository
     ).provider
-    db_driver: Resource[Driver] = Resource(init_neo4j_driver)
+    db_driver: Dependency[Driver] = Dependency(instance_of=Driver)
     unit_of_work: Factory[MemgraphUnitOfWork[Neo4jModuleRepository]] = Factory(
         MemgraphUnitOfWork[Neo4jModuleRepository],
         driver=db_driver,

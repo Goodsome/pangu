@@ -2,12 +2,12 @@ from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration
 from dependency_injector.providers import Singleton
 from dependency_injector.providers import Resource
-from neo4j import AsyncDriver
+from neo4j import AsyncDriver, Driver
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from foundation.persistence.adapters.neo4j_driver import init_async_neo4j_driver
+from foundation.persistence.adapters.neo4j_driver import init_async_neo4j_driver, init_neo4j_driver
 from foundation.integration_events.registry import EventRegistry
 from foundation.persistence.adapters.database import Database
 from foundation.persistence.adapters.database import init_database
@@ -41,6 +41,7 @@ class Container(DeclarativeContainer):
     redis_publisher: Singleton[RedisStreamPublisher] = Singleton(
         RedisStreamPublisher, client=redis_client
     )
+    db_driver: Resource[Driver] = Resource(init_neo4j_driver)
     async_db_driver: Resource[AsyncDriver] = Resource(init_async_neo4j_driver)
     event_registry: Singleton[EventRegistry] = Singleton(EventRegistry.init)
     outbox_worker: Singleton[SqlalchemyOutboxWorker] = Singleton(
