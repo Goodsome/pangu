@@ -1,21 +1,24 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from typing import assert_never, override
-
-from architecture.infrastructure.mappers.module_to_module_node import module_to_module_node
-from architecture.infrastructure.orm_models.module_node import ContainsEdge, DependsOnEdge
+from architecture.infrastructure.mappers.module_to_module_node import (
+    module_to_module_node,
+)
+from architecture.infrastructure.orm_models.module_node import (
+    ContainsEdge,
+    DependsOnEdge,
+)
 from foundation.building_blocks.mutation_collector import Mutation
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
-
 from architecture.domain.aggregates.module import Module
-from architecture.domain.mutasions.add_contains_edge import AddContainsEdgeMutation
-from architecture.domain.mutasions.add_depends_on_edge import AddDependsEdgeMutation
-from architecture.domain.mutasions.remove_contains_edge import (
+from architecture.domain.mutations.add_contains_edge import AddContainsEdgeMutation
+from architecture.domain.mutations.add_depends_on_edge import AddDependsEdgeMutation
+from architecture.domain.mutations.remove_contains_edge import (
     RemoveContainsEdgeMutation,
 )
-from architecture.domain.mutasions.remove_depends_on_edge import (
+from architecture.domain.mutations.remove_depends_on_edge import (
     RemoveDependsEdgeMutation,
 )
 from architecture.domain.repositories.module_repository import ModuleRepository
@@ -150,26 +153,22 @@ class Neo4jModuleRepository(ModuleRepository):
             match mutation:
                 case AddDependsEdgeMutation():
                     edge = DependsOnEdge(
-                        source_id=str(mutation.source),
-                        target_id=str(mutation.target)
+                        source_id=str(mutation.source), target_id=str(mutation.target)
                     )
                     self.session.save_edge(edge)
                 case RemoveDependsEdgeMutation():
                     edge = DependsOnEdge(
-                        source_id=str(mutation.source),
-                        target_id=str(mutation.target)
+                        source_id=str(mutation.source), target_id=str(mutation.target)
                     )
                     self.session.delete_edge(edge)
                 case AddContainsEdgeMutation():
                     edge = ContainsEdge(
-                        source_id=str(mutation.source),
-                        target_id=str(mutation.target)
+                        source_id=str(mutation.source), target_id=str(mutation.target)
                     )
                     self.session.save_edge(edge)
                 case RemoveContainsEdgeMutation():
                     edge = ContainsEdge(
-                        source_id=str(mutation.source),
-                        target_id=str(mutation.target)
+                        source_id=str(mutation.source), target_id=str(mutation.target)
                     )
                     self.session.delete_edge(edge)
                 case Mutation():

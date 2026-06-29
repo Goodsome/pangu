@@ -8,12 +8,12 @@ from architecture.domain.events.module_moved import ModuleMoved
 from architecture.domain.events.module_removed_contains import ModuleRemovedContains
 from architecture.domain.events.module_removed_dependency import ModuleRemovedDependency
 from foundation.common_types.identities.module_id import ModuleId
-from architecture.domain.mutasions.add_contains_edge import AddContainsEdgeMutation
-from architecture.domain.mutasions.add_depends_on_edge import AddDependsEdgeMutation
-from architecture.domain.mutasions.remove_contains_edge import (
+from architecture.domain.mutations.add_contains_edge import AddContainsEdgeMutation
+from architecture.domain.mutations.add_depends_on_edge import AddDependsEdgeMutation
+from architecture.domain.mutations.remove_contains_edge import (
     RemoveContainsEdgeMutation,
 )
-from architecture.domain.mutasions.remove_depends_on_edge import (
+from architecture.domain.mutations.remove_depends_on_edge import (
     RemoveDependsEdgeMutation,
 )
 from foundation.common_types.fqns.fqn import ModuleFqn
