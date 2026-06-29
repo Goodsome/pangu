@@ -1,0 +1,47 @@
+from dataclasses import dataclass
+from typing import override
+from code_structure.domain.aggregates.class_symbol import ClassSymbol
+from code_structure.domain.repositories.class_repository import ClassRepository
+from code_structure.infrastructure.mappers.class_node_to_class_symbol import class_node_to_class_symbol
+from code_structure.infrastructure.mappers.class_symbol_to_class_node import class_symbol_to_class_node
+from code_structure.infrastructure.orm_models.class_node import ClassNode
+from code_structure.domain.identities.symbol_ids import ClassId
+from foundation.persistence.sessions.neo4j_session import Neo4jSession
+
+
+@dataclass
+class Neo4jClassRepository(ClassRepository):
+
+    session: Neo4jSession
+
+    @override
+    def _add(self, aggregate: ClassSymbol) -> None:
+        class_node = class_symbol_to_class_node(aggregate)
+        self.session.save_node(class_node)
+
+    @override
+    def _add_all(self, aggregates: list[ClassSymbol]) -> None:
+        for agg in aggregates:
+            self._add(agg)
+
+    @override
+    def _save(self, aggregate: ClassSymbol) -> None:
+        class_node = class_symbol_to_class_node(aggregate)
+        self.session.save_node(class_node)
+
+    @override
+    def _save_all(self, aggregates: list[ClassSymbol]) -> None:
+        for agg in aggregates:
+            self._save(agg)
+
+    @override
+    def _get(self, id: ClassId) -> ClassSymbol:
+        class_node = self.session.get(ClassNode, str(id))
+        if class_node is None:
+            raise ValueError(f"Class with id {id} not found")
+        class_symbol = class_node_to_class_symbol(class_node)
+        return class_symbol
+
+    @override
+    def _delete(self, aggregate: ClassSymbol) -> None:
+        self.session.delete_node(node_id=str(aggregate.id))

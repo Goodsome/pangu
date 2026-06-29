@@ -24,6 +24,7 @@ Dependencies = Annotated[
         edge_model=DependsOnEdge,
         direction=RelationDirection.OUT,
         target_property="id",
+        target_model="FileModuleNode",
     ),
 ]
 

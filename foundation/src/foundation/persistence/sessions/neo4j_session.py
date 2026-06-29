@@ -122,9 +122,20 @@ class Neo4jSession:
             right_arrow = "->" if meta.direction == RelationDirection.OUT else "-"
 
             target_alias = f"{field_name}_target"
+            target_match = target_alias
+            match meta.target_model:
+                case None:
+                    target_cls = None
+                case str():
+                    target_cls = NodeModel.get_cls(meta.target_model)
+                case _:
+                    target_cls = meta.target_model
+            if target_cls is not None:
+                target_labels_str = ":" + ":".join(getattr(target_cls, "__labels__", ()))
+                target_match += target_labels_str
 
             match_clauses.append(
-                f"OPTIONAL MATCH (n){left_arrow}[:{rel_type}]{right_arrow}({target_alias})"
+                f"OPTIONAL MATCH (n){left_arrow}[:{rel_type}]{right_arrow}({target_match})"
             )
             # 聚合目标属性 (这里默认取 meta.target_property，通常为 "id")
             return_clauses.append(
@@ -227,3 +238,82 @@ class Neo4jSession:
         """
         self._transaction.run(query, batch=self._pending_nodes_delete)
         self._pending_nodes_delete.clear()
+        
+    def _build_projection_clauses(
+         self, model_class: type[NodeModel], root_alias: str = "n"
+     ) -> tuple[list[str], list[str], list[str]]:
+         """
+         内部方法：提取模型上的关系声明，生成对应的关系查询和聚合子句。
+         返回: (可选匹配子句列表, 返回子句列表, 边属性键名列表)
+         """
+         edge_fields = self._get_edge_fields(model_class)
+         match_clauses = []
+         return_clauses = [root_alias]
+         edge_keys = list(edge_fields.keys())
+ 
+         for field_name, meta in edge_fields.items():
+             rel_type = meta.edge_model.__rel_type__
+             left_arrow = "<-" if meta.direction == RelationDirection.IN else "-"
+             right_arrow = "->" if meta.direction == RelationDirection.OUT else "-"
+ 
+             target_alias = f"{field_name}_target"
+             target_match = target_alias
+ 
+             match meta.target_model:
+                 case None:
+                     target_cls = None
+                 case str():
+                     target_cls = NodeModel.get_cls(meta.target_model)
+                 case _:
+                     target_cls = meta.target_model
+ 
+             if target_cls is not None:
+                 target_labels_str = ":" + ":".join(getattr(target_cls, "__labels__", ()))
+                 target_match += target_labels_str
+ 
+             match_clauses.append(
+                 f"OPTIONAL MATCH ({root_alias}){left_arrow}[:{rel_type}]{right_arrow}({target_match})"
+             )
+             return_clauses.append(
+                 f"collect(DISTINCT {target_alias}.{meta.target_property}) AS {field_name}"
+             )
+ 
+         return match_clauses, return_clauses, edge_keys
+         
+    def find(self, model_class: type[TNode], **kwargs: Any) -> list[TNode]:
+        """通用的节点查询方法，支持多条件匹配及列表查询"""
+        self.flush()
+
+        labels_str = ":" + ":".join(getattr(model_class, "__labels__", ()))
+        query_parts = [f"MATCH (n{labels_str})"]
+        
+        # 动态构建 WHERE 条件
+        where_clauses = []
+        for key, value in kwargs.items():
+            if isinstance(value, (list, tuple, set)):
+                where_clauses.append(f"n.{key} IN ${key}")
+            else:
+                where_clauses.append(f"n.{key} = ${key}")
+        
+        if where_clauses:
+            query_parts.append("WHERE " + " AND ".join(where_clauses))
+
+        # 追加关系投射子句
+        opt_matches, returns, edge_keys = self._build_projection_clauses(model_class, root_alias="n")
+        query_parts.extend(opt_matches)
+        query_parts.append("RETURN " + ",\n".join(returns))
+
+        query = "\n".join(query_parts)
+        
+        # 执行查询并组装结果
+        result = self._transaction.run(query, **kwargs)
+        
+        nodes = []
+        for record in result:
+            node_props = dict(record["n"])
+            # 合并聚合的边属性
+            for edge_key in edge_keys:
+                node_props[edge_key] = record[edge_key]
+            nodes.append(model_class(**node_props))
+            
+        return nodes

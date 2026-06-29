@@ -45,4 +45,4 @@ class Neo4jFileModuleRepository(FileModuleRepository):
 
     @override
     def _delete(self, aggregate: FileModule) -> None:
-        self.session.delete_node(node_id=str(aggregate.id))
+        raise NotImplementedError
