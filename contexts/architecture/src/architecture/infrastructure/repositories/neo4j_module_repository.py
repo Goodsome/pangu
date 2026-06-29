@@ -1,7 +1,9 @@
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import override
+from typing import assert_never, override
 
+from architecture.infrastructure.mappers.module_to_module_node import module_to_module_node
+from architecture.infrastructure.orm_models.module_node import ContainsEdge, DependsOnEdge
 from foundation.building_blocks.mutation_collector import Mutation
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.common_types.identities.module_id import ModuleId
@@ -25,14 +27,8 @@ class Neo4jModuleRepository(ModuleRepository):
 
     @override
     def _add(self, aggregate: Module) -> None:
-        query = " CREATE (m {     id: $id,     fqn: $fqn,     name: $name }) WITH m CALL {     WITH m, $is_package AS is_pkg     WHERE is_pkg     SET m:Package } CALL {     WITH m, $is_package AS is_pkg     WHERE NOT is_pkg     SET m:File } "
-        self.session.execute(
-            query,
-            id=str(aggregate.id),
-            fqn=str(aggregate.fqn),
-            name=aggregate.name,
-            is_package=aggregate.is_package,
-        )
+        module_node = module_to_module_node(aggregate)
+        self.session.save_node(module_node)
         self._batch_handle_mutations(aggregate.collect_mutations())
 
     @override
@@ -150,10 +146,36 @@ class Neo4jModuleRepository(ModuleRepository):
         self.session.execute(query, batch=batch_data)
 
     def _batch_handle_mutations(self, mutations: list[Mutation]):
-        self._batch_add_depends_on_edges(mutations)
-        self._batch_remove_depends_on_edges(mutations)
-        self._batch_add_contains_edges(mutations)
-        self._batch_remove_contains_edges(mutations)
+        for mutation in mutations:
+            match mutation:
+                case AddDependsEdgeMutation():
+                    edge = DependsOnEdge(
+                        source_id=str(mutation.source),
+                        target_id=str(mutation.target)
+                    )
+                    self.session.save_edge(edge)
+                case RemoveDependsEdgeMutation():
+                    edge = DependsOnEdge(
+                        source_id=str(mutation.source),
+                        target_id=str(mutation.target)
+                    )
+                    self.session.delete_edge(edge)
+                case AddContainsEdgeMutation():
+                    edge = ContainsEdge(
+                        source_id=str(mutation.source),
+                        target_id=str(mutation.target)
+                    )
+                    self.session.save_edge(edge)
+                case RemoveContainsEdgeMutation():
+                    edge = ContainsEdge(
+                        source_id=str(mutation.source),
+                        target_id=str(mutation.target)
+                    )
+                    self.session.delete_edge(edge)
+                case Mutation():
+                    raise
+                case _:
+                    assert_never(mutation)
 
     @override
     def update_fqn_prefix(self, old_fqn: ModuleFqn, new_fqn: ModuleFqn) -> None:

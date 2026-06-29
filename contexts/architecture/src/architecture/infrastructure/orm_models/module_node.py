@@ -1,5 +1,6 @@
 from typing import Annotated, ClassVar
 
+from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.orm.neo4j_base import (
     EdgeModel,
     NodeModel,
@@ -42,15 +43,19 @@ class FileModuleNode(NodeModel):
     __labels__: ClassVar[tuple[str, ...]] = ("Module", "File")
 
     name: str
+    fqn: str
 
     dependencies: Dependencies
 
 
-class PackageNode(NodeModel):
+class PackageModuleNode(NodeModel):
     __labels__: ClassVar[tuple[str, ...]] = ("Module", "Package")
 
     name: str
+    fqn: str
 
     contains: Contains
 
     dependencies: Dependencies
+
+ModuleNode = FileModuleNode | PackageModuleNode
