@@ -7,7 +7,7 @@ from code_structure.domain.repositories.function_repository import FunctionRepos
 from code_structure.domain.repositories.module_repository import ModuleRepository
 from code_structure.domain.repositories.variable_repository import VariableRepository
 from foundation.building_blocks.event import DomainEvent
-from foundation.persistence.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.ports.base_unit_of_work import BaseUnitOfWork
 
 
 class UnitOfWork(BaseUnitOfWork, ABC):

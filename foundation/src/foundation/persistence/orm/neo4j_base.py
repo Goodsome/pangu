@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import ClassVar
 
@@ -23,7 +24,8 @@ class RelationDirection(Enum):
     BOTH = auto()
     
 
-class RelationshipMeta(BaseModel):
+@dataclass
+class RelationshipMeta:
     edge_model: type[EdgeModel]
     direction: RelationDirection
     target_property: str

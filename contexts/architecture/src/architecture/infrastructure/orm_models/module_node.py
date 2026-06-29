@@ -1,6 +1,5 @@
 from typing import Annotated, ClassVar
 
-from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.orm.neo4j_base import (
     EdgeModel,
     NodeModel,
