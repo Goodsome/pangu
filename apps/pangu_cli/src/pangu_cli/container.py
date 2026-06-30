@@ -32,6 +32,7 @@ class AppContainer(containers.DeclarativeContainer):
         CodeStructureContainer,
         db_driver=shared_container.db_driver,
         redis_client=shared_container.redis_client,
+        get_file_document_handler=code_dom_container.get_file_document_handler,
     )
 
 

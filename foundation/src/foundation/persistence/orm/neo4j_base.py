@@ -14,8 +14,8 @@ class NodeModel(BaseModel):
     id: str
 
     @classmethod
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
+    def __init_subclass__(cls):
+        super().__init_subclass__()
         cls._registry[cls.__name__] = cls
 
     @classmethod

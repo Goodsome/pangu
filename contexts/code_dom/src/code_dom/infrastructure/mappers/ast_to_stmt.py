@@ -250,7 +250,7 @@ class AstToStmt:
             or node.vararg
             or node.kwonlyargs
             or node.kw_defaults
-            or node.kwarg
+            # or node.kwarg
         ):
             raise ValueError(
                 f"Only args and defaults are supported in arguments_to_assigns, ast.dump(node)={ast.dump(node)!r}"

@@ -1,3 +1,5 @@
+from code_dom.application.queries.get_file_document import GetFileDocumentHandler
+from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
@@ -29,6 +31,7 @@ class Container(DeclarativeContainer):
     config: Configuration = Configuration()
     redis_client: Dependency[Redis] = Dependency(instance_of=Redis)
     db_driver: Dependency[Driver] = Dependency(instance_of=Driver)
+    get_file_document_handler: Dependency[GetFileDocumentHandler] = Dependency(instance_of=GetFileDocumentHandler)
 
     unit_of_work: Factory[Neo4jUnitOfWork] = Factory(
         Neo4jUnitOfWork,
@@ -38,9 +41,14 @@ class Container(DeclarativeContainer):
         Neo4jSymbolGraphAdmin,
         driver=db_driver,
     )
+    code_dom_scanner: Singleton[CodeDomScanner] = Singleton(
+        CodeDomScanner,
+        get_file_document_handler=get_file_document_handler,
+    )
     init_symbol_graph_handler: Factory[InitSymbolGraphCommandHandler] = Factory(
         InitSymbolGraphCommandHandler,
         symbol_graph_admin=symbol_graph_admin,
+        symbol_scanner=code_dom_scanner,
     )
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,

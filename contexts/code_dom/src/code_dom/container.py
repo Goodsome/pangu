@@ -57,7 +57,7 @@ class Container(DeclarativeContainer):
     get_project_documents: Factory[GetProjectDocumentsHandler] = Factory(
         GetProjectDocumentsHandler, code_parser=code_parser
     )
-    get_file_document: Factory[GetFileDocumentHandler] = Factory(
+    get_file_document_handler: Factory[GetFileDocumentHandler] = Factory(
         GetFileDocumentHandler, code_parser=code_parser
     )
     code_generator: Factory[CodeGenerator] = Factory(AstCodeGenerator)

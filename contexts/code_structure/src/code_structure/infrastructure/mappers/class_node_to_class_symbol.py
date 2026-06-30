@@ -14,10 +14,4 @@ def class_node_to_class_symbol(class_node: ClassNode) -> ClassSymbol:
         id=str_to_class_id(class_node.id),
         name=class_node.name,
         fqn=ClassFqn(class_node.fqn),
-        location=Location(
-            start_line=class_node.start_line,
-            start_column=class_node.start_column,
-            end_line=class_node.end_line,
-            end_column=class_node.end_column,
-        ),
     )
