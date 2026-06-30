@@ -1,6 +1,5 @@
 from code_structure.domain.aggregates.class_symbol import ClassSymbol
 from code_structure.domain.identities.symbol_ids import ClassId
-from code_structure.domain.value_objects.location import Location
 from code_structure.infrastructure.orm_models.class_node import ClassNode
 from foundation.common_types.fqns.fqn import ClassFqn
 

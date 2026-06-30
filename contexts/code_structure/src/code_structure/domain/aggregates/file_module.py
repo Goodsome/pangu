@@ -18,3 +18,11 @@ class FileModule(AggregateRoot[ModuleId]):
     def define_class(self, class_id: ClassId) -> None:
         self._classes.add(class_id)
         self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=class_id))
+
+    def define_function(self, function_id: FunctionId) -> None:
+        self._functions.add(function_id)
+        self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=function_id))
+
+    def define_variable(self, variable_id: VariableId) -> None:
+        self._variables.add(variable_id)
+        self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=variable_id))

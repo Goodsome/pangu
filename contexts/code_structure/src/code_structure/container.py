@@ -1,5 +1,4 @@
 from code_dom.application.queries.get_file_document import GetFileDocumentHandler
-from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
@@ -21,6 +20,7 @@ from code_structure.application.commands.init_symbol_graph import (
     InitSymbolGraphCommandHandler,
 )
 from code_structure.application.ports.symbol_graph_admin import SymbolGraphAdmin
+from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from code_structure.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
 from code_structure.infrastructure.repositories.neo4j_symbol_graph_admin import (
     Neo4jSymbolGraphAdmin,
