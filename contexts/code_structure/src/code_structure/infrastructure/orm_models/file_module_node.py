@@ -8,7 +8,6 @@ from pydantic import Field
 
 _Classes = Annotated[
     list[str],
-    Field(default_factory=list),
     RelationshipMeta(
         edge_model=DefinesEdge,
         direction=RelationDirection.OUT,
@@ -19,7 +18,6 @@ _Classes = Annotated[
 
 _Functions = Annotated[
     list[str],
-    Field(default_factory=list),
     RelationshipMeta(
         edge_model=DefinesEdge,
         direction=RelationDirection.OUT,
@@ -34,6 +32,6 @@ class FileModuleNode(NodeModel):
     name: str
     fqn: str
 
-    classes: _Classes
-    functions: _Functions
-    variables: Variables
+    classes: _Classes = Field(default_factory=list)
+    functions: _Functions = Field(default_factory=list)
+    variables: Variables = Field(default_factory=list)

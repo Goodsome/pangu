@@ -17,6 +17,6 @@ class GetFileDocumentResult(BaseModel):
 class GetFileDocumentHandler:
     code_parser: CodeParser
 
-    def handle(self, query: GetFileDocumentQuery) -> GetFileDocumentResult:
+    def execute(self, query: GetFileDocumentQuery) -> GetFileDocumentResult:
         code_document = self.code_parser.parse_file(query.file_path)
         return GetFileDocumentResult(code_document=code_document)

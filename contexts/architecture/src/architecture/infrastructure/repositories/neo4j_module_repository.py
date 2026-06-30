@@ -103,7 +103,7 @@ class Neo4jModuleRepository(ModuleRepository):
                     )
                     self.session.delete_edge(edge)
                 case Mutation():
-                    raise
+                    raise NotImplementedError
                 case _:
                     assert_never(mutation)
 
