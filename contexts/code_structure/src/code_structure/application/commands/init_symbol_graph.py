@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from code_structure.application.ports.symbol_graph_admin import SymbolGraphAdmin
 from code_structure.application.ports.unit_of_work import UnitOfWork
 from code_structure.domain.ports.symbol_scanner import SymbolScanner
 from code_structure.domain.serivces.class_symbol_registry import ClassRegistry
@@ -16,11 +15,10 @@ class InitSymbolGraphCommand(Command):
 
 @dataclass
 class InitSymbolGraphCommandHandler:
-    symbol_graph_admin: SymbolGraphAdmin
     symbol_scanner: SymbolScanner
 
     def execute(self, cmd: InitSymbolGraphCommand, uow: UnitOfWork) -> None:
-        self.symbol_graph_admin.purge_data()
+        uow.graph_admin.purge_data()
         file_modules = uow.file_modules.get_all_modules()
         module_fqns = [module.fqn for module in file_modules]
         parsed_file_modules = self.symbol_scanner.scan(module_fqns)

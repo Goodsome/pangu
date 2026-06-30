@@ -2,18 +2,13 @@ from dataclasses import dataclass
 from typing import override
 
 from code_structure.application.ports.symbol_graph_admin import SymbolGraphAdmin
-from neo4j import Driver
+from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
 
 @dataclass
 class Neo4jSymbolGraphAdmin(SymbolGraphAdmin):
-    driver: Driver
+    session: Neo4jSession
 
     @override
     def purge_data(self) -> None:
-        query = """
-        MATCH (n:Symbol)
-        DETACH DELETE n
-        """
-        with self.driver.session() as session:
-            session.run(query)
+        self.session.execute("MATCH (n:Symbol) DETACH DELETE n")

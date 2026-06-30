@@ -19,12 +19,8 @@ from code_structure.application.commands.init_symbol_graph import (
     InitSymbolGraphCommand,
     InitSymbolGraphCommandHandler,
 )
-from code_structure.application.ports.symbol_graph_admin import SymbolGraphAdmin
 from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from code_structure.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
-from code_structure.infrastructure.repositories.neo4j_symbol_graph_admin import (
-    Neo4jSymbolGraphAdmin,
-)
 
 
 class Container(DeclarativeContainer):
@@ -37,17 +33,12 @@ class Container(DeclarativeContainer):
         Neo4jUnitOfWork,
         driver=db_driver,
     )
-    symbol_graph_admin: Singleton[SymbolGraphAdmin] = Singleton(
-        Neo4jSymbolGraphAdmin,
-        driver=db_driver,
-    )
     code_dom_scanner: Singleton[CodeDomScanner] = Singleton(
         CodeDomScanner,
         get_file_document_handler=get_file_document_handler,
     )
     init_symbol_graph_handler: Factory[InitSymbolGraphCommandHandler] = Factory(
         InitSymbolGraphCommandHandler,
-        symbol_graph_admin=symbol_graph_admin,
         symbol_scanner=code_dom_scanner,
     )
     message_bus: Factory[BaseMessageBus] = Factory(

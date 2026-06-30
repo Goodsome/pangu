@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Self, override
+from code_structure.application.ports.symbol_graph_admin import SymbolGraphAdmin
 from code_structure.application.ports.unit_of_work import UnitOfWork
 from code_structure.domain.repositories.class_repository import ClassRepository
 from code_structure.domain.repositories.file_module_repository import FileModuleRepository
@@ -9,6 +10,7 @@ from code_structure.domain.repositories.variable_repository import VariableRepos
 from code_structure.infrastructure.repositories.neo4j_class_repository import Neo4jClassRepository
 from code_structure.infrastructure.repositories.neo4j_file_module_repository import Neo4jFileModuleRepository
 from code_structure.infrastructure.repositories.neo4j_function_repository import Neo4jFunctionRepository
+from code_structure.infrastructure.repositories.neo4j_symbol_graph_admin import Neo4jSymbolGraphAdmin
 from code_structure.infrastructure.repositories.neo4j_variable_repository import Neo4jVariableRepository
 from foundation.building_blocks.event import IntegrationEvent
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
@@ -23,6 +25,7 @@ class Neo4jUnitOfWork(UnitOfWork):
     _class_repo: Neo4jClassRepository | None = field(default=None, init=False)
     _function_repo: Neo4jFunctionRepository | None = field(default=None, init=False)
     _variable_repo: Neo4jVariableRepository | None = field(default=None, init=False)
+    _graph_admin: Neo4jSymbolGraphAdmin | None = field(default=None, init=False)
 
     @override
     def __enter__(self) -> Self:
@@ -31,6 +34,7 @@ class Neo4jUnitOfWork(UnitOfWork):
         self._class_repo = Neo4jClassRepository(session=self._session)
         self._function_repo = Neo4jFunctionRepository(session=self._session)
         self._variable_repo = Neo4jVariableRepository(session=self._session)
+        self._graph_admin = Neo4jSymbolGraphAdmin(session=self._session)
         return self
 
     @override
@@ -49,6 +53,7 @@ class Neo4jUnitOfWork(UnitOfWork):
         self._class_repo = None
         self._function_repo = None
         self._variable_repo = None
+        self._graph_admin = None
 
     @property
     @override
@@ -77,6 +82,13 @@ class Neo4jUnitOfWork(UnitOfWork):
         if not self._variable_repo:
             raise RuntimeError("Unit of work is not active. Use 'with uow:' block.")
         return self._variable_repo
+
+    @property
+    @override
+    def graph_admin(self) -> SymbolGraphAdmin:
+        if not self._graph_admin:
+            raise RuntimeError("Unit of work is not active. Use 'with uow:' block.")
+        return self._graph_admin
 
     @override
     def commit(self):
