@@ -6,7 +6,6 @@ from dependency_injector.providers import (
     Factory,
     List,
     Provider,
-    Resource,
     Singleton,
 )
 from foundation.integration_events.registry import EventRegistry
@@ -48,7 +47,6 @@ from architecture.application.event_handlers.on_module_moved import OnModuleMove
 from architecture.domain.events.module_created import ModuleCreated
 from architecture.domain.events.module_deleted import ModuleDeleted
 from architecture.domain.events.module_moved import ModuleMoved
-from foundation.persistence.adapters.neo4j_driver import init_neo4j_driver
 from architecture.infrastructure.gateways.file_system_code_scanner import (
     FileSystemCodeScanner,
 )

@@ -1,6 +1,4 @@
-from typing import ClassVar
 from pydantic import BaseModel
-from pydantic import ConfigDict
 
 
 class ValueObject(BaseModel):

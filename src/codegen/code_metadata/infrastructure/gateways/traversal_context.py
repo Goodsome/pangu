@@ -3,8 +3,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from dataclasses import field
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.core.fqn import Fqn
-from codegen.code_metadata.domain.enums.edge_type import EdgeType
 
 
 @dataclass

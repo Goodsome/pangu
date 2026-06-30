@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 import logging
 import re
-from pathlib import Path
 from typing import Annotated
 from typing import Literal
 from pydantic import Field

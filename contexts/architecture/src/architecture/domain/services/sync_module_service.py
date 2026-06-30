@@ -2,9 +2,7 @@ from dataclasses import dataclass
 from architecture.domain.aggregates.module import Module
 from architecture.domain.enums.context_name import ContextName
 from foundation.common_types.identities.module_id import ModuleId
-from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.services.module_registry import ModuleRegistry
-from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 
 

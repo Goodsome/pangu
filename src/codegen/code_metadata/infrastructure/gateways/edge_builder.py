@@ -31,7 +31,6 @@ from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_list import AstList
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
     AstClassDef,

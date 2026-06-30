@@ -1,5 +1,5 @@
 from foundation.building_blocks.aggregate_root import AggregateRoot
-from pydantic import Field, PrivateAttr
+from pydantic import Field
 from architecture.domain.events.module_added_contains import ModuleAddedContains
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
 from architecture.domain.events.module_created import ModuleCreated

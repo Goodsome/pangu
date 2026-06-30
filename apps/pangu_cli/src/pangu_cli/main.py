@@ -1,6 +1,5 @@
 import asyncio
 from pathlib import Path
-from architecture.interfaces.cli.init_project_graph import init_project_graph
 from code_structure.interfaces.cli.init_symbol_graph import init_symbol_graph
 import typer
 from foundation.logging_setup import configure_logging

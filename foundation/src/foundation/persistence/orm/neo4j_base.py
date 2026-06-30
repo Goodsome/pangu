@@ -41,5 +41,5 @@ class RelationDirection(Enum):
 class RelationshipMeta:
     edge_model: type[EdgeModel]
     direction: RelationDirection
-    target_property: str
+    target_property: str | None = None
     target_model: type[NodeModel] | str | None = None
