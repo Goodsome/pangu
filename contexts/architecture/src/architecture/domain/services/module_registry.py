@@ -10,12 +10,14 @@ class ModuleRegistry:
     _store_by_id: dict[ModuleId, Module] = field(init=False)
     _fqn_id_map: dict[ModuleFqn, ModuleId] = field(init=False)
     dirty_modules: set[Module] = field(init=False)
+    deleted_modules: set[Module] = field(init=False)
 
     def __post_init__(self):
         self._store_by_fqn = {}
         self._store_by_id = {}
         self._fqn_id_map = {}
         self.dirty_modules = set()
+        self.deleted_modules = set()
 
     @classmethod
     def init(cls, modules: list[Module]) -> ModuleRegistry:
@@ -41,6 +43,9 @@ class ModuleRegistry:
             raise ValueError(f"Module with FQN {fqn} not found")
         return module
 
+    def find_module_by_fqn(self, fqn: ModuleFqn) -> Module | None:
+        return self._store_by_fqn.get(fqn)
+
     def get_id_by_fqn(self, fqn: ModuleFqn) -> ModuleId:
         return self._fqn_id_map[fqn]
 
@@ -58,3 +63,13 @@ class ModuleRegistry:
 
     def mark_dirty(self, module: Module):
         self.dirty_modules.add(module)
+
+    def _delete(self, module: Module):
+        module.mark_as_deleted()
+        self.deleted_modules.add(module)
+
+    def delete_by_fqn(self, fqn: ModuleFqn):
+        if fqn not in self._store_by_fqn:
+            return
+        module = self._store_by_fqn[fqn]
+        self._delete(module)

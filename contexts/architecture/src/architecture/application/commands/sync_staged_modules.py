@@ -25,5 +25,8 @@ class SyncStagedModulesHandler:
         module_registry = ModuleRegistry.init(modules)
         sync_modules_service = SyncModuleService(module_registry)
         sync_modules = sync_modules_service.sync_from_parsed_modules(parsed_modules)
-
+        
         uow.repository.save_all(sync_modules)
+        
+        for deleted_module in module_registry.deleted_modules:
+            uow.repository.delete(deleted_module)

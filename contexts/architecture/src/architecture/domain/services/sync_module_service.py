@@ -16,8 +16,14 @@ class SyncModuleService:
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
             is_package = parsed_module.is_package
-            module = self.module_registry.ensure_module(fqn, is_package)
+            if parsed_module.is_deleted:
+                self.module_registry.delete_by_fqn(fqn)
+            else:
+                module = self.module_registry.ensure_module(fqn, is_package)
+                
         for parsed_module in parsed_modules:
+            if parsed_module.is_deleted:
+                continue
             fqn = parsed_module.fqn
             module = self.module_registry.get_by_fqn(fqn)
             dependencies: set[ModuleId] = set()
