@@ -1,23 +1,35 @@
 from dataclasses import dataclass
 
-from code_structure.domain.aggregates.file_module import FileModule
-from code_structure.domain.entities.attribute_symbol import AttributeSymbol
-from code_structure.domain.entities.method_symbol import MethodSymbol
-from code_structure.domain.serivces.file_module_registry import FileModuleRegistry
-from code_structure.domain.value_objects.parsed_attribute import ParsedAttribute
-from code_structure.domain.value_objects.parsed_method import ParsedMethod
-from foundation.common_types.fqns.fqn import AttributeFqn, ClassFqn, FunctionFqn, MethodFqn, VariableFqn
+from foundation.common_types.fqns.fqn import (
+    AttributeFqn,
+    ClassFqn,
+    FunctionFqn,
+    MethodFqn,
+    VariableFqn,
+)
 
 from code_structure.domain.aggregates.class_symbol import ClassSymbol
+from code_structure.domain.aggregates.file_module import FileModule
 from code_structure.domain.aggregates.function_symbol import FunctionSymbol
 from code_structure.domain.aggregates.variable_symbol import VariableSymbol
-from code_structure.domain.identities.symbol_ids import AttributeId, ClassId, FunctionId, MethodId, VariableId
+from code_structure.domain.entities.attribute_symbol import AttributeSymbol
+from code_structure.domain.entities.method_symbol import MethodSymbol
+from code_structure.domain.identities.symbol_ids import (
+    AttributeId,
+    ClassId,
+    FunctionId,
+    MethodId,
+    VariableId,
+)
 from code_structure.domain.serivces.class_symbol_registry import ClassRegistry
+from code_structure.domain.serivces.file_module_registry import FileModuleRegistry
 from code_structure.domain.serivces.function_symbol_registry import FunctionRegistry
 from code_structure.domain.serivces.variable_symbol_registry import VariableRegistry
+from code_structure.domain.value_objects.parsed_attribute import ParsedAttribute
 from code_structure.domain.value_objects.parsed_class import ParsedClass
 from code_structure.domain.value_objects.parsed_file_module import ParsedFileModule
 from code_structure.domain.value_objects.parsed_function import ParsedFunction
+from code_structure.domain.value_objects.parsed_method import ParsedMethod
 from code_structure.domain.value_objects.parsed_variable import ParsedVariable
 
 
@@ -59,7 +71,7 @@ class SymbolGraphBuilder:
         )
         self.class_registry.register(class_symbol)
         file_module.define_class(class_symbol.id)
-        
+
         for parsed_attribute in parsed_class.attributes:
             self.build_attribute_symbol(parsed_attribute, class_symbol)
         for parsed_method in parsed_class.methods:
@@ -92,7 +104,6 @@ class SymbolGraphBuilder:
         )
         self.variable_registry.register(variable_symbol)
         file_module.define_variable(variable_symbol.id)
-
 
     def build_attribute_symbol(
         self,

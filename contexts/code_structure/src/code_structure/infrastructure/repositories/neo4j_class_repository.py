@@ -7,7 +7,7 @@ from code_structure.infrastructure.mappers.class_node_to_class_symbol import cla
 from code_structure.infrastructure.mappers.class_symbol_to_class_node import class_symbol_to_class_node
 from code_structure.infrastructure.orm_models.class_node import ClassNode
 from code_structure.domain.identities.symbol_ids import ClassId
-from code_structure.infrastructure.orm_models.defines_edge import DefinesEdge
+from code_structure.infrastructure.orm_models.edges import ClassDefinesEdge
 from foundation.building_blocks.mutation_collector import Mutation
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
@@ -64,9 +64,9 @@ class Neo4jClassRepository(ClassRepository):
         for mutation in mutations:
             match mutation:
                 case AddClassDefinesEdge():
-                    edge = DefinesEdge(
-                        source_id=str(mutation.source_id),
-                        target_id=str(mutation.target_id),
+                    edge = ClassDefinesEdge(
+                        source_ref=str(mutation.source_id),
+                        target_ref=str(mutation.target_id),
                     )
                     self.session.save_edge(edge)
                 case _:

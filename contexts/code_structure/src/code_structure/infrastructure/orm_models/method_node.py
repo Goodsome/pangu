@@ -1,9 +1,7 @@
-from typing import ClassVar
-from foundation.persistence.orm.neo4j_base import NodeModel
+from code_structure.infrastructure.orm_models.symbol_node import SymbolNode
 
 
-class MethodNode(NodeModel):
-    __labels__: ClassVar[tuple[str, ...]] = ("Method", "Symbol")
+class MethodNode(SymbolNode):
 
     name: str
     fqn: str

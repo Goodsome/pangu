@@ -84,22 +84,22 @@ class Neo4jModuleRepository(ModuleRepository):
             match mutation:
                 case AddDependsEdgeMutation():
                     edge = DependsOnEdge(
-                        source_id=str(mutation.source), target_id=str(mutation.target)
+                        source_ref=str(mutation.source), target_ref=str(mutation.target)
                     )
                     self.session.save_edge(edge)
                 case RemoveDependsEdgeMutation():
                     edge = DependsOnEdge(
-                        source_id=str(mutation.source), target_id=str(mutation.target)
+                        source_ref=str(mutation.source), target_ref=str(mutation.target)
                     )
                     self.session.delete_edge(edge)
                 case AddContainsEdgeMutation():
                     edge = ContainsEdge(
-                        source_id=str(mutation.source), target_id=str(mutation.target)
+                        source_ref=str(mutation.source), target_ref=str(mutation.target)
                     )
                     self.session.save_edge(edge)
                 case RemoveContainsEdgeMutation():
                     edge = ContainsEdge(
-                        source_id=str(mutation.source), target_id=str(mutation.target)
+                        source_ref=str(mutation.source), target_ref=str(mutation.target)
                     )
                     self.session.delete_edge(edge)
                 case Mutation():

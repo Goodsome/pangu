@@ -3,28 +3,17 @@ from typing import Annotated, ClassVar
 from foundation.persistence.orm.neo4j_base import (
     EdgeModel,
     NodeModel,
-    RelationDirection,
     RelationshipMeta,
 )
 from pydantic import Field
-
-
-class DependsOnEdge(EdgeModel):
-    __rel_type__: ClassVar[str] = "DEPENDS_ON"
-
-
-class ContainsEdge(EdgeModel):
-    __rel_type__: ClassVar[str] = "CONTAINS"
 
 
 Dependencies = Annotated[
     list[str],
     Field(default_factory=list),
     RelationshipMeta(
-        edge_model=DependsOnEdge,
-        direction=RelationDirection.OUT,
+        edge_model="DependsOnEdge",
         target_property="id",
-        target_model="FileModuleNode",
     ),
 ]
 
@@ -32,15 +21,16 @@ Contains = Annotated[
     list[str],
     Field(default_factory=list),
     RelationshipMeta(
-        edge_model=ContainsEdge,
-        direction=RelationDirection.OUT,
+        edge_model="ContainsEdge",
         target_property="id",
     ),
 ]
 
+class ModuleNode(NodeModel):
+    ...
+    
 
-class FileModuleNode(NodeModel):
-    __labels__: ClassVar[tuple[str, ...]] = ("Module", "File")
+class FileNode(ModuleNode):
 
     name: str
     fqn: str
@@ -48,8 +38,7 @@ class FileModuleNode(NodeModel):
     dependencies: Dependencies
 
 
-class PackageModuleNode(NodeModel):
-    __labels__: ClassVar[tuple[str, ...]] = ("Module", "Package")
+class PackageNode(ModuleNode):
 
     name: str
     fqn: str
@@ -58,4 +47,12 @@ class PackageModuleNode(NodeModel):
 
     dependencies: Dependencies
 
-ModuleNode = FileModuleNode | PackageModuleNode
+
+class DependsOnEdge(EdgeModel):
+    __source_model__: ClassVar[type[NodeModel]] = ModuleNode
+    __target_model__: ClassVar[type[NodeModel]] = FileNode
+    
+
+class ContainsEdge(EdgeModel):
+    __source_model__: ClassVar[type[NodeModel]] = PackageNode
+    __target_model__: ClassVar[type[NodeModel]] = ModuleNode
