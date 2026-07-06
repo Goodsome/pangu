@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import subprocess
 
 from typing import override
@@ -17,6 +18,9 @@ class AgentEngineScaffoldBuilder(ScaffoldBuilder):
         description: str,
     ) -> str:
         system_prompt_file = f"/Users/xxxx/Projects/pangu/contexts/spike/src/spike/infrastructure/adapters/prompts/scaffold/{scaffold_type}.md"
+        if not Path(system_prompt_file).exists():
+            raise NotImplementedError(f"{scaffold_type} not implemented")
+            
         args = [
             "agent-engine",
             "execute-session",
