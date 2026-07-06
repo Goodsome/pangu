@@ -22,10 +22,15 @@ env/
 Thumbs.db
 /backup/
 /target/
-/src/codegen.egg-info/
-/build/
-/dist/
-/project_context.txt
+
 
 logs/
 x.py
+
+# 包构建与元数据目录
+*.egg-info/
+.eggs/
+dist/
+build/
+src/*.egg-info/
+contexts/*/src/*.egg-info/

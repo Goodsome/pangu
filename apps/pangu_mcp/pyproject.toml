@@ -4,7 +4,8 @@ version = "0.1.0"
 description = ""
 requires-python = ">=3.14"
 dependencies = [
-    "architecture"
+    "fastmcp>=3.4.3",
+    "spike",
 ]
 
 [build-system]
@@ -20,6 +21,3 @@ venv = ".venv"
 include = ["src"]
 extraPaths = ["src"]
 reportUnusedCallResult = "none"
-
-[tool.uv.sources]
-architecture = { workspace = true }
