@@ -5,6 +5,8 @@ class ContextName(StrEnum):
     CODEGEN = auto()
     
     FOUNDATION = auto()
+
+    SPIKE = auto()
     
     ARCHITECTURE = auto()
     CODE_DOM = auto()
