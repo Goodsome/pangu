@@ -23,7 +23,7 @@ class AgentEngineScaffoldBuilder(ScaffoldBuilder):
             description,
             "--project", "pangu",
             "--context", context,
-            # "--system-prompt-file", system_prompt_file
+            "--system-prompt-file", system_prompt_file
         ]
         try:
             result = subprocess.run(
