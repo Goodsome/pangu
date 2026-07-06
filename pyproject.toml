@@ -55,8 +55,11 @@ reportUnusedCallResult = "none"
 members = ["contexts/*", "apps/*", "foundation"]
 
 [tool.uv.sources]
+
+spike = { workspace = true }
 architecture = { workspace = true }
 code_structure = { workspace = true }
 code_dom = { workspace = true }
-pangu_cli = { workspace = true }
 foundation = { workspace = true }
+pangu_cli = { workspace = true }
+pangu_mcp = { workspace = true }

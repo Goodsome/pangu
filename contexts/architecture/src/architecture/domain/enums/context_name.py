@@ -2,9 +2,13 @@ from enum import StrEnum, auto
 
 
 class ContextName(StrEnum):
+    CODEGEN = auto()
+    
+    FOUNDATION = auto()
+    
     ARCHITECTURE = auto()
     CODE_DOM = auto()
     CODE_STRUCTURE = auto()
-    CODEGEN = auto()
+    
     PANGU_CLI = auto()
-    FOUNDATION = auto()
+    PANGU_MCP = auto()
