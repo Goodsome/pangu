@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "pangu": {
+      "command": "uv",
+      "args": ["run", "pangu_mcp"],
+      "cwd": "/Users/xxxx/Projects/pangu"
+    }
+  }
+}
