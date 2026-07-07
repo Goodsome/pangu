@@ -4,6 +4,7 @@ import logging
 from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
 from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
+from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
 from foundation.building_blocks.event import IntegrationEvent
 
 logger = logging.getLogger("event_hub.registry")
@@ -49,4 +50,5 @@ class EventRegistry:
         registry.register(ModuleCreatedIntegrationEvent)
         registry.register(ModuleDeletedIntegrationEvent)
         registry.register(ModuleMovedIntegrationEvent)
+        registry.register(ClassMovedIntegrationEvent)
         return registry

@@ -19,6 +19,12 @@ from code_structure.application.commands.init_symbol_graph import (
     InitSymbolGraphCommand,
     InitSymbolGraphCommandHandler,
 )
+from code_structure.application.commands.move_class import (
+    MoveClassCommand,
+    MoveClassCommandHandler,
+)
+from code_structure.domain.events.class_moved import ClassMoved
+from code_structure.application.event_handlers.on_class_moved import OnClassMoved
 from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from code_structure.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
 
@@ -41,15 +47,24 @@ class Container(DeclarativeContainer):
         InitSymbolGraphCommandHandler,
         symbol_scanner=code_dom_scanner,
     )
+    move_class_handler: Factory[MoveClassCommandHandler] = Factory(MoveClassCommandHandler)
+    on_class_moved_handler: Factory[OnClassMoved] = Factory(OnClassMoved)
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
         uow=unit_of_work,
         command_handlers=Dict(
             {
                 InitSymbolGraphCommand: init_symbol_graph_handler.provided.execute,
+                MoveClassCommand: move_class_handler.provided.execute,
             }
         ),
-        event_handlers=Dict(),
+        event_handlers=Dict(
+            {
+                ClassMoved: List(
+                    on_class_moved_handler.provided.to_integration,
+                ),
+            }
+        ),
     )
     event_registry: Singleton[EventRegistry] = Singleton(EventRegistry.init)
     redis_subscriber: Singleton[RedisStreamSubscriber] = Singleton(
