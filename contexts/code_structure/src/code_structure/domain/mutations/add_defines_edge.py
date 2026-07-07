@@ -11,3 +11,8 @@ class AddModuleDefinesEdge(Mutation):
 class AddClassDefinesEdge(Mutation):
     source_id: ClassId
     target_id: AttributeId | MethodId
+
+
+class RemoveModuleDefinesEdge(Mutation):
+    source_id: ModuleId
+    target_id: ClassId | FunctionId | VariableId

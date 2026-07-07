@@ -4,7 +4,7 @@ from foundation.common_types.identities.module_id import ModuleId
 from pydantic import PrivateAttr
 
 from code_structure.domain.identities.symbol_ids import ClassId, FunctionId, VariableId
-from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge
+from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge
 
 
 class FileModule(AggregateRoot[ModuleId]):
@@ -21,7 +21,8 @@ class FileModule(AggregateRoot[ModuleId]):
 
     def undefine_class(self, class_id: ClassId) -> None:
         """Remove class definition from module."""
-        ...
+        self._classes.discard(class_id)
+        self.add_mutation(RemoveModuleDefinesEdge(source_id=self.id, target_id=class_id))
 
     def define_function(self, function_id: FunctionId) -> None:
         self._functions.add(function_id)

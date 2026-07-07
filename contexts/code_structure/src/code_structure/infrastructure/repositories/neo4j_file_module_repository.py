@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import override
 from code_structure.domain.aggregates.file_module import FileModule
-from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge
+from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge
+from foundation.common_types.fqns.fqn import ModuleFqn
 from code_structure.domain.repositories.file_module_repository import FileModuleRepository
 from code_structure.infrastructure.mappers.file_module_node_to_file_module import file_module_node_to_file_module
 from code_structure.infrastructure.orm_models.edges import FileDefinesEdge
@@ -42,6 +43,14 @@ class Neo4jFileModuleRepository(FileModuleRepository):
         file_module = file_module_node_to_file_module(file_module_node)
         return file_module
 
+    @override
+    def get_by_fqn(self, fqn: ModuleFqn) -> FileModule:
+        nodes = self.session.find(FileNode, fqn=str(fqn))
+        if not nodes:
+            raise ValueError(f"Module with fqn {fqn} not found")
+        file_module = file_module_node_to_file_module(nodes[0])
+        self._seens.add(file_module)
+        return file_module
 
     @override
     def _delete(self, aggregate: FileModule) -> None:
@@ -62,6 +71,12 @@ class Neo4jFileModuleRepository(FileModuleRepository):
                         target_ref=str(mutation.target_id),
                     )
                     self.session.save_edge(edge)
+                case RemoveModuleDefinesEdge():
+                    edge = FileDefinesEdge(
+                        source_ref=str(mutation.source_id),
+                        target_ref=str(mutation.target_id),
+                    )
+                    self.session.delete_edge(edge)
                 case _:
                     raise NotImplementedError
         
