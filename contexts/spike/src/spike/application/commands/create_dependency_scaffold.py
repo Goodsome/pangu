@@ -2,15 +2,12 @@ from dataclasses import dataclass
 
 from foundation.building_blocks.command import Command
 from pydantic import BaseModel, Field
-from spike.domain.enums.context_name import ContextName
-from spike.domain.enums.scaffold_type import ScaffoldType
 from spike.domain.ports.scaffold_builder import ScaffoldBuilder
+from spike.domain.value_objects.scaffold_payload import ScaffoldPayload
 
 
 class CreateDependencyScaffoldCommand(Command):
-    scaffold_type: ScaffoldType = Field(description="The type of scaffold")
-    context: ContextName = Field(description="The context in which to create the dependency scaffold")
-    description: str = Field(description="The description of the dependency")
+    scaffold_payload: ScaffoldPayload = Field(description="The payload for the scaffold")
 
 
 class CreateDependencyScaffoldResult(BaseModel):
@@ -26,8 +23,6 @@ class CreateDependencyScaffoldCommandHandler:
         self, cmd: CreateDependencyScaffoldCommand
     ) -> CreateDependencyScaffoldResult:
         result = await self.scaffold_builder.build(
-            scaffold_type=cmd.scaffold_type,
-            context=cmd.context,
-            description=cmd.description,
+            scaffold_payload=cmd.scaffold_payload,
         )
         return CreateDependencyScaffoldResult(result=result)

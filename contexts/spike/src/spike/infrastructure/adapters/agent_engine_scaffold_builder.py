@@ -3,9 +3,8 @@ from pathlib import Path
 import subprocess
 
 from typing import override
-from spike.domain.enums.context_name import ContextName
-from spike.domain.enums.scaffold_type import ScaffoldType
 from spike.domain.ports.scaffold_builder import ScaffoldBuilder
+from spike.domain.value_objects.scaffold_payload import ScaffoldPayload
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +12,12 @@ class AgentEngineScaffoldBuilder(ScaffoldBuilder):
     
     @override
     async def build(self,
-        scaffold_type: ScaffoldType,
-        context: ContextName,
-        description: str,
+        scaffold_payload: ScaffoldPayload,
     ) -> str:
+        scaffold_type = scaffold_payload.type
+        prompt = scaffold_payload.prompt
+        context = scaffold_payload.context
+        
         system_prompt_file = f"/Users/xxxx/Projects/pangu/contexts/spike/src/spike/infrastructure/adapters/prompts/scaffold/{scaffold_type}.md"
         if not Path(system_prompt_file).exists():
             raise NotImplementedError(f"{scaffold_type} not implemented")
@@ -24,10 +25,11 @@ class AgentEngineScaffoldBuilder(ScaffoldBuilder):
         args = [
             "agent-engine",
             "execute-session",
-            description,
+            prompt,
             "--project", "pangu",
             "--context", context,
-            "--system-prompt-file", system_prompt_file
+            "--system-prompt-file", system_prompt_file,
+            "--context-payload", scaffold_payload.model_dump_json()
         ]
         try:
             result = subprocess.run(

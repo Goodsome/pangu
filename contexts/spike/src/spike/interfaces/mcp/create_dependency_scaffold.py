@@ -5,6 +5,7 @@ from spike.application.commands.create_dependency_scaffold import (
     CreateDependencyScaffoldCommandHandler,
     CreateDependencyScaffoldResult,
 )
+from spike.domain.value_objects.scaffold_payload import ScaffoldPayload
 
 
 @inject
@@ -18,6 +19,7 @@ async def _create_dependency_scaffold(
 
 
 async def create_dependency_scaffold(
-    cmd: CreateDependencyScaffoldCommand,
+    payload: ScaffoldPayload,
 ) -> CreateDependencyScaffoldResult:
+    cmd = CreateDependencyScaffoldCommand(scaffold_payload=payload)
     return await _create_dependency_scaffold(cmd)
