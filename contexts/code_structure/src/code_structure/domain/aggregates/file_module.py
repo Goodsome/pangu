@@ -19,6 +19,10 @@ class FileModule(AggregateRoot[ModuleId]):
         self._classes.add(class_id)
         self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=class_id))
 
+    def undefine_class(self, class_id: ClassId) -> None:
+        """Remove class definition from module."""
+        ...
+
     def define_function(self, function_id: FunctionId) -> None:
         self._functions.add(function_id)
         self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=function_id))

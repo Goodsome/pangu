@@ -1,5 +1,5 @@
 from foundation.building_blocks.aggregate_root import AggregateRoot
-from foundation.common_types.fqns.fqn import ClassFqn
+from foundation.common_types.fqns.fqn import ClassFqn, ModuleFqn
 from pydantic import Field
 
 from code_structure.domain.entities.attribute_symbol import AttributeSymbol
@@ -24,3 +24,7 @@ class ClassSymbol(AggregateRoot[ClassId]):
         self.add_mutation(
             AddClassDefinesEdge(source_id=self.id, target_id=attribute.id)
         )
+
+    def move(self, target_module_fqn: ModuleFqn) -> None:
+        """Move class and its inner methods/attributes to target module"""
+        ...

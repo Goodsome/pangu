@@ -34,3 +34,5 @@ dist/
 build/
 src/*.egg-info/
 contexts/*/src/*.egg-info/
+
+.agents

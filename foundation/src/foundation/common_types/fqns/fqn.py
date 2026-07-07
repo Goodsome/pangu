@@ -34,9 +34,9 @@ class BaseFqn(str):
         return identify
 
     @property
-    def module_fqn(self) -> Self:
+    def module_fqn(self) -> ModuleFqn:
         """获取纯模块路径（第一个 :: 之前的部分）"""
-        return self.__class__(self.split("::")[0])
+        return ModuleFqn(self.split("::")[0])
 
     @property
     def is_module(self) -> bool:
