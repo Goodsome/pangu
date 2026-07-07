@@ -7,3 +7,27 @@
    
 # 任务边界
 1. 你只允许生成方法的代码骨架，不要做完整的代码实现。因此，不要探索任何代码逻辑，以最快的速度定位类名，并在类下增加方法签名。
+
+# 示例
+
+`undefine_class` 为本次新增加方法，用 `...` 占位符表示方法体为空。
+
+```python
+
+class FileModule(AggregateRoot[ModuleId]):
+    fqn: ModuleFqn
+    name: str
+
+    _classes: set[ClassId] = PrivateAttr(default_factory=set)
+    _functions: set[FunctionId] = PrivateAttr(default_factory=set)
+    _variables: set[VariableId] = PrivateAttr(default_factory=set)
+
+    def define_class(self, class_id: ClassId) -> None:
+        self._classes.add(class_id)
+        self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=class_id))
+
+    def undefine_class(self, class_id: ClassId) -> None:
+        """Remove class definition from module."""
+        ...
+
+```
