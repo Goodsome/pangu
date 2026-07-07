@@ -19,4 +19,3 @@ class OnModuleCreated:
             is_package=event.is_package,
         )
         uow.save_outbox_message(ie)
-        yield from []

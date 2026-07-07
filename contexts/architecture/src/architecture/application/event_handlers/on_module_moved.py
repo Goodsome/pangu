@@ -21,8 +21,6 @@ class OnModuleMoved:
             ],
         )
         uow.save_outbox_message(ie)
-        yield from []
 
     def update_fqn_prefix(self, event: ModuleMoved, uow: UnitOfWork):
         uow.repository.update_fqn_prefix(event.old_fqn, event.new_fqn)
-        yield from []

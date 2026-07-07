@@ -16,4 +16,3 @@ class OnModuleDeleted:
             self.file_system.delete_directory(event.module_path)
         else:
             self.file_system.delete_file(event.module_path)
-        yield from []

@@ -14,4 +14,3 @@ class OnModuleCreated:
     def create_file(self, event: ModuleCreatedIntegrationEvent, uow: UnitOfWork):
         if not self.file_system.exists(event.module_path):
             self.file_system.write_file(event.module_path, content="")
-        yield from []
