@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import override
-from foundation.common_types.fqns.fqn import ClassFqn
+from typing import cast, override
+from foundation.common_types.fqns.fqn import ClassFqn, ModuleFqn
 from code_structure.domain.aggregates.class_symbol import ClassSymbol
 from code_structure.domain.mutations.add_defines_edge import (
     AddClassDefinesEdge,
@@ -78,6 +78,18 @@ class Neo4jClassRepository(ClassRepository):
     @override
     def _delete(self, aggregate: ClassSymbol) -> None:
         self.session.delete_node(node_id=str(aggregate.id))
+
+    @override
+    def find_affected_callers(self, class_id: ClassId) -> list[ModuleFqn]:
+        query = (
+            "MATCH (f:File)-[:DEFINES]->(s:Symbol)-[:REFERENCES]->(c:Class {id: $class_id}) "
+            "RETURN DISTINCT f.fqn AS fqn"
+        )
+        records = self.session.execute(
+            query,
+            class_id=str(class_id),
+        )
+        return [ModuleFqn(cast(str, record["fqn"])) for record in records]
 
     def _handle_mutations(self, mutations: list[Mutation]) -> None:
         for mutation in mutations:

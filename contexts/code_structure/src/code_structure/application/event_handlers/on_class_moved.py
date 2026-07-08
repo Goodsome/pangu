@@ -17,11 +17,18 @@ class OnClassMoved:
             event.new_fqn.module_fqn, is_package=False
         )
 
+        affected_modules = uow.classes.find_affected_callers(event.class_id)
+        affected_callers = [
+            FqnService.build_path(m, is_package=False)
+            for m in affected_modules
+        ]
+
         ie = ClassMovedIntegrationEvent(
             class_name=class_name,
             current_module_path=current_module_path,
             target_module_path=target_module_path,
             current_module_fqn=str(event.old_fqn),
             target_module_fqn=str(event.new_fqn),
+            affected_callers=affected_callers,
         )
         uow.save_outbox_message(ie)

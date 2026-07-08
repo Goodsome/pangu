@@ -10,3 +10,4 @@ class ClassMovedIntegrationEvent(IntegrationEvent):
     target_module_path: Path
     current_module_fqn: str
     target_module_fqn: str
+    affected_callers: list[Path]
