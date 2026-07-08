@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from architecture.domain.services.context_registry import ContextRegistry
 from foundation.common_types.fqns.fqn import ModuleFqn
-from architecture.domain.enums.context_name import ContextName
+from foundation.common_types.context_name import ContextName
 from architecture.domain.value_objects.parsed_module import ParsedModule
 
 

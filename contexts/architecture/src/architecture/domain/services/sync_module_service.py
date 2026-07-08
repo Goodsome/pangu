@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from architecture.domain.aggregates.module import Module
-from architecture.domain.enums.context_name import ContextName
+from foundation.common_types.context_name import ContextName
 from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.services.module_registry import ModuleRegistry
 from architecture.domain.value_objects.parsed_module import ParsedModule
@@ -20,7 +20,6 @@ class SyncModuleService:
                 self.module_registry.delete_by_fqn(fqn)
             else:
                 module = self.module_registry.ensure_module(fqn, is_package)
-                
         for parsed_module in parsed_modules:
             if parsed_module.is_deleted:
                 continue

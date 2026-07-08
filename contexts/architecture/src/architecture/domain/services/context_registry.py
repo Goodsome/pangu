@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
-from architecture.domain.enums.context_name import ContextName
+from foundation.common_types.context_name import ContextName
 from architecture.domain.enums.context_path_prefix import ContextPathPrefix
+
 
 @dataclass
 class ContextRegistry:
-
     @staticmethod
     def get_context_root_path(context_name: ContextName) -> Path:
         return Path(ContextPathPrefix[context_name.name])
@@ -15,11 +15,11 @@ class ContextRegistry:
         for path_prefix in ContextPathPrefix:
             if path.is_relative_to(Path(path_prefix)):
                 return ContextName[path_prefix.name]
-        raise ValueError(f'Path {path} does not belong to any supported context')
+        raise ValueError(f"Path {path} does not belong to any supported context")
 
     @staticmethod
     def get_relative_path(path: Path) -> Path:
         for path_prefix in ContextPathPrefix:
             if path.is_relative_to(Path(path_prefix)):
                 return path.relative_to(Path(path_prefix))
-        raise ValueError(f'Path {path} does not belong to any supported context')
+        raise ValueError(f"Path {path} does not belong to any supported context")

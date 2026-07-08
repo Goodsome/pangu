@@ -7,7 +7,7 @@ from architecture.domain.services.context_registry import ContextRegistry
 from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_edge import ParsedEdge
 from architecture.domain.value_objects.parsed_module import ParsedModule
-from architecture.domain.enums.context_name import ContextName
+from foundation.common_types.context_name import ContextName
 from architecture.domain.enums.edge_kind import EdgeKind
 
 
