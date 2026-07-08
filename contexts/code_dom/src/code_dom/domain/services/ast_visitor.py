@@ -43,6 +43,7 @@ from codegen.code_metadata.domain.value_objects.ast_list_comp import AstListComp
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_named_expr import AstNamedExpr
 from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_raise import AstRaise
 from codegen.code_metadata.domain.value_objects.ast_return import AstReturn
@@ -175,6 +176,8 @@ class AstVisitor:
                 self.visit_ast_yield_from(node)
             case AstAwait():
                 self.visit_ast_await(node)
+            case AstNamedExpr():
+                self.visit_ast_named_expr(node)
             case AstKeyword():
                 self.visit_ast_keyword(node)
             case AstArguments():
@@ -402,6 +405,10 @@ class AstVisitor:
         self.visit(node.value)
 
     def visit_ast_await(self, node: AstAwait):
+        self.visit(node.value)
+
+    def visit_ast_named_expr(self, node: AstNamedExpr):
+        self.visit(node.target)
         self.visit(node.value)
 
     def visit_ast_keyword(self, node: AstKeyword):
