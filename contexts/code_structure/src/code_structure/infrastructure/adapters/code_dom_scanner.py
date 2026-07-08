@@ -27,12 +27,13 @@ class CodeDomScanner(SymbolScanner):
             GetFileDocumentQuery(file_path=file_path)
         )
         code_document = result.code_document
-        visitor = ModuleVistior()
+        visitor = ModuleVistior(module_fqn=module_fqn)
         visitor.visit(code_document.body)
         return ParsedFileModule(
             fqn=module_fqn,
             classes=visitor.classes,
             functions=visitor.functions,
             variables=visitor.variables,
+            imports=visitor.imports,
         )
 

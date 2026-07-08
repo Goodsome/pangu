@@ -57,6 +57,8 @@ class SymbolGraphBuilder:
             self.build_function_symbol(parsed_function, file_module)
         for parsed_variable in parsed_file_module.variables:
             self.build_variable_symbol(parsed_variable, file_module)
+        for parsed_import in parsed_file_module.imports:
+            file_module.imports(parsed_import.target_fqn, alias=parsed_import.alias)
 
     def build_class_symbol(
         self,

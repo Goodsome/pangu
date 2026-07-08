@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import override
 from code_structure.domain.aggregates.file_module import FileModule
-from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge
+from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge, AddModuleImportsEdge
 from foundation.common_types.fqns.fqn import ModuleFqn
 from code_structure.domain.repositories.file_module_repository import FileModuleRepository
 from code_structure.infrastructure.mappers.file_module_node_to_file_module import file_module_node_to_file_module
-from code_structure.infrastructure.orm_models.edges import FileDefinesEdge
+from code_structure.infrastructure.orm_models.edges import FileDefinesEdge, ImportsEdge
 from code_structure.infrastructure.orm_models.file_module_node import FileNode
 from foundation.building_blocks.mutation_collector import Mutation
 from foundation.common_types.identities.module_id import ModuleId
@@ -77,6 +77,13 @@ class Neo4jFileModuleRepository(FileModuleRepository):
                         target_ref=str(mutation.target_id),
                     )
                     self.session.delete_edge(edge)
+                case AddModuleImportsEdge():
+                    edge = ImportsEdge(
+                        source_ref=str(mutation.source_fqn),
+                        target_ref=str(mutation.target_fqn),
+                        alias=mutation.alias,
+                    )
+                    self.session.save_edge(edge)
                 case _:
                     raise NotImplementedError
         

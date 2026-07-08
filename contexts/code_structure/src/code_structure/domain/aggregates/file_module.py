@@ -1,10 +1,10 @@
 from foundation.building_blocks.aggregate_root import AggregateRoot
-from foundation.common_types.fqns.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
 from foundation.common_types.identities.module_id import ModuleId
 from pydantic import PrivateAttr
 
 from code_structure.domain.identities.symbol_ids import ClassId, FunctionId, VariableId
-from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge
+from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge, AddModuleImportsEdge
 
 
 class FileModule(AggregateRoot[ModuleId]):
@@ -23,6 +23,19 @@ class FileModule(AggregateRoot[ModuleId]):
         """Remove class definition from module."""
         self._classes.discard(class_id)
         self.add_mutation(RemoveModuleDefinesEdge(source_id=self.id, target_id=class_id))
+
+    def imports(
+        self,
+        target_fqn: SymbolFqn,
+        alias: str | None = None,
+    ) -> None:
+        self.add_mutation(
+            AddModuleImportsEdge(
+                source_fqn=self.fqn,
+                target_fqn=target_fqn,
+                alias=alias,
+            )
+        )
 
     def define_function(self, function_id: FunctionId) -> None:
         self._functions.add(function_id)

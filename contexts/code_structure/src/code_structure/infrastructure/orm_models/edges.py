@@ -5,6 +5,15 @@ from code_structure.infrastructure.orm_models.symbol_node import SymbolNode
 from foundation.persistence.orm.neo4j_base import EdgeModel, NodeModel
 
 
+class ImportsEdge(EdgeModel):
+    __source_key__: ClassVar[str] = "fqn"
+    __target_key__: ClassVar[str] = "fqn"
+    __source_model__: ClassVar[type[NodeModel]] = FileNode
+    __target_model__: ClassVar[type[NodeModel]] = SymbolNode
+
+    alias: str | None = None
+
+
 class ReferencesEdge(EdgeModel):
     __source_key__: ClassVar[str] = "fqn"
     __target_key__: ClassVar[str] = "fqn"
@@ -18,6 +27,7 @@ class FileDefinesEdge(EdgeModel):
     __target_key__: ClassVar[str] = "id"
     __source_model__: ClassVar[type[NodeModel]] = FileNode
     __target_model__: ClassVar[type[NodeModel]] = SymbolNode
+
 
 class ClassDefinesEdge(EdgeModel):
     __rel_type__: ClassVar[str] = "DEFINES"

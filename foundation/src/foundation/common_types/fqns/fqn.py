@@ -95,9 +95,8 @@ _NAME_REGEX = r"[a-zA-Z_]\w*"
 
 _MODULE_REGEX = rf"{_NAME_REGEX}(?:\.{_NAME_REGEX})*"
 
+_SYMBOL_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
 _CLASS_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
-_FUNCTION_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
-_VARIABLE_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
 
 _METHOD_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
 _ATTRIBUTE_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
@@ -114,21 +113,22 @@ class ModuleFqn(BaseFqn):
             raise ValueError(f"Level {level} is out of range for FQN: {self!r}")
         return self.__class__(".".join(parts[:-level]))
 
+class SymbolFqn(BaseFqn):
 
-class ClassFqn(BaseFqn):
-
-    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_CLASS_REGEX}$")
-
-
-class FunctionFqn(BaseFqn):
-
-    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_FUNCTION_REGEX}$")
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_SYMBOL_REGEX}$")
 
 
-class VariableFqn(BaseFqn):
+class ClassFqn(SymbolFqn):
+    ...
 
-    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_VARIABLE_REGEX}$")
-    
+
+class FunctionFqn(SymbolFqn):
+    ...
+
+
+class VariableFqn(SymbolFqn):
+    ...
+
 
 class MethodFqn(BaseFqn):
 
