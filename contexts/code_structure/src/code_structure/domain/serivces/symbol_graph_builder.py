@@ -152,7 +152,7 @@ class SymbolGraphBuilder:
         class_symbol.define_attribute(attribute_symbol)
 
         for ref_fqn in parsed_variable.references:
-            class_symbol.references(attribute_fqn, ref_fqn)
+            class_symbol.references(ref_fqn)
 
     def build_method_symbol(
         self,
@@ -168,4 +168,4 @@ class SymbolGraphBuilder:
         class_symbol.define_method(method_symbol)
 
         for ref_fqn in parsed_function.references:
-            class_symbol.references(method_fqn, ref_fqn)
+            class_symbol.references(ref_fqn)

@@ -5,7 +5,6 @@ from foundation.common_types.fqns.fqn import (
     MethodFqn,
     AttributeFqn,
     SymbolFqn,
-    BaseFqn,
 )
 from pydantic import Field
 
@@ -52,9 +51,9 @@ class ClassSymbol(AggregateRoot[ClassId]):
             )
         )
 
-    def references(self, source_fqn: BaseFqn, target_fqn: SymbolFqn) -> None:
+    def references(self, target_fqn: SymbolFqn) -> None:
         self.add_mutation(
             AddReferencesEdge(
-                source_fqn=source_fqn, target_fqn=target_fqn
+                source_fqn=self.fqn, target_fqn=target_fqn
             )
         )
