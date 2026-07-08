@@ -104,6 +104,7 @@ class Neo4jClassRepository(ClassRepository):
                     edge = ReferencesEdge(
                         source_ref=str(mutation.source_fqn),
                         target_ref=str(mutation.target_fqn),
+                        alias=mutation.alias,
                     )
                     self.session.save_edge(edge)
                 case _:

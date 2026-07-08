@@ -34,3 +34,4 @@ class AddModuleImportsEdge(Mutation):
 class AddReferencesEdge(Mutation):
     source_fqn: SymbolFqn
     target_fqn: SymbolFqn
+    alias: str | None = None

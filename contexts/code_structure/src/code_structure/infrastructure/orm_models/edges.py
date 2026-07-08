@@ -20,6 +20,8 @@ class ReferencesEdge(EdgeModel):
     __source_model__: ClassVar[type[NodeModel]] = SymbolNode
     __target_model__: ClassVar[type[NodeModel]] = SymbolNode
 
+    alias: str | None = None
+
 
 class FileDefinesEdge(EdgeModel):
     __rel_type__: ClassVar[str] = "DEFINES"

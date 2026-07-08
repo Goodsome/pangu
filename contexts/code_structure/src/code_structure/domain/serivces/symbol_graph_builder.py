@@ -118,8 +118,8 @@ class SymbolGraphBuilder:
         self.function_registry.register(function_symbol)
         file_module.define_function(function_symbol.id)
 
-        for ref_fqn in parsed_function.references:
-            function_symbol.references(ref_fqn)
+        for ref in parsed_function.references:
+            function_symbol.references(ref.target_fqn, alias=ref.alias)
 
     def build_variable_symbol(
         self,
@@ -135,8 +135,8 @@ class SymbolGraphBuilder:
         self.variable_registry.register(variable_symbol)
         file_module.define_variable(variable_symbol.id)
 
-        for ref_fqn in parsed_variable.references:
-            variable_symbol.references(ref_fqn)
+        for ref in parsed_variable.references:
+            variable_symbol.references(ref.target_fqn, alias=ref.alias)
 
     def build_attribute_symbol(
         self,
@@ -151,8 +151,8 @@ class SymbolGraphBuilder:
         )
         class_symbol.define_attribute(attribute_symbol)
 
-        for ref_fqn in parsed_variable.references:
-            class_symbol.references(ref_fqn)
+        for ref in parsed_variable.references:
+            class_symbol.references(ref.target_fqn, alias=ref.alias)
 
     def build_method_symbol(
         self,
@@ -167,5 +167,5 @@ class SymbolGraphBuilder:
         )
         class_symbol.define_method(method_symbol)
 
-        for ref_fqn in parsed_function.references:
-            class_symbol.references(ref_fqn)
+        for ref in parsed_function.references:
+            class_symbol.references(ref.target_fqn, alias=ref.alias)

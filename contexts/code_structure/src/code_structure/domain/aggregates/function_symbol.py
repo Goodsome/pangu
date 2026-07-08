@@ -8,9 +8,9 @@ class FunctionSymbol(AggregateRoot[FunctionId]):
     name: str
     fqn: FunctionFqn
 
-    def references(self, target_fqn: SymbolFqn) -> None:
+    def references(self, target_fqn: SymbolFqn, alias: str | None = None) -> None:
         self.add_mutation(
             AddReferencesEdge(
-                source_fqn=self.fqn, target_fqn=target_fqn
+                source_fqn=self.fqn, target_fqn=target_fqn, alias=alias
             )
         )
