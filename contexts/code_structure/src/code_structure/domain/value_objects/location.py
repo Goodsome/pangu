@@ -6,4 +6,3 @@ class Location(ValueObject):
     start_column: int
     end_line: int
     end_column: int
-    

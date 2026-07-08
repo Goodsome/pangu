@@ -6,7 +6,6 @@ from foundation.persistence.ports.repository import Repository
 
 
 class FileModuleRepository(Repository[FileModule, ModuleId], ABC):
-
     @abstractmethod
     def get_all_modules(self) -> list[FileModule]: ...
 

@@ -6,11 +6,13 @@ from code_structure.domain.serivces.file_module_registry import FileModuleRegist
 from code_structure.domain.serivces.function_symbol_registry import FunctionRegistry
 from code_structure.domain.serivces.symbol_graph_builder import SymbolGraphBuilder
 from code_structure.domain.serivces.variable_symbol_registry import VariableRegistry
+from code_structure.domain.serivces.external_symbol_registry import (
+    ExternalSymbolRegistry,
+)
 from foundation.building_blocks.command import Command
 
 
-class InitSymbolGraphCommand(Command):
-    ...
+class InitSymbolGraphCommand(Command): ...
 
 
 @dataclass
@@ -18,6 +20,7 @@ class InitSymbolGraphCommandHandler:
     symbol_scanner: SymbolScanner
 
     def execute(self, cmd: InitSymbolGraphCommand, uow: UnitOfWork) -> None:
+        _ = cmd
         uow.graph_admin.purge_data()
         file_modules = uow.file_modules.get_all_modules()
         module_fqns = [module.fqn for module in file_modules]
@@ -25,19 +28,23 @@ class InitSymbolGraphCommandHandler:
         class_registry = ClassRegistry()
         function_registry = FunctionRegistry()
         variable_registry = VariableRegistry()
+        external_symbol_registry = ExternalSymbolRegistry()
         file_module_registry = FileModuleRegistry.init(file_modules)
         symbol_graph_builder = SymbolGraphBuilder(
             file_module_registry=file_module_registry,
             class_registry=class_registry,
             function_registry=function_registry,
             variable_registry=variable_registry,
+            external_symbol_registry=external_symbol_registry,
         )
         symbol_graph_builder.build_from_parsed_file_modules(parsed_file_modules)
         dirty_file_modules = list(file_module_registry.dirty_file_modules)
         dirty_class_symbols = list(class_registry.dirty_classes)
         dirty_function_symbols = list(function_registry.dirty_functions)
         dirty_variable_symbols = list(variable_registry.dirty_variables)
+        dirty_external_symbols = list(external_symbol_registry.dirty_external_symbols)
         uow.file_modules.save_all(dirty_file_modules)
         uow.classes.add_all(dirty_class_symbols)
         uow.functions.add_all(dirty_function_symbols)
         uow.variables.add_all(dirty_variable_symbols)
+        uow.external_symbols.add_all(dirty_external_symbols)

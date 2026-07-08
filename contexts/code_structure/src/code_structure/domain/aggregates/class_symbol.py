@@ -1,5 +1,10 @@
 from foundation.building_blocks.aggregate_root import AggregateRoot
-from foundation.common_types.fqns.fqn import ClassFqn, ModuleFqn, MethodFqn, AttributeFqn
+from foundation.common_types.fqns.fqn import (
+    ClassFqn,
+    ModuleFqn,
+    MethodFqn,
+    AttributeFqn,
+)
 from pydantic import Field
 
 from code_structure.domain.entities.attribute_symbol import AttributeSymbol

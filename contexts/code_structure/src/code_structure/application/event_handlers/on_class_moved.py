@@ -10,9 +10,13 @@ from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
 class OnClassMoved:
     def to_integration(self, event: ClassMoved, uow: UnitOfWork) -> None:
         class_name = event.new_fqn.symbol
-        current_module_path = FqnService.build_path(event.old_fqn.module_fqn, is_package=False)
-        target_module_path = FqnService.build_path(event.new_fqn.module_fqn, is_package=False)
-        
+        current_module_path = FqnService.build_path(
+            event.old_fqn.module_fqn, is_package=False
+        )
+        target_module_path = FqnService.build_path(
+            event.new_fqn.module_fqn, is_package=False
+        )
+
         ie = ClassMovedIntegrationEvent(
             class_name=class_name,
             current_module_path=current_module_path,

@@ -5,10 +5,5 @@ from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 class SymbolScanner(ABC):
-
     @abstractmethod
-    def scan(self, module_fqns: list[ModuleFqn]) -> list[ParsedFileModule]:
-        ...
-        
-
-    
+    def scan(self, module_fqns: list[ModuleFqn]) -> list[ParsedFileModule]: ...

@@ -4,5 +4,4 @@ from code_structure.domain.identities.symbol_ids import FunctionId
 from foundation.persistence.ports.repository import Repository
 
 
-class FunctionRepository(Repository[FunctionSymbol, FunctionId], ABC):
-    ...
+class FunctionRepository(Repository[FunctionSymbol, FunctionId], ABC): ...

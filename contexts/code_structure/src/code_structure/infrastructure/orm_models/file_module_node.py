@@ -12,7 +12,7 @@ _Classes = Annotated[
         edge_model="FileDefinesEdge",
         target_property="id",
         target_model=ClassNode,
-    )
+    ),
 ]
 
 _Functions = Annotated[
@@ -21,7 +21,7 @@ _Functions = Annotated[
         edge_model="FileDefinesEdge",
         target_property="id",
         target_model=FunctionNode,
-    )
+    ),
 ]
 
 _Variables = Annotated[
@@ -31,12 +31,11 @@ _Variables = Annotated[
         edge_model="FileDefinesEdge",
         target_property="id",
         target_model=VariableNode,
-    )
+    ),
 ]
 
 
 class FileNode(ModuleNode):
-    
     name: str
     fqn: str
 

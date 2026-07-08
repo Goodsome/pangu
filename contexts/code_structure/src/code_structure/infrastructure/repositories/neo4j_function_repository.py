@@ -2,8 +2,12 @@ from dataclasses import dataclass
 from typing import override
 from code_structure.domain.aggregates.function_symbol import FunctionSymbol
 from code_structure.domain.repositories.function_repository import FunctionRepository
-from code_structure.infrastructure.mappers.function_node_to_function_symbol import function_node_to_function_symbol
-from code_structure.infrastructure.mappers.function_symbol_to_function_node import function_symbol_to_function_node
+from code_structure.infrastructure.mappers.function_node_to_function_symbol import (
+    function_node_to_function_symbol,
+)
+from code_structure.infrastructure.mappers.function_symbol_to_function_node import (
+    function_symbol_to_function_node,
+)
 from code_structure.infrastructure.orm_models.function_node import FunctionNode
 from code_structure.domain.identities.symbol_ids import FunctionId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
@@ -11,7 +15,6 @@ from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
 @dataclass
 class Neo4jFunctionRepository(FunctionRepository):
-
     session: Neo4jSession
 
     @override

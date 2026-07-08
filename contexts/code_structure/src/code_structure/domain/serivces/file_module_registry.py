@@ -7,7 +7,6 @@ from foundation.common_types.identities.module_id import ModuleId
 
 @dataclass
 class FileModuleRegistry:
-
     _store_by_fqn: dict[ModuleFqn, FileModule] = field(init=False)
     _store_by_id: dict[ModuleId, FileModule] = field(init=False)
     dirty_file_modules: set[FileModule] = field(init=False)
@@ -16,7 +15,7 @@ class FileModuleRegistry:
         self._store_by_fqn = {}
         self._store_by_id = {}
         self.dirty_file_modules = set()
-    
+
     @classmethod
     def init(cls, file_modules: list[FileModule]) -> FileModuleRegistry:
         registry = cls()
@@ -30,6 +29,6 @@ class FileModuleRegistry:
         if module is None:
             raise ValueError(f"Module with FQN {fqn} not found")
         return module
-        
+
     def mark_dirty(self, file_module: FileModule):
         self.dirty_file_modules.add(file_module)

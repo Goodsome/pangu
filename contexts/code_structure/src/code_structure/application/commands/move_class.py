@@ -9,6 +9,7 @@ class MoveClassCommand(Command):
     """
     MoveClass 命令
     """
+
     class_fqn: ClassFqn
     module_fqn: ModuleFqn
 

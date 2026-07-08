@@ -6,15 +6,26 @@ from code_structure.domain.value_objects.parsed_class import ParsedClass
 from code_structure.domain.value_objects.parsed_function import ParsedFunction
 from code_structure.domain.value_objects.parsed_import import ParsedImport
 from code_structure.domain.value_objects.parsed_variable import ParsedVariable
-from code_structure.infrastructure.mappers.ast_ann_assign_to_parsed_variable import ast_ann_assign_to_parsed_variable
-from code_structure.infrastructure.mappers.ast_assgin_to_parsed_variable import ast_assign_to_parsed_variable
-from code_structure.infrastructure.mappers.ast_class_def_to_parsed_class import ast_class_def_to_parsed_class
-from code_structure.infrastructure.mappers.ast_function_def_to_parsed_function import ast_function_def_to_parsed_function
+from code_structure.infrastructure.mappers.ast_ann_assign_to_parsed_variable import (
+    ast_ann_assign_to_parsed_variable,
+)
+from code_structure.infrastructure.mappers.ast_assgin_to_parsed_variable import (
+    ast_assign_to_parsed_variable,
+)
+from code_structure.infrastructure.mappers.ast_class_def_to_parsed_class import (
+    ast_class_def_to_parsed_class,
+)
+from code_structure.infrastructure.mappers.ast_function_def_to_parsed_function import (
+    ast_function_def_to_parsed_function,
+)
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef, AstFunctionDef
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
+    AstClassDef,
+    AstFunctionDef,
+)
 from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
 
 

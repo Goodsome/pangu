@@ -2,12 +2,11 @@ from dataclasses import dataclass, field
 
 from code_structure.domain.aggregates.function_symbol import FunctionSymbol
 from code_structure.domain.identities.symbol_ids import FunctionId
-from foundation.common_types.fqns.fqn import FunctionFqn
+from foundation.common_types.fqns.fqn import FunctionFqn, SymbolFqn
 
 
 @dataclass
 class FunctionRegistry:
-
     _store_by_fqn: dict[FunctionFqn, FunctionSymbol] = field(init=False)
     _store_by_id: dict[FunctionId, FunctionSymbol] = field(init=False)
     _fqn_id_map: dict[FunctionFqn, FunctionId] = field(init=False)
@@ -33,3 +32,6 @@ class FunctionRegistry:
         self._store_by_id[func.id] = func
         self._fqn_id_map[func.fqn] = func.id
         self.dirty_functions.add(func)
+
+    def contains_fqn(self, fqn: SymbolFqn) -> bool:
+        return fqn in self._store_by_fqn

@@ -4,7 +4,11 @@ from foundation.common_types.identities.module_id import ModuleId
 from pydantic import PrivateAttr
 
 from code_structure.domain.identities.symbol_ids import ClassId, FunctionId, VariableId
-from code_structure.domain.mutations.add_defines_edge import AddModuleDefinesEdge, RemoveModuleDefinesEdge, AddModuleImportsEdge
+from code_structure.domain.mutations.add_defines_edge import (
+    AddModuleDefinesEdge,
+    RemoveModuleDefinesEdge,
+    AddModuleImportsEdge,
+)
 
 
 class FileModule(AggregateRoot[ModuleId]):
@@ -22,7 +26,9 @@ class FileModule(AggregateRoot[ModuleId]):
     def undefine_class(self, class_id: ClassId) -> None:
         """Remove class definition from module."""
         self._classes.discard(class_id)
-        self.add_mutation(RemoveModuleDefinesEdge(source_id=self.id, target_id=class_id))
+        self.add_mutation(
+            RemoveModuleDefinesEdge(source_id=self.id, target_id=class_id)
+        )
 
     def imports(
         self,
@@ -39,8 +45,12 @@ class FileModule(AggregateRoot[ModuleId]):
 
     def define_function(self, function_id: FunctionId) -> None:
         self._functions.add(function_id)
-        self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=function_id))
+        self.add_mutation(
+            AddModuleDefinesEdge(source_id=self.id, target_id=function_id)
+        )
 
     def define_variable(self, variable_id: VariableId) -> None:
         self._variables.add(variable_id)
-        self.add_mutation(AddModuleDefinesEdge(source_id=self.id, target_id=variable_id))
+        self.add_mutation(
+            AddModuleDefinesEdge(source_id=self.id, target_id=variable_id)
+        )

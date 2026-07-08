@@ -20,14 +20,20 @@ from code_structure.domain.identities.symbol_ids import (
     FunctionId,
     MethodId,
     VariableId,
+    ExternalSymbolId,
 )
+from code_structure.domain.aggregates.external_symbol import ExternalSymbol
 from code_structure.domain.serivces.class_symbol_registry import ClassRegistry
 from code_structure.domain.serivces.file_module_registry import FileModuleRegistry
 from code_structure.domain.serivces.function_symbol_registry import FunctionRegistry
 from code_structure.domain.serivces.variable_symbol_registry import VariableRegistry
+from code_structure.domain.serivces.external_symbol_registry import (
+    ExternalSymbolRegistry,
+)
 from code_structure.domain.value_objects.parsed_attribute import ParsedAttribute
 from code_structure.domain.value_objects.parsed_class import ParsedClass
 from code_structure.domain.value_objects.parsed_file_module import ParsedFileModule
+from code_structure.domain.value_objects.parsed_import import ParsedImport
 from code_structure.domain.value_objects.parsed_function import ParsedFunction
 from code_structure.domain.value_objects.parsed_method import ParsedMethod
 from code_structure.domain.value_objects.parsed_variable import ParsedVariable
@@ -39,6 +45,7 @@ class SymbolGraphBuilder:
     class_registry: ClassRegistry
     function_registry: FunctionRegistry
     variable_registry: VariableRegistry
+    external_symbol_registry: ExternalSymbolRegistry
 
     def build_from_parsed_file_modules(
         self, parsed_file_modules: list[ParsedFileModule]
@@ -58,7 +65,28 @@ class SymbolGraphBuilder:
         for parsed_variable in parsed_file_module.variables:
             self.build_variable_symbol(parsed_variable, file_module)
         for parsed_import in parsed_file_module.imports:
-            file_module.imports(parsed_import.target_fqn, alias=parsed_import.alias)
+            self.build_imports_edge(parsed_import, file_module)
+
+    def build_imports_edge(
+        self,
+        parsed_import: ParsedImport,
+        file_module: FileModule,
+    ) -> None:
+        is_internal = (
+            self.class_registry.contains_fqn(parsed_import.target_fqn)
+            or self.function_registry.contains_fqn(parsed_import.target_fqn)
+            or self.variable_registry.contains_fqn(parsed_import.target_fqn)
+        )
+        if not is_internal and not self.external_symbol_registry.contains_fqn(
+            parsed_import.target_fqn
+        ):
+            external_symbol = ExternalSymbol(
+                id=ExternalSymbolId.create(),
+                name=parsed_import.target_fqn.symbol,
+                fqn=parsed_import.target_fqn,
+            )
+            self.external_symbol_registry.register(external_symbol)
+        file_module.imports(parsed_import.target_fqn, alias=parsed_import.alias)
 
     def build_class_symbol(
         self,

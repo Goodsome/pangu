@@ -2,8 +2,12 @@ from dataclasses import dataclass
 from typing import override
 from code_structure.domain.aggregates.variable_symbol import VariableSymbol
 from code_structure.domain.repositories.variable_repository import VariableRepository
-from code_structure.infrastructure.mappers.variable_node_to_variable_symbol import variable_node_to_variable_symbol
-from code_structure.infrastructure.mappers.variable_symbol_to_variable_node import variable_symbol_to_variable_node
+from code_structure.infrastructure.mappers.variable_node_to_variable_symbol import (
+    variable_node_to_variable_symbol,
+)
+from code_structure.infrastructure.mappers.variable_symbol_to_variable_node import (
+    variable_symbol_to_variable_node,
+)
 from code_structure.infrastructure.orm_models.variable_node import VariableNode
 from code_structure.domain.identities.symbol_ids import VariableId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
@@ -11,7 +15,6 @@ from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
 @dataclass
 class Neo4jVariableRepository(VariableRepository):
-
     session: Neo4jSession
 
     @override

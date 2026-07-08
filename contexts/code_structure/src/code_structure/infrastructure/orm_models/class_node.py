@@ -12,7 +12,7 @@ _ATTRIBUTES = Annotated[
         edge_model="ClassDefinesEdge",
         direction=RelationDirection.OUT,
         target_model=AttributeNode,
-    )
+    ),
 ]
 
 _METHODS = Annotated[
@@ -21,12 +21,11 @@ _METHODS = Annotated[
         edge_model="ClassDefinesEdge",
         direction=RelationDirection.OUT,
         target_model=MethodNode,
-    )
+    ),
 ]
 
 
 class ClassNode(SymbolNode):
-
     name: str
     fqn: str
 

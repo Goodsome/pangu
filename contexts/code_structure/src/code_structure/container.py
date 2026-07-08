@@ -33,7 +33,9 @@ class Container(DeclarativeContainer):
     config: Configuration = Configuration()
     redis_client: Dependency[Redis] = Dependency(instance_of=Redis)
     db_driver: Dependency[Driver] = Dependency(instance_of=Driver)
-    get_file_document_handler: Dependency[GetFileDocumentHandler] = Dependency(instance_of=GetFileDocumentHandler)
+    get_file_document_handler: Dependency[GetFileDocumentHandler] = Dependency(
+        instance_of=GetFileDocumentHandler
+    )
 
     unit_of_work: Factory[Neo4jUnitOfWork] = Factory(
         Neo4jUnitOfWork,
@@ -47,7 +49,9 @@ class Container(DeclarativeContainer):
         InitSymbolGraphCommandHandler,
         symbol_scanner=code_dom_scanner,
     )
-    move_class_handler: Factory[MoveClassCommandHandler] = Factory(MoveClassCommandHandler)
+    move_class_handler: Factory[MoveClassCommandHandler] = Factory(
+        MoveClassCommandHandler
+    )
     on_class_moved_handler: Factory[OnClassMoved] = Factory(OnClassMoved)
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,

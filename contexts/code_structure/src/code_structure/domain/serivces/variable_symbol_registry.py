@@ -2,12 +2,11 @@ from dataclasses import dataclass, field
 
 from code_structure.domain.aggregates.variable_symbol import VariableSymbol
 from code_structure.domain.identities.symbol_ids import VariableId
-from foundation.common_types.fqns.fqn import VariableFqn
+from foundation.common_types.fqns.fqn import VariableFqn, SymbolFqn
 
 
 @dataclass
 class VariableRegistry:
-
     _store_by_fqn: dict[VariableFqn, VariableSymbol] = field(init=False)
     _store_by_id: dict[VariableId, VariableSymbol] = field(init=False)
     _fqn_id_map: dict[VariableFqn, VariableId] = field(init=False)
@@ -33,3 +32,6 @@ class VariableRegistry:
         self._store_by_id[var.id] = var
         self._fqn_id_map[var.fqn] = var.id
         self.dirty_variables.add(var)
+
+    def contains_fqn(self, fqn: SymbolFqn) -> bool:
+        return fqn in self._store_by_fqn

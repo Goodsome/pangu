@@ -36,4 +36,3 @@ class CodeDomScanner(SymbolScanner):
             variables=visitor.variables,
             imports=visitor.imports,
         )
-

@@ -9,5 +9,5 @@ def ast_assign_to_parsed_variable(
     if not isinstance(node.target, AstName):
         raise ValueError("Target must be a Name node")
     name = node.target.id
-    
+
     return ParsedVariable(name=name)

@@ -4,5 +4,4 @@ from code_structure.domain.identities.symbol_ids import VariableId
 from foundation.persistence.ports.repository import Repository
 
 
-class VariableRepository(Repository[VariableSymbol, VariableId], ABC):
-    ...
+class VariableRepository(Repository[VariableSymbol, VariableId], ABC): ...
