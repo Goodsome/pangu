@@ -9,9 +9,7 @@ from code_structure.infrastructure.mappers.external_symbol_mapper import (
     external_symbol_node_to_external_symbol,
     external_symbol_to_external_symbol_node,
 )
-from code_structure.infrastructure.orm_models.external_symbol_node import (
-    ExternalSymbolNode,
-)
+from code_structure.infrastructure.orm_models.external_node import ExternalNode
 from foundation.common_types.fqns.fqn import SymbolFqn
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
@@ -42,7 +40,7 @@ class Neo4jExternalSymbolRepository(ExternalSymbolRepository):
 
     @override
     def _get(self, id: ExternalSymbolId) -> ExternalSymbol:
-        node = self.session.get(ExternalSymbolNode, str(id))
+        node = self.session.get(ExternalNode, str(id))
         if node is None:
             raise ValueError(f"ExternalSymbol with id {id} not found")
         symbol = external_symbol_node_to_external_symbol(node)
@@ -54,7 +52,7 @@ class Neo4jExternalSymbolRepository(ExternalSymbolRepository):
 
     @override
     def get_by_fqn(self, fqn: SymbolFqn) -> ExternalSymbol:
-        nodes = self.session.find(ExternalSymbolNode, fqn=str(fqn))
+        nodes = self.session.find(ExternalNode, fqn=str(fqn))
         if not nodes:
             raise ValueError(f"ExternalSymbol with fqn {fqn} not found")
         symbol = external_symbol_node_to_external_symbol(nodes[0])
