@@ -7,7 +7,7 @@ from pydantic_core.core_schema import no_info_after_validator_function, str_sche
 
 
 
-class BaseFqn(str):
+class _BaseFqn(str):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] 
     
@@ -101,7 +101,7 @@ _CLASS_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
 _METHOD_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
 _ATTRIBUTE_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
 
-class ModuleFqn(BaseFqn):
+class ModuleFqn(_BaseFqn):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_MODULE_REGEX}$")
 
@@ -113,7 +113,7 @@ class ModuleFqn(BaseFqn):
             raise ValueError(f"Level {level} is out of range for FQN: {self!r}")
         return self.__class__(".".join(parts[:-level]))
 
-class SymbolFqn(BaseFqn):
+class SymbolFqn(_BaseFqn):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_SYMBOL_REGEX}$")
 
@@ -130,11 +130,11 @@ class VariableFqn(SymbolFqn):
     ...
 
 
-class MethodFqn(BaseFqn):
+class MethodFqn(_BaseFqn):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_METHOD_REGEX}$")
 
 
-class AttributeFqn(BaseFqn):
+class AttributeFqn(_BaseFqn):
 
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_ATTRIBUTE_REGEX}$")
