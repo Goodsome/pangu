@@ -4,6 +4,8 @@ from foundation.common_types.fqns.fqn import (
     ModuleFqn,
     MethodFqn,
     AttributeFqn,
+    SymbolFqn,
+    BaseFqn,
 )
 from pydantic import Field
 
@@ -11,7 +13,10 @@ from code_structure.domain.entities.attribute_symbol import AttributeSymbol
 from code_structure.domain.entities.method_symbol import MethodSymbol
 from code_structure.domain.identities.symbol_ids import AttributeId, ClassId, MethodId
 from code_structure.domain.events.class_moved import ClassMoved
-from code_structure.domain.mutations.add_defines_edge import AddClassDefinesEdge
+from code_structure.domain.mutations.add_defines_edge import (
+    AddClassDefinesEdge,
+    AddReferencesEdge,
+)
 
 
 class ClassSymbol(AggregateRoot[ClassId]):
@@ -44,5 +49,12 @@ class ClassSymbol(AggregateRoot[ClassId]):
                 class_id=self.id,
                 old_fqn=old_fqn,
                 new_fqn=self.fqn,
+            )
+        )
+
+    def references(self, source_fqn: BaseFqn, target_fqn: SymbolFqn) -> None:
+        self.add_mutation(
+            AddReferencesEdge(
+                source_fqn=source_fqn, target_fqn=target_fqn
             )
         )

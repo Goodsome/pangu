@@ -31,12 +31,10 @@ from code_structure.domain.serivces.variable_symbol_registry import VariableRegi
 from code_structure.domain.serivces.external_symbol_registry import (
     ExternalSymbolRegistry,
 )
-from code_structure.domain.value_objects.parsed_attribute import ParsedAttribute
 from code_structure.domain.value_objects.parsed_class import ParsedClass
 from code_structure.domain.value_objects.parsed_file_module import ParsedFileModule
 from code_structure.domain.value_objects.parsed_import import ParsedImport
 from code_structure.domain.value_objects.parsed_function import ParsedFunction
-from code_structure.domain.value_objects.parsed_method import ParsedMethod
 from code_structure.domain.value_objects.parsed_variable import ParsedVariable
 
 
@@ -101,10 +99,10 @@ class SymbolGraphBuilder:
         self.class_registry.register(class_symbol)
         file_module.define_class(class_symbol.id)
 
-        for parsed_attribute in parsed_class.attributes:
-            self.build_attribute_symbol(parsed_attribute, class_symbol)
-        for parsed_method in parsed_class.methods:
-            self.build_method_symbol(parsed_method, class_symbol)
+        for parsed_variable in parsed_class.variables:
+            self.build_attribute_symbol(parsed_variable, class_symbol)
+        for parsed_function in parsed_class.functions:
+            self.build_method_symbol(parsed_function, class_symbol)
 
     def build_function_symbol(
         self,
@@ -120,6 +118,9 @@ class SymbolGraphBuilder:
         self.function_registry.register(function_symbol)
         file_module.define_function(function_symbol.id)
 
+        for ref_fqn in parsed_function.references:
+            function_symbol.references(ref_fqn)
+
     def build_variable_symbol(
         self,
         parsed_variable: ParsedVariable,
@@ -134,28 +135,37 @@ class SymbolGraphBuilder:
         self.variable_registry.register(variable_symbol)
         file_module.define_variable(variable_symbol.id)
 
+        for ref_fqn in parsed_variable.references:
+            variable_symbol.references(ref_fqn)
+
     def build_attribute_symbol(
         self,
-        parsed_attribute: ParsedAttribute,
+        parsed_variable: ParsedVariable,
         class_symbol: ClassSymbol,
     ) -> None:
-        attribute_fqn = AttributeFqn(f"{class_symbol.fqn}::{parsed_attribute.name}")
+        attribute_fqn = AttributeFqn(f"{class_symbol.fqn}::{parsed_variable.name}")
         attribute_symbol = AttributeSymbol(
             id=AttributeId.create(),
-            name=parsed_attribute.name,
+            name=parsed_variable.name,
             fqn=attribute_fqn,
         )
         class_symbol.define_attribute(attribute_symbol)
 
+        for ref_fqn in parsed_variable.references:
+            class_symbol.references(attribute_fqn, ref_fqn)
+
     def build_method_symbol(
         self,
-        parsed_method: ParsedMethod,
+        parsed_function: ParsedFunction,
         class_symbol: ClassSymbol,
     ) -> None:
-        method_fqn = MethodFqn(f"{class_symbol.fqn}::{parsed_method.name}")
+        method_fqn = MethodFqn(f"{class_symbol.fqn}::{parsed_function.name}")
         method_symbol = MethodSymbol(
             id=MethodId.create(),
-            name=parsed_method.name,
+            name=parsed_function.name,
             fqn=method_fqn,
         )
         class_symbol.define_method(method_symbol)
+
+        for ref_fqn in parsed_function.references:
+            class_symbol.references(method_fqn, ref_fqn)

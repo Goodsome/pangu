@@ -11,6 +11,9 @@ from code_structure.infrastructure.mappers.function_symbol_to_function_node impo
 from code_structure.infrastructure.orm_models.function_node import FunctionNode
 from code_structure.domain.identities.symbol_ids import FunctionId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
+from foundation.building_blocks.mutation_collector import Mutation
+from code_structure.domain.mutations.add_defines_edge import AddReferencesEdge
+from code_structure.infrastructure.orm_models.edges import ReferencesEdge
 
 
 @dataclass
@@ -21,6 +24,7 @@ class Neo4jFunctionRepository(FunctionRepository):
     def _add(self, aggregate: FunctionSymbol) -> None:
         function_node = function_symbol_to_function_node(aggregate)
         self.session.save_node(function_node)
+        self._handle_mutations(aggregate.collect_mutations())
 
     @override
     def _add_all(self, aggregates: list[FunctionSymbol]) -> None:
@@ -31,6 +35,7 @@ class Neo4jFunctionRepository(FunctionRepository):
     def _save(self, aggregate: FunctionSymbol) -> None:
         function_node = function_symbol_to_function_node(aggregate)
         self.session.save_node(function_node)
+        self._handle_mutations(aggregate.collect_mutations())
 
     @override
     def _save_all(self, aggregates: list[FunctionSymbol]) -> None:
@@ -48,3 +53,15 @@ class Neo4jFunctionRepository(FunctionRepository):
     @override
     def _delete(self, aggregate: FunctionSymbol) -> None:
         self.session.delete_node(node_id=str(aggregate.id))
+
+    def _handle_mutations(self, mutations: list[Mutation]) -> None:
+        for mutation in mutations:
+            match mutation:
+                case AddReferencesEdge():
+                    edge = ReferencesEdge(
+                        source_ref=str(mutation.source_fqn),
+                        target_ref=str(mutation.target_fqn),
+                    )
+                    self.session.save_edge(edge)
+                case _:
+                    raise NotImplementedError

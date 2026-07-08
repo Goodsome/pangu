@@ -7,7 +7,8 @@ from code_dom.application.queries.get_file_document import (
     GetFileDocumentQuery,
 )
 from code_structure.infrastructure.visitors.module_visitor import ModuleVistior
-from foundation.common_types.fqns.fqn import ModuleFqn
+from code_structure.infrastructure.visitors.module_pre_scan_visitor import ModulePreScanVisitor
+from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
 
 from code_structure.domain.ports.symbol_scanner import SymbolScanner
 from code_structure.domain.value_objects.parsed_file_module import ParsedFileModule
@@ -27,12 +28,29 @@ class CodeDomScanner(SymbolScanner):
             GetFileDocumentQuery(file_path=file_path)
         )
         code_document = result.code_document
-        visitor = ModuleVistior(module_fqn=module_fqn)
+
+        # 1. 预扫描以提取 imports 和本地顶级声明符号名字
+        pre_visitor = ModulePreScanVisitor(module_fqn=module_fqn)
+        pre_visitor.visit(code_document.body)
+
+        scope_symbols: dict[str, SymbolFqn] = {}
+        for imp in pre_visitor.imports:
+            name_key = imp.alias or imp.target_fqn.symbol
+            scope_symbols[name_key] = imp.target_fqn
+        for name in pre_visitor.local_symbol_names:
+            scope_symbols[name] = SymbolFqn(f"{module_fqn}::{name}")
+
+        # 2. 带 references 解析的正式扫描
+        visitor = ModuleVistior(
+            module_fqn=module_fqn,
+            scope_symbols=scope_symbols,
+        )
         visitor.visit(code_document.body)
+
         return ParsedFileModule(
             fqn=module_fqn,
             classes=visitor.classes,
             functions=visitor.functions,
             variables=visitor.variables,
-            imports=visitor.imports,
+            imports=pre_visitor.imports,
         )

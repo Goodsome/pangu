@@ -1,10 +1,10 @@
-from code_structure.domain.value_objects.parsed_attribute import ParsedAttribute
-from code_structure.domain.value_objects.parsed_method import ParsedMethod
+from code_structure.domain.value_objects.parsed_function import ParsedFunction
+from code_structure.domain.value_objects.parsed_variable import ParsedVariable
 from foundation.building_blocks.value_object import ValueObject
 
 
 class ParsedClass(ValueObject):
     name: str
 
-    attributes: list[ParsedAttribute]
-    methods: list[ParsedMethod]
+    variables: list[ParsedVariable]
+    functions: list[ParsedFunction]

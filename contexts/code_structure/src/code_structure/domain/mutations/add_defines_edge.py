@@ -7,7 +7,7 @@ from code_structure.domain.identities.symbol_ids import (
 )
 from foundation.building_blocks.mutation_collector import Mutation
 from foundation.common_types.identities.module_id import ModuleId
-from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
+from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn, BaseFqn
 
 
 class AddModuleDefinesEdge(Mutation):
@@ -29,3 +29,8 @@ class AddModuleImportsEdge(Mutation):
     source_fqn: ModuleFqn
     target_fqn: SymbolFqn
     alias: str | None = None
+
+
+class AddReferencesEdge(Mutation):
+    source_fqn: BaseFqn
+    target_fqn: SymbolFqn
