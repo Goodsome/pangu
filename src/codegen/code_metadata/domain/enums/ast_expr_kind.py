@@ -29,3 +29,4 @@ class AstExprKind(StrEnum):
     YIELD = auto()
     YIELD_FROM = auto()
     AWAIT = auto()
+    NAMED_EXPR = auto()

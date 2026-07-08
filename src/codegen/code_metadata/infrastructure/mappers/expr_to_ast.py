@@ -23,6 +23,7 @@ from codegen.code_metadata.domain.value_objects.ast_lambda import AstLambda
 from codegen.code_metadata.domain.value_objects.ast_list import AstList
 from codegen.code_metadata.domain.value_objects.ast_list_comp import AstListComp
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_named_expr import AstNamedExpr
 from codegen.code_metadata.domain.value_objects.ast_set import AstSet
 from codegen.code_metadata.domain.value_objects.ast_set_comp import AstSetComp
 from codegen.code_metadata.domain.value_objects.ast_slice import AstSlice
@@ -108,6 +109,8 @@ class ExprToAst:
                 return ExprToAst.from_yield_from(expr)
             case AstAwait():
                 return ExprToAst.from_await(expr)
+            case AstNamedExpr():
+                return ExprToAst.from_named_expr(expr)
             case _:
                 raise NotImplementedError(f"Unsupported AstExpr type: {type(expr)}")
 
@@ -306,3 +309,10 @@ class ExprToAst:
     @staticmethod
     def from_await(expr: AstAwait) -> ast.Await:
         return ast.Await(value=ExprToAst.to_node(expr.value))
+
+    @staticmethod
+    def from_named_expr(expr: AstNamedExpr) -> ast.NamedExpr:
+        return ast.NamedExpr(
+            target=ast.Name(id=expr.target.id, ctx=ast.Store()),
+            value=ExprToAst.to_node(expr.value),
+        )

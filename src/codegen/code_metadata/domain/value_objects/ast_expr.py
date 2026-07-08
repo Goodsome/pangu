@@ -4,6 +4,7 @@ from pydantic.type_adapter import TypeAdapter
 from codegen.code_metadata.domain.value_objects.arg import Arg
 from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_named_expr import AstNamedExpr
 from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
@@ -61,7 +62,8 @@ AstExpr = Annotated[
     | AstDict
     | AstYield
     | AstYieldFrom
-    | AstAwait,
+    | AstAwait
+    | AstNamedExpr,
     Field(discriminator="kind"),
 ]
 ast_expr_adapter: TypeAdapter[AstExpr] = TypeAdapter(AstExpr)
@@ -90,5 +92,6 @@ AstUnaryOp.model_rebuild()
 AstYield.model_rebuild()
 AstYieldFrom.model_rebuild()
 AstAwait.model_rebuild()
+AstNamedExpr.model_rebuild()
 AstKeyword.model_rebuild()
 AstComprehension.model_rebuild()

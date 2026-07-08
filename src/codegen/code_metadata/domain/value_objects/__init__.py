@@ -42,6 +42,7 @@ from codegen.code_metadata.domain.value_objects.ast_list_comp import AstListComp
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_named_expr import AstNamedExpr
 from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_raise import AstRaise
 from codegen.code_metadata.domain.value_objects.ast_return import AstReturn
@@ -110,6 +111,7 @@ __all__ = [
     "AstMatch",
     "AstMatchCase",
     "AstName",
+    "AstNamedExpr",
     "AstPass",
     "AstRaise",
     "AstReturn",
