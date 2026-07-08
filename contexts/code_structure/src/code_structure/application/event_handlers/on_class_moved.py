@@ -21,5 +21,7 @@ class OnClassMoved:
             class_name=class_name,
             current_module_path=current_module_path,
             target_module_path=target_module_path,
+            current_module_fqn=str(event.old_fqn),
+            target_module_fqn=str(event.new_fqn),
         )
         uow.save_outbox_message(ie)

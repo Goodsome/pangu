@@ -8,3 +8,5 @@ class ClassMovedIntegrationEvent(IntegrationEvent):
     class_name: str
     current_module_path: Path
     target_module_path: Path
+    current_module_fqn: str
+    target_module_fqn: str
