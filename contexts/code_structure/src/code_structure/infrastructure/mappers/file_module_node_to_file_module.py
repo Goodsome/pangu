@@ -24,7 +24,6 @@ def file_module_node_to_file_module(file_module_node: FileNode) -> FileModule:
         VariableId.reconstitute(variable_id.target_ref)
         for variable_id in file_module_node.variables.items
     }
-    logger.info(f"Mapping file module node {file_module_node}")
     imports = [
         ParsedImport(
             target_fqn=SymbolFqn(import_edge.target_ref),
