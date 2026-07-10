@@ -7,7 +7,7 @@ from foundation.integration_events.module_moved import ModuleMovedIntegrationEve
 from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
 from foundation.building_blocks.event import IntegrationEvent
 
-logger = logging.getLogger("event_hub.registry")
+logger = logging.getLogger(__name__)
 
 
 @dataclass

@@ -117,7 +117,7 @@ class Container(DeclarativeContainer):
                     on_module_moved.provided.execute_physical_move
                 ),
                 ClassMovedIntegrationEvent: List(
-                    on_class_moved.provided.update_imports
+                    on_class_moved.provided.execute_class_move
                 ),
             }
         ),
@@ -129,5 +129,5 @@ class Container(DeclarativeContainer):
         message_bus_factory=message_bus.provider,
         registry=event_registry,
         service_name="code_dom",
-        subscriptions=List("architecture_events"),
+        subscriptions=List("architecture_events", "code_structure_events"),
     )
