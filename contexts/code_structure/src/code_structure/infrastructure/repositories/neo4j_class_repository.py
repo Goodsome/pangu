@@ -22,10 +22,6 @@ class Neo4jClassRepository(ClassRepository):
     def _add(self, aggregate: ClassSymbol) -> None:
         class_node = class_symbol_to_class_node(aggregate)
         self.session.save_node(class_node)
-        for attribute in class_node.attributes.items:
-            self.session.save_node(attribute)
-        for method in class_node.methods.items:
-            self.session.save_node(method)
 
     @override
     def _add_all(self, aggregates: list[ClassSymbol]) -> None:
@@ -36,10 +32,6 @@ class Neo4jClassRepository(ClassRepository):
     def _save(self, aggregate: ClassSymbol) -> None:
         class_node = class_symbol_to_class_node(aggregate)
         self.session.save_node(class_node)
-        for attribute in class_node.attributes.items:
-            self.session.save_node(attribute)
-        for method in class_node.methods.items:
-            self.session.save_node(method)
 
     @override
     def _save_all(self, aggregates: list[ClassSymbol]) -> None:
