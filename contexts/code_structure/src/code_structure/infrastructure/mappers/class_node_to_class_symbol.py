@@ -18,11 +18,11 @@ def str_to_class_id(s: str) -> ClassId:
 def class_node_to_class_symbol(class_node: ClassNode) -> ClassSymbol:
     attributes = {
         AttributeId.reconstitute(a.id): attribute_node_to_attribute_symbol(a)
-        for a in class_node.attributes
+        for a in class_node.attributes.items
     }
     methods = {
         MethodId.reconstitute(m.id): method_node_to_method_symbol(m)
-        for m in class_node.methods
+        for m in class_node.methods.items
     }
     return ClassSymbol(
         id=str_to_class_id(class_node.id),

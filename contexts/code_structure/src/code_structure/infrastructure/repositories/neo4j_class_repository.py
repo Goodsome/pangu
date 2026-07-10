@@ -2,10 +2,6 @@ from dataclasses import dataclass
 from typing import cast, override
 from foundation.common_types.fqns.fqn import ClassFqn, ModuleFqn
 from code_structure.domain.aggregates.class_symbol import ClassSymbol
-from code_structure.domain.mutations.add_defines_edge import (
-    AddClassDefinesEdge,
-    AddReferencesEdge,
-)
 from code_structure.domain.repositories.class_repository import ClassRepository
 from code_structure.infrastructure.mappers.class_node_to_class_symbol import (
     class_node_to_class_symbol,
@@ -15,11 +11,6 @@ from code_structure.infrastructure.mappers.class_symbol_to_class_node import (
 )
 from code_structure.infrastructure.orm_models.class_node import ClassNode
 from code_structure.domain.identities.symbol_ids import ClassId
-from code_structure.infrastructure.orm_models.edges import (
-    ClassDefinesEdge,
-    ReferencesEdge,
-)
-from foundation.building_blocks.mutation_collector import Mutation
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
 
@@ -31,12 +22,10 @@ class Neo4jClassRepository(ClassRepository):
     def _add(self, aggregate: ClassSymbol) -> None:
         class_node = class_symbol_to_class_node(aggregate)
         self.session.save_node(class_node)
-        for attribute in class_node.attributes:
+        for attribute in class_node.attributes.items:
             self.session.save_node(attribute)
-        for method in class_node.methods:
+        for method in class_node.methods.items:
             self.session.save_node(method)
-
-        self._handle_mutations(aggregate.collect_mutations())
 
     @override
     def _add_all(self, aggregates: list[ClassSymbol]) -> None:
@@ -47,11 +36,10 @@ class Neo4jClassRepository(ClassRepository):
     def _save(self, aggregate: ClassSymbol) -> None:
         class_node = class_symbol_to_class_node(aggregate)
         self.session.save_node(class_node)
-        for attribute in class_node.attributes:
+        for attribute in class_node.attributes.items:
             self.session.save_node(attribute)
-        for method in class_node.methods:
+        for method in class_node.methods.items:
             self.session.save_node(method)
-        self._handle_mutations(aggregate.collect_mutations())
 
     @override
     def _save_all(self, aggregates: list[ClassSymbol]) -> None:
@@ -90,22 +78,3 @@ class Neo4jClassRepository(ClassRepository):
             class_id=str(class_id),
         )
         return [ModuleFqn(cast(str, record["fqn"])) for record in records]
-
-    def _handle_mutations(self, mutations: list[Mutation]) -> None:
-        for mutation in mutations:
-            match mutation:
-                case AddClassDefinesEdge():
-                    edge = ClassDefinesEdge(
-                        source_ref=str(mutation.source_id),
-                        target_ref=str(mutation.target_id),
-                    )
-                    self.session.save_edge(edge)
-                case AddReferencesEdge():
-                    edge = ReferencesEdge(
-                        source_ref=str(mutation.source_fqn),
-                        target_ref=str(mutation.target_fqn),
-                        alias=mutation.alias,
-                    )
-                    self.session.save_edge(edge)
-                case _:
-                    raise NotImplementedError

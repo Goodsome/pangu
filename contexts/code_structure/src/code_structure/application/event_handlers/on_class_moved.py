@@ -19,8 +19,7 @@ class OnClassMoved:
 
         affected_modules = uow.classes.find_affected_callers(event.class_id)
         affected_callers = [
-            FqnService.build_path(m, is_package=False)
-            for m in affected_modules
+            FqnService.build_path(m, is_package=False) for m in affected_modules
         ]
 
         ie = ClassMovedIntegrationEvent(

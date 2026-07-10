@@ -1,11 +1,7 @@
 from dataclasses import dataclass
 from typing import override
 from code_structure.domain.aggregates.file_module import FileModule
-from code_structure.domain.mutations.add_defines_edge import (
-    AddModuleDefinesEdge,
-    RemoveModuleDefinesEdge,
-    AddModuleImportsEdge,
-)
+
 from foundation.common_types.fqns.fqn import ModuleFqn
 from code_structure.domain.repositories.file_module_repository import (
     FileModuleRepository,
@@ -13,9 +9,10 @@ from code_structure.domain.repositories.file_module_repository import (
 from code_structure.infrastructure.mappers.file_module_node_to_file_module import (
     file_module_node_to_file_module,
 )
-from code_structure.infrastructure.orm_models.edges import FileDefinesEdge, ImportsEdge
+from code_structure.infrastructure.mappers.file_module_to_file_module_node import (
+    file_module_to_file_module_node,
+)
 from code_structure.infrastructure.orm_models.file_module_node import FileNode
-from foundation.building_blocks.mutation_collector import Mutation
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
@@ -26,7 +23,8 @@ class Neo4jFileModuleRepository(FileModuleRepository):
 
     @override
     def _add(self, aggregate: FileModule) -> None:
-        self._handle_mutations(aggregate.collect_mutations())
+        file_node = file_module_to_file_module_node(aggregate)
+        self.session.save_node(file_node)
 
     @override
     def _add_all(self, aggregates: list[FileModule]) -> None:
@@ -35,7 +33,8 @@ class Neo4jFileModuleRepository(FileModuleRepository):
 
     @override
     def _save(self, aggregate: FileModule) -> None:
-        self._handle_mutations(aggregate.collect_mutations())
+        file_node = file_module_to_file_module_node(aggregate)
+        self.session.save_node(file_node)
 
     @override
     def _save_all(self, aggregates: list[FileModule]) -> None:
@@ -67,28 +66,3 @@ class Neo4jFileModuleRepository(FileModuleRepository):
     def get_all_modules(self) -> list[FileModule]:
         nodes = self.session.find(FileNode)
         return [file_module_node_to_file_module(node) for node in nodes]
-
-    def _handle_mutations(self, mutations: list[Mutation]) -> None:
-        for mutation in mutations:
-            match mutation:
-                case AddModuleDefinesEdge():
-                    edge = FileDefinesEdge(
-                        source_ref=str(mutation.source_id),
-                        target_ref=str(mutation.target_id),
-                    )
-                    self.session.save_edge(edge)
-                case RemoveModuleDefinesEdge():
-                    edge = FileDefinesEdge(
-                        source_ref=str(mutation.source_id),
-                        target_ref=str(mutation.target_id),
-                    )
-                    self.session.delete_edge(edge)
-                case AddModuleImportsEdge():
-                    edge = ImportsEdge(
-                        source_ref=str(mutation.source_fqn),
-                        target_ref=str(mutation.target_fqn),
-                        alias=mutation.alias,
-                    )
-                    self.session.save_edge(edge)
-                case _:
-                    raise NotImplementedError

@@ -6,16 +6,13 @@ from foundation.common_types.fqns.fqn import (
     AttributeFqn,
     SymbolFqn,
 )
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 
 from code_structure.domain.entities.attribute_symbol import AttributeSymbol
 from code_structure.domain.entities.method_symbol import MethodSymbol
 from code_structure.domain.identities.symbol_ids import AttributeId, ClassId, MethodId
 from code_structure.domain.events.class_moved import ClassMoved
-from code_structure.domain.mutations.add_defines_edge import (
-    AddClassDefinesEdge,
-    AddReferencesEdge,
-)
+from code_structure.domain.value_objects.parsed_reference import ParsedReference
 
 
 class ClassSymbol(AggregateRoot[ClassId]):
@@ -24,16 +21,17 @@ class ClassSymbol(AggregateRoot[ClassId]):
 
     methods: dict[MethodId, MethodSymbol] = Field(default_factory=dict)
     attributes: dict[AttributeId, AttributeSymbol] = Field(default_factory=dict)
+    _references: list[ParsedReference] = PrivateAttr(default_factory=list)
+
+    @property
+    def references(self) -> list[ParsedReference]:
+        return list(self._references)
 
     def define_method(self, method: MethodSymbol) -> None:
         self.methods[method.id] = method
-        self.add_mutation(AddClassDefinesEdge(source_id=self.id, target_id=method.id))
 
     def define_attribute(self, attribute: AttributeSymbol) -> None:
         self.attributes[attribute.id] = attribute
-        self.add_mutation(
-            AddClassDefinesEdge(source_id=self.id, target_id=attribute.id)
-        )
 
     def move(self, target_module_fqn: ModuleFqn) -> None:
         """Move class and its inner methods/attributes to target module"""
@@ -51,9 +49,5 @@ class ClassSymbol(AggregateRoot[ClassId]):
             )
         )
 
-    def references(self, target_fqn: SymbolFqn, alias: str | None = None) -> None:
-        self.add_mutation(
-            AddReferencesEdge(
-                source_fqn=self.fqn, target_fqn=target_fqn, alias=alias
-            )
-        )
+    def add_reference(self, target_fqn: SymbolFqn, alias: str | None = None) -> None:
+        self._references.append(ParsedReference(target_fqn=target_fqn, alias=alias))

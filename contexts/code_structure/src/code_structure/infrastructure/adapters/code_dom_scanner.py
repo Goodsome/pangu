@@ -7,7 +7,9 @@ from code_dom.application.queries.get_file_document import (
     GetFileDocumentQuery,
 )
 from code_structure.infrastructure.visitors.module_visitor import ModuleVistior
-from code_structure.infrastructure.visitors.module_pre_scan_visitor import ModulePreScanVisitor
+from code_structure.infrastructure.visitors.module_pre_scan_visitor import (
+    ModulePreScanVisitor,
+)
 from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
 
 from code_structure.domain.ports.symbol_scanner import SymbolScanner

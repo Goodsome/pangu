@@ -71,9 +71,7 @@ class SymbolGraphBuilder:
         parsed_import: ParsedImport,
         file_module: FileModule,
     ) -> None:
-        is_internal = parsed_import.target_fqn.context in {
-            c.value for c in ContextName
-        }
+        is_internal = parsed_import.target_fqn.context in {c.value for c in ContextName}
         if not is_internal and not self.external_symbol_registry.contains_fqn(
             parsed_import.target_fqn
         ):
@@ -83,7 +81,7 @@ class SymbolGraphBuilder:
                 fqn=parsed_import.target_fqn,
             )
             self.external_symbol_registry.register(external_symbol)
-        file_module.imports(parsed_import.target_fqn, alias=parsed_import.alias)
+        file_module.add_import(parsed_import.target_fqn, alias=parsed_import.alias)
 
     def build_class_symbol(
         self,
@@ -119,7 +117,7 @@ class SymbolGraphBuilder:
         file_module.define_function(function_symbol.id)
 
         for ref in parsed_function.references:
-            function_symbol.references(ref.target_fqn, alias=ref.alias)
+            function_symbol.add_reference(ref.target_fqn, alias=ref.alias)
 
     def build_variable_symbol(
         self,
@@ -136,7 +134,7 @@ class SymbolGraphBuilder:
         file_module.define_variable(variable_symbol.id)
 
         for ref in parsed_variable.references:
-            variable_symbol.references(ref.target_fqn, alias=ref.alias)
+            variable_symbol.add_reference(ref.target_fqn, alias=ref.alias)
 
     def build_attribute_symbol(
         self,
@@ -152,7 +150,7 @@ class SymbolGraphBuilder:
         class_symbol.define_attribute(attribute_symbol)
 
         for ref in parsed_variable.references:
-            class_symbol.references(ref.target_fqn, alias=ref.alias)
+            class_symbol.add_reference(ref.target_fqn, alias=ref.alias)
 
     def build_method_symbol(
         self,
@@ -168,4 +166,4 @@ class SymbolGraphBuilder:
         class_symbol.define_method(method_symbol)
 
         for ref in parsed_function.references:
-            class_symbol.references(ref.target_fqn, alias=ref.alias)
+            class_symbol.add_reference(ref.target_fqn, alias=ref.alias)

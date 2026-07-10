@@ -1,44 +1,25 @@
-from typing import Annotated
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from code_structure.infrastructure.orm_models.class_node import ClassNode
 from code_structure.infrastructure.orm_models.function_node import FunctionNode
 from code_structure.infrastructure.orm_models.nodes import ModuleNode
 from code_structure.infrastructure.orm_models.variable_node import VariableNode
-from foundation.persistence.orm.neo4j_base import RelationshipMeta
+from foundation.persistence.orm.neo4j_base import OutEdge
+from code_structure.infrastructure.orm_models.symbol_node import SymbolNode
 from pydantic import Field
 
-_Classes = Annotated[
-    list[str],
-    RelationshipMeta(
-        edge_model="FileDefinesEdge",
-        target_property="id",
-        target_model=ClassNode,
-    ),
-]
-
-_Functions = Annotated[
-    list[str],
-    RelationshipMeta(
-        edge_model="FileDefinesEdge",
-        target_property="id",
-        target_model=FunctionNode,
-    ),
-]
-
-_Variables = Annotated[
-    list[str],
-    Field(default_factory=list),
-    RelationshipMeta(
-        edge_model="FileDefinesEdge",
-        target_property="id",
-        target_model=VariableNode,
-    ),
-]
+if TYPE_CHECKING:
+    from code_structure.infrastructure.orm_models.edges import (
+        FileDefinesEdge,
+        ImportsEdge,
+    )
 
 
 class FileNode(ModuleNode):
     name: str
     fqn: str
 
-    classes: _Classes = Field(default_factory=list)
-    functions: _Functions = Field(default_factory=list)
-    variables: _Variables = Field(default_factory=list)
+    classes: OutEdge[FileDefinesEdge, ClassNode] = Field(default_factory=lambda: OutEdge[FileDefinesEdge, ClassNode]())
+    functions: OutEdge[FileDefinesEdge, FunctionNode] = Field(default_factory=lambda: OutEdge[FileDefinesEdge, FunctionNode]())
+    variables: OutEdge[FileDefinesEdge, VariableNode] = Field(default_factory=lambda: OutEdge[FileDefinesEdge, VariableNode]())
+    imports: OutEdge[ImportsEdge, SymbolNode] = Field(default_factory=lambda: OutEdge[ImportsEdge, SymbolNode]())
