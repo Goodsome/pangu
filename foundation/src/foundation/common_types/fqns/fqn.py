@@ -6,11 +6,9 @@ from pydantic_core import CoreSchema
 from pydantic_core.core_schema import no_info_after_validator_function, str_schema
 
 
-
 class _BaseFqn(str):
+    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]]
 
-    _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] 
-    
     @classmethod
     def _match_patterns(cls, value: str) -> bool:
         if cls._SUPPORT_PATTERN.match(value):
@@ -81,15 +79,14 @@ class _BaseFqn(str):
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
-        return no_info_after_validator_function(
-            cls._validate, str_schema()
-        )
+        return no_info_after_validator_function(cls._validate, str_schema())
 
     @classmethod
     def _validate(cls, input_value: str) -> Self:
         if cls._match_patterns(input_value):
             return cls(input_value)
         raise ValueError(f"Invalid FQN format: {input_value}")
+
 
 _NAME_REGEX = r"[a-zA-Z_]\w*"
 
@@ -101,8 +98,8 @@ _CLASS_REGEX = rf"{_MODULE_REGEX}::{_NAME_REGEX}"
 _METHOD_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
 _ATTRIBUTE_REGEX = rf"{_CLASS_REGEX}::{_NAME_REGEX}"
 
-class ModuleFqn(_BaseFqn):
 
+class ModuleFqn(_BaseFqn):
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_MODULE_REGEX}$")
 
     def get_parent_by_level(self, level: int) -> Self:
@@ -113,28 +110,23 @@ class ModuleFqn(_BaseFqn):
             raise ValueError(f"Level {level} is out of range for FQN: {self!r}")
         return self.__class__(".".join(parts[:-level]))
 
-class SymbolFqn(_BaseFqn):
 
+class SymbolFqn(_BaseFqn):
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_SYMBOL_REGEX}$")
 
 
-class ClassFqn(SymbolFqn):
-    ...
+class ClassFqn(SymbolFqn): ...
 
 
-class FunctionFqn(SymbolFqn):
-    ...
+class FunctionFqn(SymbolFqn): ...
 
 
-class VariableFqn(SymbolFqn):
-    ...
+class VariableFqn(SymbolFqn): ...
 
 
 class MethodFqn(_BaseFqn):
-
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_METHOD_REGEX}$")
 
 
 class AttributeFqn(_BaseFqn):
-
     _SUPPORT_PATTERN: ClassVar[re.Pattern[str]] = re.compile(rf"^{_ATTRIBUTE_REGEX}$")

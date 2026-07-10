@@ -7,6 +7,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+
 def _configure_sdk_loggers(base_handlers: list[logging.Handler], level: int):
     """
     统一接管并重定向第三方 SDK 的日志。
@@ -15,7 +16,7 @@ def _configure_sdk_loggers(base_handlers: list[logging.Handler], level: int):
     sdk_logger = logging.getLogger("event_hub")
     sdk_logger.setLevel(level)
     sdk_logger.propagate = False
-    
+
     # 避免重复添加 handler
     sdk_logger.handlers.clear()
     for handler in base_handlers:
@@ -35,18 +36,18 @@ def configure_logging(
     log_format: str | None = None,
     date_format: str | None = None,
     console_output: bool = True,
-) -> None: # 👈 注意：不再返回 Logger 实例
+) -> None:  # 👈 注意：不再返回 Logger 实例
     """
     全局配置日志系统。只需要在 App 启动时调用一次。
     """
     log_dir_path = Path(log_dir)
     log_dir_path.mkdir(parents=True, exist_ok=True)
-    
+
     # 1. 我们配置 Root Logger (根日志器)
     # 这样所有没有任何配置的子 Logger 都会自动继承这里的 Handler
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
-    
+
     # 如果已经配置过，避免重复添加导致打印两次
     if root_logger.handlers:
         root_logger.handlers.clear()

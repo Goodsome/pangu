@@ -66,6 +66,7 @@ class Container(DeclarativeContainer):
             {
                 ClassMoved: List(
                     on_class_moved_handler.provided.to_integration,
+                    on_class_moved_handler.provided.update_module_imports,
                 ),
             }
         ),

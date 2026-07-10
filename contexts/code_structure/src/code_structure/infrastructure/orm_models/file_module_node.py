@@ -17,7 +17,15 @@ class FileNode(ModuleNode):
     name: str
     fqn: str
 
-    classes: OutEdge[FileDefinesEdge, ClassNode] = Field(default_factory=lambda: OutEdge[FileDefinesEdge, ClassNode]())
-    functions: OutEdge[FileDefinesEdge, FunctionNode] = Field(default_factory=lambda: OutEdge[FileDefinesEdge, FunctionNode]())
-    variables: OutEdge[FileDefinesEdge, VariableNode] = Field(default_factory=lambda: OutEdge[FileDefinesEdge, VariableNode]())
-    imports: OutEdge[ImportsEdge, SymbolNode] = Field(default_factory=lambda: OutEdge[ImportsEdge, SymbolNode]())
+    classes: OutEdge[FileDefinesEdge, ClassNode] = Field(
+        default_factory=lambda: OutEdge[FileDefinesEdge, ClassNode]()
+    )
+    functions: OutEdge[FileDefinesEdge, FunctionNode] = Field(
+        default_factory=lambda: OutEdge[FileDefinesEdge, FunctionNode]()
+    )
+    variables: OutEdge[FileDefinesEdge, VariableNode] = Field(
+        default_factory=lambda: OutEdge[FileDefinesEdge, VariableNode]()
+    )
+    imports: OutEdge[ImportsEdge, SymbolNode] = Field(
+        default_factory=lambda: OutEdge[ImportsEdge, SymbolNode]()
+    )

@@ -46,6 +46,9 @@ class FileModule(AggregateRoot[ModuleId]):
     ) -> None:
         self._imports.append(ParsedImport(target_fqn=target_fqn, alias=alias))
 
+    def set_imports(self, imports: list[ParsedImport]) -> None:
+        self._imports = list(imports)
+
     def define_function(self, function_id: FunctionId) -> None:
         self._functions.add(function_id)
 

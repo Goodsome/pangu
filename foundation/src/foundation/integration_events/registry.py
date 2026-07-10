@@ -13,7 +13,7 @@ logger = logging.getLogger("event_hub.registry")
 @dataclass
 class EventRegistry:
     """集成事件类型注册表。"""
-    
+
     _entries: dict[str, type[IntegrationEvent]] = field(default_factory=dict)
 
     def register(self, event_class: type[IntegrationEvent]) -> None:

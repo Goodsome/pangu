@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from typing import override
+from typing import cast, override
 from code_structure.domain.aggregates.file_module import FileModule
 
-from foundation.common_types.fqns.fqn import ModuleFqn
+from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
+from code_structure.domain.value_objects.parsed_import import ParsedImport
 from code_structure.domain.repositories.file_module_repository import (
     FileModuleRepository,
 )
@@ -66,3 +67,19 @@ class Neo4jFileModuleRepository(FileModuleRepository):
     def get_all_modules(self) -> list[FileModule]:
         nodes = self.session.find(FileNode)
         return [file_module_node_to_file_module(node) for node in nodes]
+
+    @override
+    def get_external_dependencies(self, fqn: ModuleFqn) -> list[ParsedImport]:
+        query = (
+            "MATCH (m:File {fqn: $module_fqn})-[:DEFINES]->(s:Symbol)-[r:REFERENCES]->(ref:Symbol) "
+            "WHERE NOT (m)-[:DEFINES]->(ref) "
+            "RETURN DISTINCT ref.fqn AS fqn, r.alias AS alias"
+        )
+        records = self.session.execute(query, module_fqn=str(fqn))
+        return [
+            ParsedImport(
+                target_fqn=SymbolFqn(cast(str, record["fqn"])),
+                alias=cast(str | None, record["alias"]),
+            )
+            for record in records
+        ]

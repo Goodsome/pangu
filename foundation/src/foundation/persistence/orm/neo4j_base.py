@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum, auto
 from typing import ClassVar, Any
 
@@ -52,13 +51,13 @@ class NodeModel(BaseModel):
     def get_edge_fields(cls) -> dict[str, type["Rel[Any, Any]"]]:
         if "__edge_fields__" in cls.__dict__:
             return cls.__edge_fields__
-            
+
         edge_fields = {}
         for field_name, field_info in cls.model_fields.items():
             annotation = field_info.annotation
             if isinstance(annotation, type) and issubclass(annotation, Rel):
                 edge_fields[field_name] = annotation
-                
+
         cls.__edge_fields__ = edge_fields
         return edge_fields
 
