@@ -37,7 +37,7 @@ class SyncStagedModuleSymbolsCommandHandler:
         module_fqns = [
             FqnService.build_module_fqn(path)
             for path in cmd.file_path
-            if path.suffix == ".py"
+            if path.suffix == ".py" and path.stem != "__init__"
         ]
         if not module_fqns:
             logger.info("No staged Python modules to sync.")
