@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 from code_structure.infrastructure.orm_models.class_node import ClassNode
 from code_structure.infrastructure.orm_models.function_node import FunctionNode
 from code_structure.infrastructure.orm_models.nodes import ModuleNode
@@ -8,11 +7,10 @@ from foundation.persistence.orm.neo4j_base import OutEdge
 from code_structure.infrastructure.orm_models.symbol_node import SymbolNode
 from pydantic import Field
 
-if TYPE_CHECKING:
-    from code_structure.infrastructure.orm_models.edges import (
-        FileDefinesEdge,
-        ImportsEdge,
-    )
+from code_structure.infrastructure.orm_models.edges import (
+    FileDefinesEdge,
+    ImportsEdge,
+)
 
 
 class FileNode(ModuleNode):

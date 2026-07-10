@@ -52,8 +52,8 @@ class EdgeModel(BaseModel):
     _registry: ClassVar[dict[str, type[EdgeModel]]] = {}
 
     __rel_type__: ClassVar[str]
-    __source_model__: ClassVar[type[NodeModel]]
-    __target_model__: ClassVar[type[NodeModel]]
+    __source_model__: ClassVar[type["NodeModel"] | str]
+    __target_model__: ClassVar[type["NodeModel"] | str]
 
     __source_key__: ClassVar[str] = "id"
     __target_key__: ClassVar[str] = "id"
@@ -76,8 +76,16 @@ class EdgeModel(BaseModel):
         cls.__rel_type__ = SnakeString(name).upper()
 
     @classmethod
-    def get_target_model(cls) -> type[NodeModel]:
+    def get_target_model(cls) -> type["NodeModel"]:
+        if isinstance(cls.__target_model__, str):
+            return NodeModel.get_cls(cls.__target_model__)
         return cls.__target_model__
+
+    @classmethod
+    def get_source_model(cls) -> type["NodeModel"]:
+        if isinstance(cls.__source_model__, str):
+            return NodeModel.get_cls(cls.__source_model__)
+        return cls.__source_model__
 
     @classmethod
     def get_cls(cls, name: str) -> type[EdgeModel]:
