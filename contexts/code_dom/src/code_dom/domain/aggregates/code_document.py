@@ -61,8 +61,10 @@ class CodeDocument(AggregateRoot[Path]):
         if target_import is not None:
             target_import.names.append(alias_to_move)
         else:
-            new_body.append(
-                AstImportFrom(module=new_module, names=[alias_to_move])
+            insert_at = _last_import_index(new_body)
+            new_body.insert(
+                insert_at,
+                AstImportFrom(module=new_module, names=[alias_to_move]),
             )
 
         self.body = new_body
@@ -76,6 +78,14 @@ class CodeDocument(AggregateRoot[Path]):
 
     def add_class(self, class_def: AstClassDef) -> None:
         self.body.append(class_def)
+
+
+def _last_import_index(body: list[AstStmt]) -> int:
+    """Return the index after the last import statement, or 0."""
+    for i in range(len(body) - 1, -1, -1):
+        if isinstance(body[i], AstImportFrom):
+            return i + 1
+    return 0
 
 
 def _find_import_from(body: list[AstStmt], module: str) -> AstImportFrom | None:
