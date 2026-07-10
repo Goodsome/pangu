@@ -10,6 +10,7 @@ from foundation.building_blocks.command import Command
 
 logger = logging.getLogger(__name__)
 
+
 class SyncStagedModulesCommand(Command):
     file_path: list[Path]
 
@@ -17,7 +18,7 @@ class SyncStagedModulesCommand(Command):
 @dataclass
 class SyncStagedModulesHandler:
     code_scanner: CodeScanner
-    
+
     def execute(self, cmd: SyncStagedModulesCommand, uow: UnitOfWork) -> None:
         parsed_modules = self.code_scanner.scan_files(cmd.file_path)
         module_fqns = FqnService.collect_fqns(parsed_modules)
@@ -25,8 +26,8 @@ class SyncStagedModulesHandler:
         module_registry = ModuleRegistry.init(modules)
         sync_modules_service = SyncModuleService(module_registry)
         sync_modules = sync_modules_service.sync_from_parsed_modules(parsed_modules)
-        
+
         uow.repository.save_all(sync_modules)
-        
+
         for deleted_module in module_registry.deleted_modules:
             uow.repository.delete(deleted_module)

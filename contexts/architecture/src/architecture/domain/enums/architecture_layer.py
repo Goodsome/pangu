@@ -6,4 +6,3 @@ class ArchitectureLayer(StrEnum):
     APPLICATION = auto()
     INFRASTRUCTURE = auto()
     INTERFACES = auto()
-    

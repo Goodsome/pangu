@@ -23,6 +23,6 @@ class RenameModuleHandler:
         target_module = uow.repository.find_by_fqn(new_fqn)
         if target_module is not None:
             raise ValueError(f"Module already exists: {new_fqn}")
-        
+
         module.moved(new_fqn)
         uow.repository.save(module)

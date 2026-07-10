@@ -95,7 +95,7 @@ class Neo4jSession:
                     elif meta_item.target_model is not None:
                         target_cls = meta_item.target_model
                     else:
-                        target_cls = edge_cls.__target_model__
+                        target_cls = edge_cls.get_target_model()
 
                     proj = "meta_id" if meta_item.target_property else "meta_node"
 
@@ -272,8 +272,8 @@ class Neo4jSession:
             rel_type = edge_cls.__rel_type__
             s_key = edge_cls.__source_key__
             t_key = edge_cls.__target_key__
-            s_label = edge_cls.__source_model__.get_label_string()
-            t_label = edge_cls.__target_model__.get_label_string()
+            s_label = edge_cls.get_source_model().get_label_string()
+            t_label = edge_cls.get_target_model().get_label_string()
 
             for e in edges:
                 props = e.model_dump(exclude={"source_ref", "target_ref"})
@@ -307,8 +307,8 @@ class Neo4jSession:
             rel_type = edge_cls.__rel_type__
             s_key = edge_cls.__source_key__
             t_key = edge_cls.__target_key__
-            s_label = edge_cls.__source_model__.get_label_string()
-            t_label = edge_cls.__target_model__.get_label_string()
+            s_label = edge_cls.get_source_model().get_label_string()
+            t_label = edge_cls.get_target_model().get_label_string()
 
             query = f"""
             UNWIND $batch AS edge

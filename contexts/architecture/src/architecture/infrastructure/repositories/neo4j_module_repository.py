@@ -1,26 +1,14 @@
 from collections.abc import Collection
 from dataclasses import dataclass
-from typing import assert_never, override
+from typing import override
 from architecture.infrastructure.mappers.module_to_module_node import (
     module_to_module_node,
 )
-from architecture.infrastructure.orm_models.module_node import (
-    ContainsEdge,
-    DependsOnEdge,
-)
-from foundation.building_blocks.mutation_collector import Mutation
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
 from architecture.domain.aggregates.module import Module
-from architecture.domain.mutations.add_contains_edge import AddContainsEdgeMutation
-from architecture.domain.mutations.add_depends_on_edge import AddDependsEdgeMutation
-from architecture.domain.mutations.remove_contains_edge import (
-    RemoveContainsEdgeMutation,
-)
-from architecture.domain.mutations.remove_depends_on_edge import (
-    RemoveDependsEdgeMutation,
-)
+
 from architecture.domain.repositories.module_repository import ModuleRepository
 
 
@@ -32,7 +20,6 @@ class Neo4jModuleRepository(ModuleRepository):
     def _add(self, aggregate: Module) -> None:
         module_node = module_to_module_node(aggregate)
         self.session.save_node(module_node)
-        self._batch_handle_mutations(aggregate.collect_mutations())
 
     @override
     def _add_all(self, aggregates: list[Module]) -> None:
@@ -62,7 +49,6 @@ class Neo4jModuleRepository(ModuleRepository):
     def _save(self, aggregate: Module) -> None:
         module_node = module_to_module_node(aggregate)
         self.session.save_node(module_node)
-        self._batch_handle_mutations(aggregate.collect_mutations())
 
     @override
     def _save_all(self, aggregates: list[Module]) -> None:
@@ -77,35 +63,6 @@ class Neo4jModuleRepository(ModuleRepository):
     def delete_all(self, ids: list[ModuleId]) -> None:
         for id in ids:
             self.session.delete_node(node_id=str(id))
-
-
-    def _batch_handle_mutations(self, mutations: list[Mutation]):
-        for mutation in mutations:
-            match mutation:
-                case AddDependsEdgeMutation():
-                    edge = DependsOnEdge(
-                        source_ref=str(mutation.source), target_ref=str(mutation.target)
-                    )
-                    self.session.save_edge(edge)
-                case RemoveDependsEdgeMutation():
-                    edge = DependsOnEdge(
-                        source_ref=str(mutation.source), target_ref=str(mutation.target)
-                    )
-                    self.session.delete_edge(edge)
-                case AddContainsEdgeMutation():
-                    edge = ContainsEdge(
-                        source_ref=str(mutation.source), target_ref=str(mutation.target)
-                    )
-                    self.session.save_edge(edge)
-                case RemoveContainsEdgeMutation():
-                    edge = ContainsEdge(
-                        source_ref=str(mutation.source), target_ref=str(mutation.target)
-                    )
-                    self.session.delete_edge(edge)
-                case Mutation():
-                    raise NotImplementedError
-                case _:
-                    assert_never(mutation)
 
     @override
     def update_fqn_prefix(self, old_fqn: ModuleFqn, new_fqn: ModuleFqn) -> None:

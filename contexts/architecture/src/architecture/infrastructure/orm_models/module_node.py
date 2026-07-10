@@ -1,58 +1,43 @@
-from typing import Annotated, ClassVar
+from typing import ClassVar
 
 from foundation.persistence.orm.neo4j_base import (
     EdgeModel,
     NodeModel,
-    RelationshipMeta,
+    OutEdge,
 )
 from pydantic import Field
 
 
-Dependencies = Annotated[
-    list[str],
-    Field(default_factory=list),
-    RelationshipMeta(
-        edge_model="DependsOnEdge",
-        target_property="id",
-    ),
-]
+class DependsOnEdge(EdgeModel):
+    __source_model__: ClassVar[type["NodeModel"] | str] = "ModuleNode"
+    __target_model__: ClassVar[type["NodeModel"] | str] = "ModuleNode"
 
-Contains = Annotated[
-    list[str],
-    Field(default_factory=list),
-    RelationshipMeta(
-        edge_model="ContainsEdge",
-        target_property="id",
-    ),
-]
 
-class ModuleNode(NodeModel):
-    ...
-    
+class ContainsEdge(EdgeModel):
+    __source_model__: ClassVar[type["NodeModel"] | str] = "PackageNode"
+    __target_model__: ClassVar[type["NodeModel"] | str] = "ModuleNode"
+
+
+class ModuleNode(NodeModel): ...
+
 
 class FileNode(ModuleNode):
-
     name: str
     fqn: str
 
-    dependencies: Dependencies
+    dependencies: OutEdge[DependsOnEdge, ModuleNode] = Field(
+        default_factory=lambda: OutEdge[DependsOnEdge, ModuleNode]()
+    )
 
 
 class PackageNode(ModuleNode):
-
     name: str
     fqn: str
 
-    contains: Contains
+    contains: OutEdge[ContainsEdge, ModuleNode] = Field(
+        default_factory=lambda: OutEdge[ContainsEdge, ModuleNode]()
+    )
+    dependencies: OutEdge[DependsOnEdge, ModuleNode] = Field(
+        default_factory=lambda: OutEdge[DependsOnEdge, ModuleNode]()
+    )
 
-    dependencies: Dependencies
-
-
-class DependsOnEdge(EdgeModel):
-    __source_model__: ClassVar[type[NodeModel]] = ModuleNode
-    __target_model__: ClassVar[type[NodeModel]] = FileNode
-    
-
-class ContainsEdge(EdgeModel):
-    __source_model__: ClassVar[type[NodeModel]] = PackageNode
-    __target_model__: ClassVar[type[NodeModel]] = ModuleNode

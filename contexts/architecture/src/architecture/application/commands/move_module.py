@@ -23,7 +23,7 @@ class MoveModuleHandler:
         new_module = uow.repository.find_by_fqn(new_fqn)
         if new_module is not None:
             raise ValueError(f"Module already exists: {new_fqn}")
-        
+
         old_parent_fqn = old_fqn.parent_fqn
         old_parent = uow.repository.find_by_fqn(old_parent_fqn)
         if old_parent is not None:
