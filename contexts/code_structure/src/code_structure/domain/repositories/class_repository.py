@@ -16,3 +16,9 @@ class ClassRepository(Repository[ClassSymbol, ClassId], ABC):
     def find_affected_callers(self, class_id: ClassId) -> list[ModuleFqn]:
         """Find all ModuleFqns of files that contain symbols referencing the class"""
         ...
+
+    @abstractmethod
+    def find_by_fqn_prefix(self, prefix: str) -> list[ClassSymbol]:
+        """Find ClassSymbols by FQN prefix"""
+        ...
+

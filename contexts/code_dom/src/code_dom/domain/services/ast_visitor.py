@@ -18,6 +18,7 @@ from codegen.code_metadata.domain.value_objects.ast_comprehension import (
 )
 from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
+from codegen.code_metadata.domain.value_objects.ast_delete import AstDelete
 from codegen.code_metadata.domain.value_objects.ast_dict import AstDict
 from codegen.code_metadata.domain.value_objects.ast_dict_comp import AstDictComp
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
@@ -104,6 +105,8 @@ class AstVisitor:
                 self.visit_ast_aug_assign(node)
             case AstExprStmt():
                 self.visit_ast_expr_stmt(node)
+            case AstDelete():
+                self.visit_ast_delete(node)
             case AstFor():
                 self.visit_ast_for(node)
             case AstWhile():
@@ -237,6 +240,10 @@ class AstVisitor:
 
     def visit_ast_expr_stmt(self, node: AstExprStmt):
         self.visit(node.value)
+
+    def visit_ast_delete(self, node: AstDelete):
+        for target in node.targets:
+            self.visit(target)
 
     def visit_ast_for(self, node: AstFor):
         self.visit(node.target)

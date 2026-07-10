@@ -10,6 +10,7 @@ from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssign
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
+from codegen.code_metadata.domain.value_objects.ast_delete import AstDelete
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
 )
@@ -89,6 +90,8 @@ class StmtToAst:
                 node = StmtToAst.from_import_from(stmt)
             case AstWhile():
                 node = StmtToAst.from_while(stmt)
+            case AstDelete():
+                node = StmtToAst.from_delete(stmt)
             case _:
                 raise NotImplementedError(f"Unsupported AstStmt type: {type(stmt)}")
         return StmtToAst._fix_pos(node)
@@ -100,6 +103,10 @@ class StmtToAst:
             body=[StmtToAst.to_node(b) for b in stmt.body],
             orelse=[StmtToAst.to_node(b) for b in stmt.orelse],
         )
+
+    @staticmethod
+    def from_delete(stmt: AstDelete) -> ast.Delete:
+        return ast.Delete(targets=[ExprToAst.to_node(t) for t in stmt.targets])
 
     @staticmethod
     def from_import(stmt: AstImport) -> ast.Import:

@@ -23,10 +23,16 @@ from code_structure.application.commands.move_class import (
     MoveClassCommand,
     MoveClassCommandHandler,
 )
+from code_structure.application.commands.sync_staged_module_symbols import (
+    SyncStagedModuleSymbolsCommand,
+    SyncStagedModuleSymbolsCommandHandler,
+)
 from code_structure.domain.events.class_moved import ClassMoved
 from code_structure.application.event_handlers.on_class_moved import OnClassMoved
 from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from code_structure.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
+from code_structure.domain.serivces.sync_module_symbols_service import SyncModuleSymbolsService
+
 
 
 class Container(DeclarativeContainer):
@@ -52,6 +58,14 @@ class Container(DeclarativeContainer):
     move_class_handler: Factory[MoveClassCommandHandler] = Factory(
         MoveClassCommandHandler
     )
+    sync_module_symbols_service: Singleton[SyncModuleSymbolsService] = Singleton(
+        SyncModuleSymbolsService
+    )
+    sync_staged_module_symbols_handler: Factory[SyncStagedModuleSymbolsCommandHandler] = Factory(
+        SyncStagedModuleSymbolsCommandHandler,
+        symbol_scanner=code_dom_scanner,
+        sync_service=sync_module_symbols_service,
+    )
     on_class_moved_handler: Factory[OnClassMoved] = Factory(OnClassMoved)
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
@@ -60,6 +74,7 @@ class Container(DeclarativeContainer):
             {
                 InitSymbolGraphCommand: init_symbol_graph_handler.provided.execute,
                 MoveClassCommand: move_class_handler.provided.execute,
+                SyncStagedModuleSymbolsCommand: sync_staged_module_symbols_handler.provided.execute,
             }
         ),
         event_handlers=Dict(

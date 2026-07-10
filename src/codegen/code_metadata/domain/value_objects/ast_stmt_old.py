@@ -25,6 +25,7 @@ from codegen.code_metadata.domain.value_objects.ast_raise import AstRaise
 from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
+from codegen.code_metadata.domain.value_objects.ast_delete import AstDelete
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_try import AstTry
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
@@ -137,7 +138,8 @@ AstStmt = Annotated[
     | AstFunctionDef
     | AstImport
     | AstImportFrom
-    | AstClassDef,
+    | AstClassDef
+    | AstDelete,
     Field(discriminator="kind"),
 ]
 ast_stmt_adapter: TypeAdapter[AstStmt] = TypeAdapter(AstStmt)
@@ -152,6 +154,7 @@ AstRaise.model_rebuild()
 AstImport.model_rebuild()
 AstImportFrom.model_rebuild()
 AstClassDef.model_rebuild()
+AstDelete.model_rebuild()
 AstWhile.model_rebuild()
 AstMatchCase.model_rebuild()
 AstExceptHandler.model_rebuild()

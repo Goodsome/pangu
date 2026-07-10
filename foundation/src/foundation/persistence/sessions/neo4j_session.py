@@ -383,7 +383,10 @@ class Neo4jSession:
         # 动态构建 WHERE 条件
         where_clauses = []
         for key, value in kwargs.items():
-            if isinstance(value, (list, tuple, set)):
+            if key.endswith("__startswith"):
+                real_key = key[:-12]
+                where_clauses.append(f"n.{real_key} STARTS WITH ${key}")
+            elif isinstance(value, (list, tuple, set)):
                 where_clauses.append(f"n.{key} IN ${key}")
             else:
                 where_clauses.append(f"n.{key} = ${key}")

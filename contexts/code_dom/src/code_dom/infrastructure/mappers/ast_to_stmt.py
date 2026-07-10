@@ -7,6 +7,7 @@ from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssign
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
+from codegen.code_metadata.domain.value_objects.ast_delete import AstDelete
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
 )
@@ -89,6 +90,8 @@ class AstToStmt:
                 return AstToStmt.to_ast_class_def(node)
             case ast.Expr():
                 return AstToStmt.to_ast_expr_stmt(node)
+            case ast.Delete():
+                return AstToStmt.to_ast_delete(node)
             case _:
                 raise NotImplementedError(
                     f"Unsupported AST node: node={node!r} \n{ast.unparse(node)}"
@@ -368,3 +371,7 @@ class AstToStmt:
     @staticmethod
     def to_ast_expr_stmt(node: ast.Expr) -> AstExprStmt:
         return AstExprStmt(value=AstToExpr.to_expr(node.value))
+
+    @staticmethod
+    def to_ast_delete(node: ast.Delete) -> AstDelete:
+        return AstDelete(targets=[AstToExpr.to_expr(t) for t in node.targets])

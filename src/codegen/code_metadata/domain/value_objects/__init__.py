@@ -19,6 +19,7 @@ from codegen.code_metadata.domain.value_objects.ast_comprehension import (
 from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
+from codegen.code_metadata.domain.value_objects.ast_delete import AstDelete
 from codegen.code_metadata.domain.value_objects.ast_dict import AstDict
 from codegen.code_metadata.domain.value_objects.ast_dict_comp import AstDictComp
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
@@ -92,6 +93,7 @@ __all__ = [
     "AstConstant",
     "AstBreak",
     "AstContinue",
+    "AstDelete",
     "AstDict",
     "AstDictComp",
     "AstExceptHandler",

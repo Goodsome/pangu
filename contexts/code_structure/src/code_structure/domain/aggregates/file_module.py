@@ -52,5 +52,20 @@ class FileModule(AggregateRoot[ModuleId]):
     def define_function(self, function_id: FunctionId) -> None:
         self._functions.add(function_id)
 
+    def undefine_function(self, function_id: FunctionId) -> None:
+        """Remove function definition from module."""
+        self._functions.discard(function_id)
+
     def define_variable(self, variable_id: VariableId) -> None:
         self._variables.add(variable_id)
+
+    def undefine_variable(self, variable_id: VariableId) -> None:
+        """Remove variable definition from module."""
+        self._variables.discard(variable_id)
+
+    def clear_definitions(self) -> None:
+        """Clear all definitions of classes, functions, variables and imports."""
+        self._classes.clear()
+        self._functions.clear()
+        self._variables.clear()
+        self._imports.clear()

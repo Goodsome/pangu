@@ -5,6 +5,7 @@ from dependency_injector.providers import Factory
 from dependency_injector.providers import Singleton
 from redis.asyncio import Redis
 from code_dom.application.commands.generate_code import GenerateCodeHandler
+from code_dom.application.event_handlers.on_class_moved import OnClassMoved
 from code_dom.application.event_handlers.on_module_created import OnModuleCreated
 from code_dom.application.event_handlers.on_module_deleted import OnModuleDeleted
 from code_dom.application.event_handlers.on_module_moved import OnModuleMoved
@@ -33,6 +34,7 @@ from code_dom.infrastructure.repositories.file_system_document_repository import
 from code_dom.infrastructure.repositories.file_system_unit_of_work import (
     FileSystemUnitOfWork,
 )
+from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
 from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
 from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
 from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
@@ -98,6 +100,7 @@ class Container(DeclarativeContainer):
     on_module_moved: Singleton[OnModuleMoved] = Singleton(
         OnModuleMoved, file_system=file_system_port
     )
+    on_class_moved: Singleton[OnClassMoved] = Singleton(OnClassMoved)
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
         uow=unit_of_work,
@@ -112,6 +115,9 @@ class Container(DeclarativeContainer):
                 ),
                 ModuleMovedIntegrationEvent: List(
                     on_module_moved.provided.execute_physical_move
+                ),
+                ClassMovedIntegrationEvent: List(
+                    on_class_moved.provided.update_imports
                 ),
             }
         ),

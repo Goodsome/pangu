@@ -70,3 +70,12 @@ class Neo4jClassRepository(ClassRepository):
             class_id=str(class_id),
         )
         return [ModuleFqn(cast(str, record["fqn"])) for record in records]
+
+    @override
+    def find_by_fqn_prefix(self, prefix: str) -> list[ClassSymbol]:
+        nodes = self.session.find(ClassNode, fqn__startswith=prefix)
+        symbols = [class_node_to_class_symbol(node) for node in nodes]
+        for s in symbols:
+            self._seens.add(s)
+        return symbols
+

@@ -48,3 +48,12 @@ class Neo4jVariableRepository(VariableRepository):
     @override
     def _delete(self, aggregate: VariableSymbol) -> None:
         self.session.delete_node(node_id=str(aggregate.id))
+
+    @override
+    def find_by_fqn_prefix(self, prefix: str) -> list[VariableSymbol]:
+        nodes = self.session.find(VariableNode, fqn__startswith=prefix)
+        symbols = [variable_node_to_variable_symbol(node) for node in nodes]
+        for s in symbols:
+            self._seens.add(s)
+        return symbols
+
