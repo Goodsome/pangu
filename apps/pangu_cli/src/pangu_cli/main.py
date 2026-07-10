@@ -11,6 +11,7 @@ from pangu_cli.container import create_container
 from pangu_cli.run_outbox_worker import run_worker
 from architecture.interfaces.cli import arch_app
 from code_dom.interfaces.cli import code_dom_app
+from code_structure.interfaces.cli import code_structure_app
 
 app = typer.Typer(
     name="pangu",
@@ -20,6 +21,7 @@ app = typer.Typer(
 )
 app.add_typer(arch_app, name="arch")
 app.add_typer(code_dom_app, name="dom")
+app.add_typer(code_structure_app, name="structure")
 app.command()(run_worker)
 
 @app.command(name="init-graph")
