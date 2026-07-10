@@ -347,6 +347,8 @@ class Neo4jSession:
             proj = rel_type.get_projection_type()
 
             edge_rel_type = edge_cls.__rel_type__
+            s_key = edge_cls.__source_key__
+            t_key = edge_cls.__target_key__
             left_arrow = "<-" if direction == RelationDirection.IN else "-"
             right_arrow = "->" if direction == RelationDirection.OUT else "-"
 
@@ -360,7 +362,7 @@ class Neo4jSession:
 
             if proj == ProjectionType.EDGE:
                 return_clauses.append(
-                    f"collect(DISTINCT CASE WHEN {rel_alias} IS NOT NULL THEN {rel_alias} {{.*, source_ref: {root_alias}.id, target_ref: {target_alias}.id}} END) AS {field_name}"
+                    f"collect(DISTINCT CASE WHEN {rel_alias} IS NOT NULL THEN {rel_alias} {{.*, source_ref: {root_alias}.{s_key}, target_ref: {target_alias}.{t_key}}} END) AS {field_name}"
                 )
             elif proj == ProjectionType.NODE:
                 return_clauses.append(
@@ -368,7 +370,7 @@ class Neo4jSession:
                 )
             elif proj == ProjectionType.RELATION:
                 return_clauses.append(
-                    f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN {{edge: {rel_alias} {{.*, source_ref: {root_alias}.id, target_ref: {target_alias}.id}}, target: properties({target_alias})}} END) AS {field_name}"
+                    f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN {{edge: {rel_alias} {{.*, source_ref: {root_alias}.{s_key}, target_ref: {target_alias}.{t_key}, target: properties({target_alias})}} END) AS {field_name}"
                 )
 
         return match_clauses, return_clauses, edge_keys
