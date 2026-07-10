@@ -9,4 +9,8 @@ def file_module_node_to_file_module(file_module_node: FileNode) -> FileModule:
         id=str_to_module_id(file_module_node.id),
         name=file_module_node.name,
         fqn=ModuleFqn(file_module_node.fqn),
+        classes=set(),
+        functions=set(),
+        variables=set(),
+        imports=list(),
     )
