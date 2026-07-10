@@ -8,6 +8,7 @@ from foundation.persistence.orm.neo4j_base import (
     EdgeModel,
     NodeModel,
     RelationDirection,
+    ProjectionType,
     Rel,
     EdgeItem,
 )
@@ -54,13 +55,13 @@ class Neo4jSession:
         direction = rel_type.get_direction()
         result = {}
         for item in items:
-            if proj == "edge":
+            if proj == ProjectionType.EDGE:
                 other_id = item.source_ref if direction == RelationDirection.IN else item.target_ref
                 result[other_id] = item
-            elif proj == "relation":
+            elif proj == ProjectionType.RELATION:
                 other_id = item.target.id if hasattr(item.target, "id") else item.target
                 result[other_id] = item.edge
-            else:  # node / relation
+            else:  # node
                 other_id = item.id if hasattr(item, "id") else item
                 s_ref = other_id if direction == RelationDirection.IN else current_node_id
                 t_ref = current_node_id if direction == RelationDirection.IN else other_id
@@ -143,9 +144,9 @@ class Neo4jSession:
             
             # 如果投影类型是 node 或 relation，代表子节点的生命周期受当前父节点管理
             new_nodes_map: dict[str, NodeModel] = {}
-            if proj == "node":
+            if proj == ProjectionType.NODE:
                 new_nodes_map = {item.id: item for item in new_items if isinstance(item, NodeModel)}
-            elif proj == "relation":
+            elif proj == ProjectionType.RELATION:
                 new_nodes_map = {
                     item.target.id: item.target 
                     for item in new_items 
@@ -164,7 +165,7 @@ class Neo4jSession:
             for t_id in removed:
                 self.delete_edge(old_map[t_id])
                 # 如果子节点生命周期绑定在当前关系上，关系删除时级联删除子节点
-                if proj in ("node", "relation"):
+                if proj in (ProjectionType.NODE, ProjectionType.RELATION):
                     self.delete_node(t_id)
                     
             for t_id in kept:
@@ -339,15 +340,15 @@ class Neo4jSession:
                 f"OPTIONAL MATCH ({source_match}){left_arrow}[{rel_alias}:{edge_rel_type}]{right_arrow}({target_match})"
             )
 
-            if proj == "edge":
+            if proj == ProjectionType.EDGE:
                 return_clauses.append(
                     f"collect(DISTINCT CASE WHEN {rel_alias} IS NOT NULL THEN {rel_alias} {{.*, source_ref: {root_alias}.id, target_ref: {target_alias}.id}} END) AS {field_name}"
                 )
-            elif proj == "node":
+            elif proj == ProjectionType.NODE:
                 return_clauses.append(
                     f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN properties({target_alias}) END) AS {field_name}"
                 )
-            elif proj == "relation":
+            elif proj == ProjectionType.RELATION:
                 return_clauses.append(
                     f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN {{edge: {rel_alias} {{.*, source_ref: {root_alias}.id, target_ref: {target_alias}.id}}, target: properties({target_alias})}} END) AS {field_name}"
                 )
@@ -401,13 +402,13 @@ class Neo4jSession:
                 if isinstance(target_cls, str):
                     target_cls = NodeModel.get_cls(target_cls)
 
-                if proj == "edge":
+                if proj == ProjectionType.EDGE:
                     items = [edge_cls(**item) for item in raw]
                     node_props[edge_key] = {"items": items}
-                elif proj == "node":
+                elif proj == ProjectionType.NODE:
                     items = [target_cls(**item) for item in raw]
                     node_props[edge_key] = {"items": items}
-                elif proj == "relation":
+                elif proj == ProjectionType.RELATION:
                     items = [
                         EdgeItem(
                             edge=edge_cls(**item["edge"]),

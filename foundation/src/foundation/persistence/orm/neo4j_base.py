@@ -115,6 +115,12 @@ class RelationDirection(Enum):
     BOTH = auto()
 
 
+class ProjectionType(Enum):
+    EDGE = auto()
+    NODE = auto()
+    RELATION = auto()
+
+
 class Rel[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
     """Base class for all relationships. Used by Query Builder for introspection."""
 
@@ -131,7 +137,7 @@ class Rel[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
         raise NotImplementedError
 
     @classmethod
-    def get_projection_type(cls) -> str:
+    def get_projection_type(cls) -> ProjectionType:
         raise NotImplementedError
 
 
@@ -143,8 +149,8 @@ class OutEdge[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
         return RelationDirection.OUT
 
     @classmethod
-    def get_projection_type(cls) -> str:
-        return "edge"
+    def get_projection_type(cls) -> ProjectionType:
+        return ProjectionType.EDGE
 
 
 class InEdge[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
@@ -155,8 +161,8 @@ class InEdge[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
         return RelationDirection.IN
 
     @classmethod
-    def get_projection_type(cls) -> str:
-        return "edge"
+    def get_projection_type(cls) -> ProjectionType:
+        return ProjectionType.EDGE
 
 
 class OutNode[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
@@ -167,8 +173,8 @@ class OutNode[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
         return RelationDirection.OUT
 
     @classmethod
-    def get_projection_type(cls) -> str:
-        return "node"
+    def get_projection_type(cls) -> ProjectionType:
+        return ProjectionType.NODE
 
 
 class InNode[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
@@ -179,8 +185,8 @@ class InNode[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
         return RelationDirection.IN
 
     @classmethod
-    def get_projection_type(cls) -> str:
-        return "node"
+    def get_projection_type(cls) -> ProjectionType:
+        return ProjectionType.NODE
 
 
 class EdgeItem[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
@@ -196,8 +202,8 @@ class OutRelation[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
         return RelationDirection.OUT
 
     @classmethod
-    def get_projection_type(cls) -> str:
-        return "relation"
+    def get_projection_type(cls) -> ProjectionType:
+        return ProjectionType.RELATION
 
 
 class InRelation[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
@@ -208,5 +214,5 @@ class InRelation[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
         return RelationDirection.IN
 
     @classmethod
-    def get_projection_type(cls) -> str:
-        return "relation"
+    def get_projection_type(cls) -> ProjectionType:
+        return ProjectionType.RELATION
