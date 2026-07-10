@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import ClassVar
+from typing import ClassVar, Any
 
 from foundation.common_types.snake_string import SnakeString
 from pydantic import BaseModel, Field
@@ -10,6 +10,7 @@ class NodeModel(BaseModel):
     __labels__: ClassVar[tuple[str, ...]]
 
     _registry: ClassVar[dict[str, type["NodeModel"]]] = {}
+    __edge_fields__: ClassVar[dict[str, type["Rel[Any, Any]"]]]
 
     id: str
 
@@ -46,6 +47,20 @@ class NodeModel(BaseModel):
         if not cls.__labels__:
             return ""
         return ":" + ":".join(cls.__labels__)
+
+    @classmethod
+    def get_edge_fields(cls) -> dict[str, type["Rel[Any, Any]"]]:
+        if "__edge_fields__" in cls.__dict__:
+            return cls.__edge_fields__
+            
+        edge_fields = {}
+        for field_name, field_info in cls.model_fields.items():
+            annotation = field_info.annotation
+            if isinstance(annotation, type) and issubclass(annotation, Rel):
+                edge_fields[field_name] = annotation
+                
+        cls.__edge_fields__ = edge_fields
+        return edge_fields
 
 
 class EdgeModel(BaseModel):
@@ -98,14 +113,6 @@ class RelationDirection(Enum):
     IN = auto()
     OUT = auto()
     BOTH = auto()
-
-
-@dataclass
-class RelationshipMeta:
-    edge_model: str
-    direction: RelationDirection = RelationDirection.OUT
-    target_property: str | None = None
-    target_model: type[NodeModel] | str | None = None
 
 
 class Rel[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):

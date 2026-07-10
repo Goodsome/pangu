@@ -8,7 +8,6 @@ from foundation.persistence.orm.neo4j_base import (
     EdgeModel,
     NodeModel,
     RelationDirection,
-    RelationshipMeta,
     Rel,
     EdgeItem,
 )
@@ -45,69 +44,7 @@ class Neo4jSession:
         self._session = self.driver.session()
         self._transaction = self._session.begin_transaction()
 
-    # ==========================================
-    # 辅助反射方法
-    # ==========================================
 
-    @classmethod
-    def _get_edge_fields(
-        cls, model_class: type[NodeModel]
-    ) -> dict[str, dict[str, Any]]:
-        """从 Pydantic 模型提取图谱关系元数据，支持新型泛型 Rel 声明和旧的 RelationshipMeta"""
-        edge_fields = {}
-        for field_name, field_info in model_class.model_fields.items():
-            # 1. 解析新型泛型声明
-            annotation = field_info.annotation
-            if isinstance(annotation, type) and issubclass(annotation, Rel):
-                edge_cls = annotation.get_edge_cls()
-                if isinstance(edge_cls, str):
-                    edge_cls = EdgeModel.get_cls(edge_cls)
-                    
-                target_cls = annotation.get_target_cls()
-                if isinstance(target_cls, str):
-                    target_cls = NodeModel.get_cls(target_cls)
-                    
-                edge_fields[field_name] = {
-                    "edge_cls": edge_cls,
-                    "target_cls": target_cls,
-                    "direction": annotation.get_direction(),
-                    "projection": annotation.get_projection_type(),
-                    "is_legacy": False
-                }
-                continue
-
-            metadata = []
-            if (
-                isinstance(field_info.json_schema_extra, dict)
-                and "metadata" in field_info.json_schema_extra
-            ):
-                val = field_info.json_schema_extra["metadata"]
-                if isinstance(val, list):
-                    metadata = val
-            elif isinstance(field_info.metadata, list):
-                metadata = field_info.metadata
-
-            for meta_item in metadata:
-                if isinstance(meta_item, RelationshipMeta):
-                    edge_cls = EdgeModel.get_cls(meta_item.edge_model)
-                    if isinstance(meta_item.target_model, str):
-                        target_cls = NodeModel.get_cls(meta_item.target_model)
-                    elif meta_item.target_model is not None:
-                        target_cls = meta_item.target_model
-                    else:
-                        target_cls = edge_cls.get_target_model()
-
-                    proj = "meta_id" if meta_item.target_property else "meta_node"
-
-                    edge_fields[field_name] = {
-                        "edge_cls": edge_cls,
-                        "target_cls": target_cls,
-                        "direction": meta_item.direction,
-                        "projection": proj,
-                        "is_legacy": True,
-                        "meta": meta_item,
-                    }
-        return edge_fields
 
     # ==========================================
     # 生命周期管理 (UoW)
@@ -147,7 +84,7 @@ class Neo4jSession:
         比对当前 node 与查询时的快照，自动拆解为增量的点/边 CREATE/UPDATE/DELETE，并存入待处理队列。
         """
         old_node = self._snapshots.get(node.id)
-        edge_fields = self._get_edge_fields(type(node))
+        edge_fields = node.get_edge_fields()
         edge_field_names = set(edge_fields.keys())
         
         # 1. 存储/更新 Node 自身标量属性
@@ -160,10 +97,12 @@ class Neo4jSession:
                 self._pending_nodes_save[node.__labels__].append(node)
                 
         # 2. 对比关系集合
-        def extract_edge_info(items: Any, info: dict[str, Any], current_node_id: str) -> dict[str, EdgeModel]:
-            proj = info["projection"]
-            edge_cls = info["edge_cls"]
-            direction = info["direction"]
+        def extract_edge_info(items: Any, rel_type: type[Rel[Any, Any]], current_node_id: str) -> dict[str, EdgeModel]:
+            proj = rel_type.get_projection_type()
+            edge_cls = rel_type.get_edge_cls()
+            if isinstance(edge_cls, str):
+                edge_cls = EdgeModel.get_cls(edge_cls)
+            direction = rel_type.get_direction()
             result = {}
             for item in items:
                 if proj == "edge":
@@ -172,22 +111,22 @@ class Neo4jSession:
                 elif proj == "relation":
                     other_id = item.target.id if hasattr(item.target, "id") else item.target
                     result[other_id] = item.edge
-                else: # node / meta_node / meta_id
+                else: # node / relation
                     other_id = item.id if hasattr(item, "id") else item
                     s_ref = other_id if direction == RelationDirection.IN else current_node_id
                     t_ref = current_node_id if direction == RelationDirection.IN else other_id
                     result[other_id] = edge_cls(source_ref=s_ref, target_ref=t_ref)
             return result
             
-        for field_name, info in edge_fields.items():
+        for field_name, rel_type in edge_fields.items():
             old_rel = getattr(old_node, field_name) if old_node else None
             new_rel = getattr(node, field_name)
             
             old_items = getattr(old_rel, "items", old_rel) if old_rel is not None else []
             new_items = getattr(new_rel, "items", new_rel) if new_rel is not None else []
             
-            old_map = extract_edge_info(old_items, info, node.id)
-            new_map = extract_edge_info(new_items, info, node.id)
+            old_map = extract_edge_info(old_items, rel_type, node.id)
+            new_map = extract_edge_info(new_items, rel_type, node.id)
             
             added = set(new_map.keys()) - set(old_map.keys())
             removed = set(old_map.keys()) - set(new_map.keys())
@@ -246,7 +185,7 @@ class Neo4jSession:
             model_class = models[0].__class__
 
             # 获取需要被排除的关系字段（不在节点自身持久化）
-            edge_field_names = set(self._get_edge_fields(model_class).keys())
+            edge_field_names = set(model_class.get_edge_fields().keys())
 
             batch = []
             for m in models:
@@ -340,19 +279,23 @@ class Neo4jSession:
         内部方法：提取模型上的关系声明，生成对应的关系查询和聚合子句。
         返回: (可选匹配子句列表, 返回子句列表, 边属性键名列表)
         """
-        edge_fields = self._get_edge_fields(model_class)
+        edge_fields = model_class.get_edge_fields()
         match_clauses = []
         return_clauses = [root_alias]
         edge_keys = list(edge_fields.keys())
         source_match = root_alias + model_class.get_label_string()
 
-        for field_name, info in edge_fields.items():
-            edge_cls = info["edge_cls"]
-            target_cls = info["target_cls"]
-            direction = info["direction"]
-            proj = info["projection"]
+        for field_name, rel_type in edge_fields.items():
+            edge_cls = rel_type.get_edge_cls()
+            if isinstance(edge_cls, str):
+                edge_cls = EdgeModel.get_cls(edge_cls)
+            target_cls = rel_type.get_target_cls()
+            if isinstance(target_cls, str):
+                target_cls = NodeModel.get_cls(target_cls)
+            direction = rel_type.get_direction()
+            proj = rel_type.get_projection_type()
 
-            rel_type = edge_cls.__rel_type__
+            edge_rel_type = edge_cls.__rel_type__
             left_arrow = "<-" if direction == RelationDirection.IN else "-"
             right_arrow = "->" if direction == RelationDirection.OUT else "-"
 
@@ -361,25 +304,20 @@ class Neo4jSession:
             target_match = target_alias + target_cls.get_label_string()
 
             match_clauses.append(
-                f"OPTIONAL MATCH ({source_match}){left_arrow}[{rel_alias}:{rel_type}]{right_arrow}({target_match})"
+                f"OPTIONAL MATCH ({source_match}){left_arrow}[{rel_alias}:{edge_rel_type}]{right_arrow}({target_match})"
             )
 
             if proj == "edge":
                 return_clauses.append(
                     f"collect(DISTINCT CASE WHEN {rel_alias} IS NOT NULL THEN {rel_alias} {{.*, source_ref: {root_alias}.id, target_ref: {target_alias}.id}} END) AS {field_name}"
                 )
-            elif proj == "node" or proj == "meta_node":
+            elif proj == "node":
                 return_clauses.append(
                     f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN properties({target_alias}) END) AS {field_name}"
                 )
             elif proj == "relation":
                 return_clauses.append(
                     f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN {{edge: {rel_alias} {{.*, source_ref: {root_alias}.id, target_ref: {target_alias}.id}}, target: properties({target_alias})}} END) AS {field_name}"
-                )
-            elif proj == "meta_id":
-                target_prop = info["meta"].target_property
-                return_clauses.append(
-                    f"collect(DISTINCT {target_alias}.{target_prop}) AS {field_name}"
                 )
 
         return match_clauses, return_clauses, edge_keys
@@ -414,7 +352,7 @@ class Neo4jSession:
         # 执行查询并组装结果
         result = self._transaction.run(cast(LiteralString, query), **kwargs)
 
-        edge_fields = self._get_edge_fields(model_class)
+        edge_fields = model_class.get_edge_fields()
 
         nodes = []
         for record in result:
@@ -422,10 +360,14 @@ class Neo4jSession:
             # 合并聚合的边属性
             for edge_key in edge_keys:
                 raw = record[edge_key]
-                info = edge_fields[edge_key]
-                proj = info["projection"]
-                edge_cls = info["edge_cls"]
-                target_cls = info["target_cls"]
+                rel_type = edge_fields[edge_key]
+                proj = rel_type.get_projection_type()
+                edge_cls = rel_type.get_edge_cls()
+                if isinstance(edge_cls, str):
+                    edge_cls = EdgeModel.get_cls(edge_cls)
+                target_cls = rel_type.get_target_cls()
+                if isinstance(target_cls, str):
+                    target_cls = NodeModel.get_cls(target_cls)
 
                 if proj == "edge":
                     items = [edge_cls(**item) for item in raw]
@@ -442,8 +384,6 @@ class Neo4jSession:
                         for item in raw
                     ]
                     node_props[edge_key] = {"items": items}
-                elif proj == "meta_node":
-                    node_props[edge_key] = [target_cls(**item) for item in raw]
                 else:
                     node_props[edge_key] = raw
 
