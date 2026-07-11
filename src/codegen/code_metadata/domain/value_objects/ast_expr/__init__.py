@@ -28,7 +28,12 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_yield_from import A
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_named_expr import AstNamedExpr
 
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_comprehension import AstComprehension
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_keyword import AstKeyword
+
 __all__ = [
+    "AstComprehension",
+    "AstKeyword",
     "AstExprBase",
     "AstExpr",
     "ast_expr_adapter",

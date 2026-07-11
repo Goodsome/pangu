@@ -22,7 +22,20 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import 
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_delete import AstDelete
 
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_alias import AstAlias
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_arguments import AstArguments
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_except_handler import AstExceptHandler
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match_case import AstMatchCase
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_type_param import AstTypeParam
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_with_item import AstWithItem
+
 __all__ = [
+    "AstAlias",
+    "AstArguments",
+    "AstExceptHandler",
+    "AstMatchCase",
+    "AstTypeParam",
+    "AstWithItem",
     "AstStmtBase",
     "AstStmt",
     "ast_stmt_adapter",

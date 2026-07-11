@@ -5,7 +5,6 @@ from dependency_injector.providers import (
     Dict,
     Factory,
     List,
-    Provider,
     Singleton,
 )
 from foundation.integration_events.registry import EventRegistry

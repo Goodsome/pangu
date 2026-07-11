@@ -8,7 +8,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_bin_op import AstBi
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_compare import AstCompare
-from codegen.code_metadata.domain.value_objects.ast_comprehension import (
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_comprehension import (
     AstComprehension,
 )
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_constant import AstConstant
@@ -26,7 +26,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_if_exp import AstIf
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_joined_str import (
     AstJoinedStr,
 )
-from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_lambda import (
     AstLambda,
     LambdaArgs,

@@ -2,7 +2,7 @@ from typing_extensions import assert_never
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import (
     AstAnnAssign,
 )
-from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_attribute import (
@@ -17,7 +17,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_bool_op import AstB
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_call import AstCall
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_compare import AstCompare
-from codegen.code_metadata.domain.value_objects.ast_comprehension import (
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_comprehension import (
     AstComprehension,
 )
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_constant import AstConstant
@@ -27,7 +27,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict import AstDict
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict_comp import (
     AstDictComp,
 )
-from codegen.code_metadata.domain.value_objects.ast_except_handler import (
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_except_handler import (
     AstExceptHandler,
 )
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
@@ -51,7 +51,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import 
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_joined_str import (
     AstJoinedStr,
 )
-from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_lambda import (
     AstLambda,
     Arg,
@@ -61,7 +61,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_list_comp import (
     AstListComp,
 )
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match import AstMatch
-from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match_case import AstMatchCase
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_named_expr import (
     AstNamedExpr,

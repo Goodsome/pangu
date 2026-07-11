@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.application.ports.unit_of_work import UnitOfWork
-from architecture.domain.aggregates.file_module import FileModule
-from architecture.domain.aggregates.package_module import PackageModule
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.services.package_module_registry import PackageModuleRegistry

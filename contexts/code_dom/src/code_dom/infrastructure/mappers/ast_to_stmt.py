@@ -3,7 +3,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import (
     AstAnnAssign,
 )
-from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_aug_assign import (
@@ -12,7 +12,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_aug_assign import (
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_continue import AstContinue
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_delete import AstDelete
-from codegen.code_metadata.domain.value_objects.ast_except_handler import (
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_except_handler import (
     AstExceptHandler,
 )
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_expr_stmt import (
@@ -26,20 +26,20 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import import AstIm
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import (
     AstImportFrom,
 )
-from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
-from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_alias import AstAlias
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match import AstMatch
-from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match_case import AstMatchCase
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_raise import AstRaise
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_return import AstReturn
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_try import AstTry
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_with import AstWith
-from codegen.code_metadata.domain.value_objects.ast_with_item import AstWithItem
-from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVar
-from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeVarTuple
-from codegen.code_metadata.domain.value_objects.ast_type_param import AstParamSpec
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_with_item import AstWithItem
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_type_param import AstTypeVar
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_type_param import AstTypeVarTuple
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_type_param import AstParamSpec
 from codegen.code_metadata.infrastructure.mappers._convert import binop_from_ast
 from codegen.code_metadata.infrastructure.mappers.ast_to_match_pattern import (
     AstToMatchPattern,

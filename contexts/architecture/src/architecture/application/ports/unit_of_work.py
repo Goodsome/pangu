@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from architecture.domain.aggregates.base_module import BaseModule
 from architecture.domain.aggregates.file_module import FileModule
 from architecture.domain.aggregates.package_module import PackageModule
 from architecture.domain.repositories.file_module_repository import FileModuleRepository

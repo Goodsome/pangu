@@ -1,4 +1,5 @@
 from __future__ import annotations
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 from typing import Annotated
 from typing import Literal
 from typing import Optional
@@ -6,7 +7,6 @@ from pydantic import Field
 from pydantic import TypeAdapter
 from codegen.code_metadata.domain.enums.ast_type_param_kind import AstTypeParamKind
 from foundation.building_blocks.value_object import ValueObject
-from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 
 
 class AstTypeVar(ValueObject):
@@ -14,8 +14,8 @@ class AstTypeVar(ValueObject):
 
     kind: Literal[AstTypeParamKind.TYPE_VAR] = AstTypeParamKind.TYPE_VAR
     name: str
-    bound: Optional[AstExpr] = None
-    default_value: Optional[AstExpr] = None
+    bound: Optional[AstExprBase] = None
+    default_value: Optional[AstExprBase] = None
 
 
 class AstTypeVarTuple(ValueObject):
@@ -23,7 +23,7 @@ class AstTypeVarTuple(ValueObject):
 
     kind: Literal[AstTypeParamKind.TYPE_VAR_TUPLE] = AstTypeParamKind.TYPE_VAR_TUPLE
     name: str
-    default_value: Optional[AstExpr] = None
+    default_value: Optional[AstExprBase] = None
 
 
 class AstParamSpec(ValueObject):
@@ -31,7 +31,7 @@ class AstParamSpec(ValueObject):
 
     kind: Literal[AstTypeParamKind.PARAM_SPEC] = AstTypeParamKind.PARAM_SPEC
     name: str
-    default_value: Optional[AstExpr] = None
+    default_value: Optional[AstExprBase] = None
 
 
 AstTypeParam = Annotated[
