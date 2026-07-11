@@ -16,7 +16,7 @@ from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict import AstDict
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict_comp import (
     AstDictComp,
 )
-from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExprBase
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_formatted_value import (
     AstFormattedValue,
 )
@@ -67,10 +67,10 @@ class ExprToAst:
 
     @overload
     @staticmethod
-    def to_node(expr: AstExpr) -> ast.expr: ...
+    def to_node(expr: AstExprBase) -> ast.expr: ...
 
     @staticmethod
-    def to_node(expr: AstExpr | None) -> ast.expr | None:
+    def to_node(expr: AstExprBase | None) -> ast.expr | None:
         if expr is None:
             return None
         match expr:
@@ -142,7 +142,7 @@ class ExprToAst:
 
     @staticmethod
     def from_constant(expr: AstConstant) -> ast.Constant:
-        return ast.Constant(value=expr.value)
+        return ast.Constant(value=expr.value)  # pyright: ignore[reportAny]
 
     @staticmethod
     def from_name(expr: AstName) -> ast.Name:
@@ -186,8 +186,7 @@ class ExprToAst:
             ],
             kwarg=ExprToAst.from_arg(args.kwarg) if args.kwarg else None,
             defaults=[
-                ast.parse(d, mode="eval").body if d is not None else None
-                for d in args.defaults
+                ast.parse(d, mode="eval").body for d in args.defaults if d is not None
             ],
         )
 
