@@ -24,8 +24,6 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import 
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_delete import AstDelete
 
-from codegen.code_metadata.domain.value_objects.ast_except_handler import AstExceptHandler
-from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
 
 AstStmt = Annotated[
     AstReturn

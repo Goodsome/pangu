@@ -1,11 +1,11 @@
 from __future__ import annotations
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 from typing import Literal
 from pydantic import Field
 from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
-from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_stmt_base import AstStmtBase
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import AstAnnAssign
@@ -18,8 +18,8 @@ class AstFunctionDef(AstStmtBase):
     type_params: list[AstTypeParam] = Field(default_factory=list)
     arguments: list[AstAssign | AstAnnAssign] = Field(default_factory=list)
     body: list[AstStmtBase] = Field(default_factory=list)
-    decorator_list: list[AstExpr] = Field(default_factory=list)
-    returns: AstExpr | None = None
+    decorator_list: list[AstExprBase] = Field(default_factory=list)
+    returns: AstExprBase | None = None
     type_comment: str | None = None
 
     @property
