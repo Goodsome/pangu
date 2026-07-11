@@ -20,7 +20,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAs
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
 from codegen.code_metadata.infrastructure.gateways.document_context import (
     DocumentContext,

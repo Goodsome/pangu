@@ -23,18 +23,18 @@ from codegen.code_metadata.domain.enums.bin_op import BinOp
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
-from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
-from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_bin_op import AstBinOp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_call import AstCall
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
-from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
-from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_subscript import AstSubscript
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_tuple import AstTuple
 from codegen.code_metadata.domain.value_objects.ast_type_param import (
     AstTypeParam,
     AstTypeVar,
