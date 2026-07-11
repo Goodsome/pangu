@@ -13,9 +13,10 @@ def _query_empty_packages(
         "architecture_container.module_query_service"
     ],
 ) -> list[ModuleFqn]:
-    empty_packages = query_service.find_empty_leaf_packages()
-    unused_modules = query_service.find_unused_modules()
-    return empty_packages + unused_modules
+    deprecated_moduels: list[ModuleFqn] = []
+    # deprecated_moduels.extend(query_service.find_empty_leaf_packages())
+    deprecated_moduels.extend(query_service.find_unused_modules())
+    return deprecated_moduels
 
 
 @inject

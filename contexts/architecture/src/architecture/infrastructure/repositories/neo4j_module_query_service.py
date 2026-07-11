@@ -44,7 +44,21 @@ class Neo4jModuleQueryService(ModuleQueryService):
 
     @override
     def find_empty_leaf_packages(self) -> list[ModuleFqn]:
-        query = '\n        MATCH (p:Package)\n        WHERE NOT EXISTS {\n            MATCH (p)-[:CONTAINS*0..]->(desc:Module)\n            WHERE "File" IN labels(desc)\n        }\n        AND NOT EXISTS {\n          MATCH (parent:Package)-[:CONTAINS]->(p)\n          WHERE NOT EXISTS {\n              MATCH (parent)-[:CONTAINS*0..]->(desc:Module)\n              WHERE "File" IN labels(desc)\n          }\n        }\n        RETURN p.fqn AS fqn\n        '
+        query = """
+        MATCH (p:Package)
+        WHERE NOT EXISTS {
+            MATCH (p)-[:CONTAINS*0..]->(desc:Module)
+            WHERE "File" IN labels(desc)
+        }
+        AND NOT EXISTS {
+          MATCH (parent:Package)-[:CONTAINS]->(p)
+          WHERE NOT EXISTS {
+              MATCH (parent)-[:CONTAINS*0..]->(desc:Module)
+              WHERE "File" IN labels(desc)
+          }
+        }
+        RETURN p.fqn AS fqn
+        """
         with self.driver.session() as session:
 
             def _read_tx(tx):
@@ -55,7 +69,15 @@ class Neo4jModuleQueryService(ModuleQueryService):
 
     @override
     def find_unused_modules(self) -> list[ModuleFqn]:
-        query = '\n        MATCH (m:Module:File)\n        WHERE NOT EXISTS {\n            MATCH (m)<-[:DEPENDS_ON]-()\n        }\n        AND m.name != "main"\n        AND NOT m.fqn STARTS WITH "foundation"\n        RETURN m.fqn AS fqn\n        '
+        query = """
+        MATCH (m:Module:File)
+        WHERE NOT EXISTS {
+            MATCH (m)<-[:DEPENDS_ON]-()
+        }
+        AND m.name != "main"
+        AND NOT m.fqn STARTS WITH "foundation"
+        RETURN m.fqn AS fqn
+        """
         with self.driver.session() as session:
 
             def _read_tx(tx):
