@@ -34,7 +34,7 @@ from code_dom.domain.value_objects.ast_expr import AstExpr
 from code_dom.domain.value_objects.ast_stmt.ast_expr_stmt import (
     AstExprStmt,
 )
-from code_dom.domain.value_objects.ast_stmt import AstFor
+from code_dom.domain.value_objects.ast_stmt import AstFor, AstStmtBase
 from code_dom.domain.value_objects.ast_expr.ast_formatted_value import (
     AstFormattedValue,
 )
@@ -73,7 +73,6 @@ from code_dom.domain.value_objects.ast_expr.ast_set import AstSet
 from code_dom.domain.value_objects.ast_expr.ast_set_comp import AstSetComp
 from code_dom.domain.value_objects.ast_expr.ast_slice import AstSlice
 from code_dom.domain.value_objects.ast_expr.ast_starred import AstStarred
-from code_dom.domain.value_objects.ast_stmt import AstStmt
 from code_dom.domain.value_objects.ast_expr.ast_subscript import (
     AstSubscript,
 )
@@ -94,7 +93,7 @@ from code_dom.domain.value_objects.ast_stmt.ast_class_def import (
 class AstVisitor:
     def visit(
         self,
-        node: AstStmt
+        node: AstStmtBase
         | AstExpr
         | AstArguments
         | AstComprehension
@@ -102,7 +101,7 @@ class AstVisitor:
         | AstMatchCase
         | AstExceptHandler
         | Arg
-        | list[AstStmt]
+        | list[AstStmtBase]
         | list[AstExpr]
         | list[AstKeyword]
         | None,

@@ -23,3 +23,10 @@ class ContextRegistry:
             if path.is_relative_to(Path(path_prefix)):
                 return path.relative_to(Path(path_prefix))
         raise ValueError(f"Path {path} does not belong to any supported context")
+
+    @staticmethod
+    def check_path_in_contexts(path: Path) -> bool:
+        for path_prefix in ContextPathPrefix:
+            if path.is_relative_to(Path(path_prefix)):
+                return True
+        return False

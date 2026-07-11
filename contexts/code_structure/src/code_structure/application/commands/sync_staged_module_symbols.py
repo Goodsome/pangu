@@ -1,17 +1,19 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
-import logging
 
+from architecture.domain.services.context_registry import ContextRegistry
+from architecture.domain.services.fqn_service import FqnService
 from foundation.building_blocks.command import Command
 from foundation.common_types.context_name import ContextName
 from foundation.common_types.fqns.fqn import ModuleFqn
 
 from code_structure.application.ports.unit_of_work import UnitOfWork
 from code_structure.domain.ports.symbol_scanner import SymbolScanner
+from code_structure.domain.serivces.sync_module_symbols_service import (
+    SyncModuleSymbolsService,
+)
 from code_structure.domain.value_objects.parsed_file_module import ParsedFileModule
-from code_structure.domain.serivces.sync_module_symbols_service import SyncModuleSymbolsService
-
-from architecture.domain.services.fqn_service import FqnService
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +22,7 @@ class SyncStagedModuleSymbolsCommand(Command):
     """
     SyncStagedModuleSymbolsCommand 命令，用于增量同步 staged 模块的 symbols 和边
     """
+
     file_path: list[Path]
 
 
@@ -28,6 +31,7 @@ class SyncStagedModuleSymbolsCommandHandler:
     """
     SyncStagedModuleSymbolsCommand 的命令处理器，只承担用例编排职责
     """
+
     symbol_scanner: SymbolScanner
     sync_service: SyncModuleSymbolsService
 
@@ -36,7 +40,9 @@ class SyncStagedModuleSymbolsCommandHandler:
         module_fqns = [
             FqnService.build_module_fqn(path)
             for path in cmd.file_path
-            if path.suffix == ".py" and path.stem != "__init__"
+            if path.suffix == ".py"
+            and path.stem != "__init__"
+            and ContextRegistry.check_path_in_contexts(path)
         ]
         if not module_fqns:
             logger.info("No staged Python modules to sync.")
@@ -69,7 +75,9 @@ class SyncStagedModuleSymbolsCommandHandler:
         existing_variables = uow.variables.find_by_fqn_prefix(fqn_prefix)
 
         # 预查外部导入，用作查重
-        existing_external_fqns = self._get_existing_external_fqns(parsed_file_module, uow)
+        existing_external_fqns = self._get_existing_external_fqns(
+            parsed_file_module, uow
+        )
 
         # 调用领域服务进行增量比对和同步，得到变更清单
         sync_result = self.sync_service.sync(
@@ -102,8 +110,10 @@ class SyncStagedModuleSymbolsCommandHandler:
 
         uow.file_modules.save(file_module)
 
-    def _get_existing_external_fqns(self, parsed_file_module: ParsedFileModule, uow: UnitOfWork) -> set[str]:
-        fqns = set()
+    def _get_existing_external_fqns(
+        self, parsed_file_module: ParsedFileModule, uow: UnitOfWork
+    ) -> set[str]:
+        fqns: set[str] = set()
         for imp in parsed_file_module.imports:
             is_internal = imp.target_fqn.context in {c.value for c in ContextName}
             if not is_internal:

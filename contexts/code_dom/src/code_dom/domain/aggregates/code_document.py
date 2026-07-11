@@ -4,7 +4,7 @@ from pathlib import Path
 from code_dom.domain.visitors.update_imports_visitor import UpdateImportsVisitor
 from code_dom.domain.value_objects.ast_stmt.ast_alias import AstAlias
 from code_dom.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
-from code_dom.domain.value_objects.ast_stmt import AstStmt
+from code_dom.domain.value_objects.ast_stmt import AstStmt, AstStmtBase
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from foundation.integration_events.class_moved import ModuleDepDict
 from code_dom.domain.value_objects.ast_stmt.ast_class_def import (
@@ -14,7 +14,7 @@ from code_dom.domain.value_objects.ast_stmt.ast_class_def import (
 
 class CodeDocument(AggregateRoot[Path]):
     physical_path: Path
-    body: list[AstStmt]
+    body: list[AstStmtBase]
     description: str | None
 
     @property
