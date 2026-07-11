@@ -2,8 +2,6 @@ from enum import StrEnum
 
 
 class ContextPathPrefix(StrEnum):
-    CODEGEN = "src"
-
     FOUNDATION = "foundation/src"
 
     SPIKE = "contexts/spike/src"

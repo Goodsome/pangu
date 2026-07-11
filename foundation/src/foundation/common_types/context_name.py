@@ -2,8 +2,6 @@ from enum import StrEnum, auto
 
 
 class ContextName(StrEnum):
-    CODEGEN = auto()
-
     FOUNDATION = auto()
 
     SPIKE = auto()
