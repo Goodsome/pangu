@@ -1,6 +1,5 @@
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
-from codegen.code_metadata.domain.value_objects.arg import Arg
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstAssert
@@ -76,7 +75,6 @@ from codegen.code_metadata.domain.value_objects.match_pattern import (
 __all__ = [
     "AstExpr",
     "AstKeyword",
-    "Arg",
     "AstAnnAssign",
     "AstArguments",
     "AstAssert",

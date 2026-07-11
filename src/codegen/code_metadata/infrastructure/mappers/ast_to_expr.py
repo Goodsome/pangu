@@ -1,7 +1,9 @@
 import ast
 from typing import overload
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_attribute import (
+    AstAttribute,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_call import AstCall
@@ -11,31 +13,47 @@ from codegen.code_metadata.domain.value_objects.ast_comprehension import (
 )
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict import AstDict
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict_comp import AstDictComp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict_comp import (
+    AstDictComp,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_formatted_value import (
     AstFormattedValue,
 )
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_generator_exp import AstGeneratorExp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_generator_exp import (
+    AstGeneratorExp,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_if_exp import AstIfExp
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_joined_str import AstJoinedStr
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_joined_str import (
+    AstJoinedStr,
+)
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_lambda import AstLambda
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_lambda import (
+    AstLambda,
+    LambdaArgs,
+    Arg,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_list import AstList
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_list_comp import AstListComp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_list_comp import (
+    AstListComp,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_named_expr import AstNamedExpr
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_named_expr import (
+    AstNamedExpr,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_set import AstSet
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_set_comp import AstSetComp
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_slice import AstSlice
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_starred import AstStarred
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_subscript import AstSubscript
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_subscript import (
+    AstSubscript,
+)
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_tuple import AstTuple
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_unary_op import AstUnaryOp
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_yield import AstYield
 from codegen.code_metadata.domain.value_objects.ast_expr.ast_await import AstAwait
-from codegen.code_metadata.domain.value_objects.ast_expr.ast_yield_from import AstYieldFrom
-from codegen.code_metadata.domain.value_objects.arg import Arg
-from codegen.code_metadata.domain.value_objects.lambda_args import LambdaArgs
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_yield_from import (
+    AstYieldFrom,
+)
 from codegen.code_metadata.infrastructure.mappers._convert import binop_from_ast
 from codegen.code_metadata.infrastructure.mappers._convert import boolop_from_ast
 from codegen.code_metadata.infrastructure.mappers._convert import cmpop_from_ast
@@ -44,7 +62,6 @@ from codegen.code_metadata.infrastructure.mappers._convert import unaryop_from_a
 
 
 class AstToExpr:
-
     @overload
     @staticmethod
     def to_expr(node: None) -> None: ...
@@ -212,9 +229,9 @@ class AstToExpr:
         return AstFormattedValue(
             value=AstToExpr.to_expr(node.value),
             conversion=node.conversion,
-            format_spec=(
-                AstToExpr.to_expr(node.format_spec) if node.format_spec else None
-            ),
+            format_spec=AstToExpr.to_expr(node.format_spec)
+            if node.format_spec
+            else None,
         )
 
     @staticmethod
