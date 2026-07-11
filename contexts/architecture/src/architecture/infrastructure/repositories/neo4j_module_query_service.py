@@ -12,7 +12,18 @@ class Neo4jModuleQueryService(ModuleQueryService):
 
     @override
     def get_external_dependencies(self, id: ModuleId) -> list[ModuleFqn]:
-        query = '\n        MATCH (target:Module {id: $id})\n        WITH target,\n             CASE \n               WHEN "Package" IN labels(target) THEN [(target)-[:CONTAINS*1..]->(child:File) | child]\n               ELSE []\n             END + target AS internals\n        UNWIND internals AS internal\n        MATCH (caller:Module)-[:DEPENDS_ON]->(internal)\n        WHERE NOT caller IN internals\n        RETURN DISTINCT caller.fqn AS caller_fqn\n        '
+        query = """
+        MATCH (target:Module {id: $id})
+        WITH target,
+             CASE 
+               WHEN "Package" IN labels(target) THEN [(target)-[:CONTAINS*1..]->(child:File) | child]
+               ELSE []
+             END + target AS internals
+        UNWIND internals AS internal
+        MATCH (caller:Module)-[:DEPENDS_ON]->(internal)
+        WHERE NOT caller IN internals
+        RETURN DISTINCT caller.fqn AS caller_fqn
+        """
         with self.driver.session() as session:
 
             def _read_tx(tx):
