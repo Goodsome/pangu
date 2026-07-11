@@ -1,6 +1,6 @@
 import ast
 from typing import overload
-from code_dom.domain.value_objects.ast_expr import AstExpr
+from code_dom.domain.value_objects.ast_expr import AstExpr, AstExprBase
 from code_dom.domain.value_objects.ast_expr.ast_attribute import (
     AstAttribute,
 )
@@ -68,10 +68,10 @@ class AstToExpr:
 
     @overload
     @staticmethod
-    def to_expr(node: ast.expr) -> AstExpr: ...
+    def to_expr(node: ast.expr) -> AstExprBase: ...
 
     @staticmethod
-    def to_expr(node: ast.expr | None) -> AstExpr | None:
+    def to_expr(node: ast.expr | None) -> AstExprBase | None:
         if node is None:
             return None
         match node:

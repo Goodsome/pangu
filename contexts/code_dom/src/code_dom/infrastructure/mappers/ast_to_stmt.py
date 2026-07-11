@@ -1,5 +1,5 @@
 import ast
-from code_dom.domain.value_objects.ast_stmt import AstStmt
+from code_dom.domain.value_objects.ast_stmt import AstStmt, AstStmtBase
 from code_dom.domain.value_objects.ast_stmt.ast_ann_assign import (
     AstAnnAssign,
 )
@@ -63,7 +63,7 @@ from code_dom.domain.value_objects.ast_expr.ast_lambda import Arg
 
 class AstToStmt:
     @staticmethod
-    def to_stmt(node: ast.stmt) -> AstStmt:
+    def to_stmt(node: ast.stmt) -> AstStmtBase:
         match node:
             case ast.Return():
                 return AstToStmt.to_ast_return(node)
