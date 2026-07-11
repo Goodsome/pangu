@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from architecture.domain.aggregates.base_module import BaseModule
-from architecture.domain.aggregates.file_module import FileModule
 from architecture.domain.aggregates.package_module import PackageModule
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.package_module_registry import PackageModuleRegistry
@@ -25,46 +24,50 @@ class SyncModuleService:
             return pkg.id
         raise ValueError(f"Module with FQN {fqn} not found in any registry")
 
+    def _ensure_or_delete(self, parsed_module: ParsedModule) -> None:
+        fqn = parsed_module.fqn
+        if parsed_module.is_package:
+            if parsed_module.is_deleted:
+                self.package_registry.delete_by_fqn(fqn)
+            else:
+                self.package_registry.ensure_package(fqn)
+        else:
+            if parsed_module.is_deleted:
+                self.file_registry.delete_by_fqn(fqn)
+            else:
+                module = self.file_registry.ensure_file_module(fqn)
+                parent = self.package_registry.ensure_package(fqn.parent_fqn)
+                parent.add_contains(module.id)
+
+    def _sync_dependencies(self, parsed_module: ParsedModule) -> None:
+        fqn = parsed_module.fqn
+        if parsed_module.is_package:
+            module = self.package_registry.get_by_fqn(fqn)
+        else:
+            module = self.file_registry.get_by_fqn(fqn)
+        dependencies: set[ModuleId] = set()
+        for import_str in parsed_module.import_module_fqns:
+            target_fqn = import_str
+            if target_fqn.context not in ContextName._value2member_map_:
+                continue
+            dependencies.add(self._resolve_id(target_fqn))
+        synced = module.sync_dependencies(dependencies)
+        if synced:
+            if isinstance(module, PackageModule):
+                self.package_registry.mark_dirty(module)
+            else:
+                self.file_registry.mark_dirty(module)
+
     def sync_from_parsed_modules(
         self, parsed_modules: list[ParsedModule]
     ) -> list[BaseModule]:
         for parsed_module in parsed_modules:
-            fqn = parsed_module.fqn
-            if parsed_module.is_deleted:
-                if parsed_module.is_package:
-                    self.package_registry.delete_by_fqn(fqn)
-                else:
-                    self.file_registry.delete_by_fqn(fqn)
-            elif parsed_module.is_package:
-                self.package_registry.ensure_package(fqn)
-            else:
-                # file module: 确保父 package 存在
-                module = FileModule.create(fqn=fqn, name=fqn.symbol)
-                self.file_registry.register(module)
-                if not fqn.is_root:
-                    parent = self.package_registry.ensure_package(fqn.parent_fqn)
-                    parent.add_contains(module.id)
+            self._ensure_or_delete(parsed_module)
 
         for parsed_module in parsed_modules:
             if parsed_module.is_deleted:
                 continue
-            fqn = parsed_module.fqn
-            if parsed_module.is_package:
-                module = self.package_registry.get_by_fqn(fqn)
-            else:
-                module = self.file_registry.get_by_fqn(fqn)
-            dependencies: set[ModuleId] = set()
-            for import_str in parsed_module.import_module_fqns:
-                target_fqn = import_str
-                if target_fqn.context not in ContextName._value2member_map_:
-                    continue
-                dependencies.add(self._resolve_id(target_fqn))
-            synced = module.sync_dependencies(dependencies)
-            if synced:
-                if isinstance(module, PackageModule):
-                    self.package_registry.mark_dirty(module)
-                else:
-                    self.file_registry.mark_dirty(module)
+            self._sync_dependencies(parsed_module)
 
         result: list[BaseModule] = []
         result.extend(self.file_registry.dirty_modules)

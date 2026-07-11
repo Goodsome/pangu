@@ -61,3 +61,11 @@ class FileModuleRegistry:
             return
         module = self._store_by_fqn[fqn]
         self._delete(module)
+
+    def ensure_file_module(self, fqn: ModuleFqn) -> FileModule:
+        """确保 file module 存在，已存在则直接返回"""
+        if fqn in self._store_by_fqn:
+            return self._store_by_fqn[fqn]
+        module = FileModule.create(fqn=fqn, name=fqn.symbol)
+        self.register(module)
+        return module
