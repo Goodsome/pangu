@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from typing import override
 from architecture.infrastructure.mappers.module_to_module_node import (
     file_module_to_node,
+    node_to_file_module,
 )
+from architecture.infrastructure.orm_models.module_node import FileNode
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
@@ -27,22 +29,10 @@ class Neo4jFileModuleRepository(FileModuleRepository):
 
     @override
     def _get(self, id: ModuleId) -> FileModule:
-        query = (
-            ' MATCH (m:Module:File {id: $id})'
-            " OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)"
-            " RETURN m, collect(DISTINCT target.id) AS dependencies"
-        )
-        result = self.session.execute(query, id=str(id)).single()
-        if not result:
+        node = self.session.get(FileNode, str(id))
+        if node is None:
             raise ValueError(f"FileModule with id {id} not found")
-        node = result["m"]
-        dependencies = result["dependencies"]
-        return FileModule.reconstitute(
-            module_id=node["id"],
-            fqn=node["fqn"],
-            name=node["name"],
-            dependencies=dependencies,
-        )
+        return node_to_file_module(node)
 
     @override
     def _save(self, aggregate: FileModule) -> None:
@@ -77,22 +67,10 @@ class Neo4jFileModuleRepository(FileModuleRepository):
 
     @override
     def find_by_fqn(self, fqn: ModuleFqn) -> FileModule | None:
-        query = (
-            ' MATCH (m:Module:File {fqn: $fqn})'
-            " OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)"
-            " RETURN m, collect(DISTINCT target.id) AS dependencies"
-        )
-        result = self.session.execute(query, fqn=str(fqn)).single()
-        if not result:
+        nodes = self.session.find(FileNode, fqn=str(fqn))
+        if not nodes:
             return None
-        node = result["m"]
-        dependencies = result["dependencies"]
-        module = FileModule.reconstitute(
-            module_id=node["id"],
-            fqn=node["fqn"],
-            name=node["name"],
-            dependencies=dependencies,
-        )
+        module = node_to_file_module(nodes[0])
         self._seens.add(module)
         return module
 
@@ -100,22 +78,10 @@ class Neo4jFileModuleRepository(FileModuleRepository):
     def find_by_fqns(self, fqns: Collection[ModuleFqn]) -> list[FileModule]:
         if not fqns:
             return []
-        query = (
-            " MATCH (m:Module:File)"
-            " WHERE m.fqn IN $fqns"
-            " OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)"
-            " RETURN m, collect(DISTINCT target.id) AS dependencies"
-        )
-        results = self.session.execute(query, fqns=[str(f) for f in fqns])
+        nodes = self.session.find(FileNode, fqn=[str(f) for f in fqns])
         modules: list[FileModule] = []
-        for record in results:
-            node = record["m"]
-            module = FileModule.reconstitute(
-                module_id=node["id"],
-                fqn=node["fqn"],
-                name=node["name"],
-                dependencies=record["dependencies"],
-            )
+        for node in nodes:
+            module = node_to_file_module(node)
             modules.append(module)
             self._seens.add(module)
         return modules

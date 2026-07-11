@@ -36,3 +36,25 @@ def package_module_to_node(module: PackageModule) -> PackageNode:
         for i in module.contains
     ]
     return node
+
+
+def node_to_file_module(node: FileNode) -> FileModule:
+    dependencies = {edge.target_ref for edge in node.dependencies.items}
+    return FileModule.reconstitute(
+        module_id=node.id,
+        fqn=node.fqn,
+        name=node.name,
+        dependencies=dependencies,
+    )
+
+
+def node_to_package_module(node: PackageNode) -> PackageModule:
+    dependencies = {edge.target_ref for edge in node.dependencies.items}
+    contains = {edge.target_ref for edge in node.contains.items}
+    return PackageModule.reconstitute(
+        module_id=node.id,
+        fqn=node.fqn,
+        name=node.name,
+        dependencies=dependencies,
+        contains=contains,
+    )

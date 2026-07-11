@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from typing import override
 from architecture.infrastructure.mappers.module_to_module_node import (
     package_module_to_node,
+    node_to_package_module,
 )
+from architecture.infrastructure.orm_models.module_node import PackageNode
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.persistence.sessions.neo4j_session import Neo4jSession
@@ -29,26 +31,10 @@ class Neo4jPackageModuleRepository(PackageModuleRepository):
 
     @override
     def _get(self, id: ModuleId) -> PackageModule:
-        query = (
-            ' MATCH (m:Package {id: $id})'
-            " OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)"
-            " OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)"
-            " RETURN m, collect(DISTINCT target.id) AS dependencies,"
-            " collect(DISTINCT child.id) AS contains"
-        )
-        result = self.session.execute(query, id=str(id)).single()
-        if not result:
+        node = self.session.get(PackageNode, str(id))
+        if node is None:
             raise ValueError(f"PackageModule with id {id} not found")
-        node = result["m"]
-        dependencies = result["dependencies"]
-        contains = result["contains"]
-        return PackageModule.reconstitute(
-            module_id=node["id"],
-            fqn=node["fqn"],
-            name=node["name"],
-            dependencies=dependencies,
-            contains=contains,
-        )
+        return node_to_package_module(node)
 
     @override
     def _save(self, aggregate: PackageModule) -> None:
@@ -83,26 +69,10 @@ class Neo4jPackageModuleRepository(PackageModuleRepository):
 
     @override
     def find_by_fqn(self, fqn: ModuleFqn) -> PackageModule | None:
-        query = (
-            ' MATCH (m:Package {fqn: $fqn})'
-            " OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)"
-            " OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)"
-            " RETURN m, collect(DISTINCT target.id) AS dependencies,"
-            " collect(DISTINCT child.id) AS contains"
-        )
-        result = self.session.execute(query, fqn=str(fqn)).single()
-        if not result:
+        nodes = self.session.find(PackageNode, fqn=str(fqn))
+        if not nodes:
             return None
-        node = result["m"]
-        dependencies = result["dependencies"]
-        contains = result["contains"]
-        module = PackageModule.reconstitute(
-            module_id=node["id"],
-            fqn=node["fqn"],
-            name=node["name"],
-            dependencies=dependencies,
-            contains=contains,
-        )
+        module = node_to_package_module(nodes[0])
         self._seens.add(module)
         return module
 
@@ -110,25 +80,10 @@ class Neo4jPackageModuleRepository(PackageModuleRepository):
     def find_by_fqns(self, fqns: Collection[ModuleFqn]) -> list[PackageModule]:
         if not fqns:
             return []
-        query = (
-            " MATCH (m:Package)"
-            " WHERE m.fqn IN $fqns"
-            " OPTIONAL MATCH (m)-[:DEPENDS_ON]->(target:Module)"
-            " OPTIONAL MATCH (m)-[:CONTAINS]->(child:Module)"
-            " RETURN m, collect(DISTINCT target.id) AS dependencies,"
-            " collect(DISTINCT child.id) AS contains"
-        )
-        results = self.session.execute(query, fqns=[str(f) for f in fqns])
+        nodes = self.session.find(PackageNode, fqn=[str(f) for f in fqns])
         modules: list[PackageModule] = []
-        for record in results:
-            node = record["m"]
-            module = PackageModule.reconstitute(
-                module_id=node["id"],
-                fqn=node["fqn"],
-                name=node["name"],
-                dependencies=record["dependencies"],
-                contains=record["contains"],
-            )
+        for node in nodes:
+            module = node_to_package_module(node)
             modules.append(module)
             self._seens.add(module)
         return modules
@@ -137,21 +92,14 @@ class Neo4jPackageModuleRepository(PackageModuleRepository):
     def find_containing(self, child_fqn: ModuleFqn) -> PackageModule | None:
         query = (
             " MATCH (parent:Package)-[:CONTAINS]->(child:Module {fqn: $child_fqn})"
-            " OPTIONAL MATCH (parent)-[:DEPENDS_ON]->(target:Module)"
-            " OPTIONAL MATCH (parent)-[:CONTAINS]->(c:Module)"
-            " RETURN parent, collect(DISTINCT target.id) AS dependencies,"
-            " collect(DISTINCT c.id) AS contains"
+            " RETURN parent.id AS id"
         )
         result = self.session.execute(query, child_fqn=str(child_fqn)).single()
         if not result:
             return None
-        node = result["parent"]
-        module = PackageModule.reconstitute(
-            module_id=node["id"],
-            fqn=node["fqn"],
-            name=node["name"],
-            dependencies=result["dependencies"],
-            contains=result["contains"],
-        )
+        node = self.session.get(PackageNode, result["id"])
+        if node is None:
+            return None
+        module = node_to_package_module(node)
         self._seens.add(module)
         return module

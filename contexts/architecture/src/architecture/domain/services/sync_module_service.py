@@ -1,37 +1,72 @@
 from dataclasses import dataclass
 from architecture.domain.aggregates.base_module import BaseModule
+from architecture.domain.aggregates.file_module import FileModule
+from architecture.domain.aggregates.package_module import PackageModule
+from architecture.domain.services.file_module_registry import FileModuleRegistry
+from architecture.domain.services.package_module_registry import PackageModuleRegistry
 from foundation.common_types.context_name import ContextName
 from foundation.common_types.identities.module_id import ModuleId
-from architecture.domain.services.module_registry import ModuleRegistry
+from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
 
 
 @dataclass
 class SyncModuleService:
-    module_registry: ModuleRegistry
+    file_registry: FileModuleRegistry
+    package_registry: PackageModuleRegistry
+
+    def _resolve_id(self, fqn: ModuleFqn) -> ModuleId:
+        """跨 registry 解析 fqn -> id"""
+        file_mod = self.file_registry.find_by_fqn(fqn)
+        if file_mod is not None:
+            return file_mod.id
+        pkg = self.package_registry.find_by_fqn(fqn)
+        if pkg is not None:
+            return pkg.id
+        raise ValueError(f"Module with FQN {fqn} not found in any registry")
 
     def sync_from_parsed_modules(
         self, parsed_modules: list[ParsedModule]
     ) -> list[BaseModule]:
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
-            is_package = parsed_module.is_package
             if parsed_module.is_deleted:
-                self.module_registry.delete_by_fqn(fqn)
+                if parsed_module.is_package:
+                    self.package_registry.delete_by_fqn(fqn)
+                else:
+                    self.file_registry.delete_by_fqn(fqn)
+            elif parsed_module.is_package:
+                self.package_registry.ensure_package(fqn)
             else:
-                self.module_registry.ensure_module(fqn, is_package)
+                # file module: 确保父 package 存在
+                module = FileModule.create(fqn=fqn, name=fqn.symbol)
+                self.file_registry.register(module)
+                if not fqn.is_root:
+                    parent = self.package_registry.ensure_package(fqn.parent_fqn)
+                    parent.add_contains(module.id)
+
         for parsed_module in parsed_modules:
             if parsed_module.is_deleted:
                 continue
             fqn = parsed_module.fqn
-            module = self.module_registry.get_by_fqn(fqn)
+            if parsed_module.is_package:
+                module = self.package_registry.get_by_fqn(fqn)
+            else:
+                module = self.file_registry.get_by_fqn(fqn)
             dependencies: set[ModuleId] = set()
             for import_str in parsed_module.import_module_fqns:
                 target_fqn = import_str
                 if target_fqn.context not in ContextName._value2member_map_:
                     continue
-                dependencies.add(self.module_registry.get_id_by_fqn(target_fqn))
+                dependencies.add(self._resolve_id(target_fqn))
             synced = module.sync_dependencies(dependencies)
             if synced:
-                self.module_registry.mark_dirty(module)
-        return list(self.module_registry.dirty_modules)
+                if isinstance(module, PackageModule):
+                    self.package_registry.mark_dirty(module)
+                else:
+                    self.file_registry.mark_dirty(module)
+
+        result: list[BaseModule] = []
+        result.extend(self.file_registry.dirty_modules)
+        result.extend(self.package_registry.dirty_modules)
+        return result
