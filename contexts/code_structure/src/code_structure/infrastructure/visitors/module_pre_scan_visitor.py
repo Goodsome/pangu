@@ -6,7 +6,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import 
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import AstAnnAssign
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
     AstClassDef,

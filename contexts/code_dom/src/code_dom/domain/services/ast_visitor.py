@@ -4,62 +4,62 @@ from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import A
 from codegen.code_metadata.domain.value_objects.ast_arguments import AstArguments
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
-from codegen.code_metadata.domain.value_objects.ast_await import AstAwait
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_attribute import AstAttribute
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_await import AstAwait
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_aug_assign import AstAugAssign
-from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
-from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_bin_op import AstBinOp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_break import AstBreak
-from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_compare import AstCompare
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_call import AstCall
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_compare import AstCompare
 from codegen.code_metadata.domain.value_objects.ast_comprehension import (
     AstComprehension,
 )
-from codegen.code_metadata.domain.value_objects.ast_constant import AstConstant
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_constant import AstConstant
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_continue import AstContinue
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_delete import AstDelete
-from codegen.code_metadata.domain.value_objects.ast_dict import AstDict
-from codegen.code_metadata.domain.value_objects.ast_dict_comp import AstDictComp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict import AstDict
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_dict_comp import AstDictComp
 from codegen.code_metadata.domain.value_objects.ast_except_handler import (
     AstExceptHandler,
 )
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstFor
-from codegen.code_metadata.domain.value_objects.ast_formatted_value import (
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_formatted_value import (
     AstFormattedValue,
 )
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
-from codegen.code_metadata.domain.value_objects.ast_generator_exp import AstGeneratorExp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_generator_exp import AstGeneratorExp
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_if import AstIf
-from codegen.code_metadata.domain.value_objects.ast_if_exp import AstIfExp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_if_exp import AstIfExp
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_joined_str import AstJoinedStr
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_joined_str import AstJoinedStr
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
-from codegen.code_metadata.domain.value_objects.ast_lambda import AstLambda
-from codegen.code_metadata.domain.value_objects.ast_list import AstList
-from codegen.code_metadata.domain.value_objects.ast_list_comp import AstListComp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_lambda import AstLambda
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_list import AstList
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_list_comp import AstListComp
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_named_expr import AstNamedExpr
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_named_expr import AstNamedExpr
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_raise import AstRaise
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_return import AstReturn
-from codegen.code_metadata.domain.value_objects.ast_set import AstSet
-from codegen.code_metadata.domain.value_objects.ast_set_comp import AstSetComp
-from codegen.code_metadata.domain.value_objects.ast_slice import AstSlice
-from codegen.code_metadata.domain.value_objects.ast_starred import AstStarred
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_set import AstSet
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_set_comp import AstSetComp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_slice import AstSlice
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_starred import AstStarred
 from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
-from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_subscript import AstSubscript
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_try import AstTry
-from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
-from codegen.code_metadata.domain.value_objects.ast_unary_op import AstUnaryOp
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_tuple import AstTuple
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_unary_op import AstUnaryOp
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_while import AstWhile
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_with import AstWith
-from codegen.code_metadata.domain.value_objects.ast_yield import AstYield
-from codegen.code_metadata.domain.value_objects.ast_yield_from import AstYieldFrom
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_yield import AstYield
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_yield_from import AstYieldFrom
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
     AstClassDef,
 )

@@ -1,7 +1,7 @@
 from code_structure.domain.value_objects.parsed_variable import ParsedVariable
 from code_structure.infrastructure.visitors.reference_visitor import VariableVisitor
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import AstAnnAssign
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from foundation.common_types.fqns.fqn import SymbolFqn
 
 

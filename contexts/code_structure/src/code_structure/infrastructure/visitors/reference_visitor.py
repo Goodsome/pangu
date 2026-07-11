@@ -3,7 +3,7 @@ from typing import override
 
 from code_dom.domain.services.ast_visitor import AstVisitor
 from code_structure.domain.value_objects.parsed_reference import ParsedReference
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from foundation.common_types.fqns.fqn import SymbolFqn
 
 

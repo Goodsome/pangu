@@ -22,7 +22,7 @@ from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_expr.ast_name import AstName
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_raise import AstRaise
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_return import AstReturn
