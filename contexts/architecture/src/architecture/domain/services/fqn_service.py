@@ -52,4 +52,5 @@ class FqnService:
                 package_fqns.add(module_fqn.parent_fqn)
             for import_str in parsed_module.import_module_fqns:
                 file_fqns.add(import_str)
+                package_fqns.add(import_str)
         return file_fqns, package_fqns
