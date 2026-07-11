@@ -32,10 +32,7 @@ from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
-    AstClassDef,
-    AstFunctionDef,
-)
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_subscript import AstSubscript
 from codegen.code_metadata.domain.value_objects.ast_tuple import AstTuple
 from codegen.code_metadata.domain.value_objects.ast_type_param import (
@@ -50,6 +47,9 @@ from codegen.code_metadata.infrastructure.gateways.traversal_context import (
     TraversalContext,
 )
 from foundation.common_types.enums import PythonBuiltinType
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 @dataclass

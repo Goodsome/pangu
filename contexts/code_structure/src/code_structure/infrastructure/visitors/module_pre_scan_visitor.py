@@ -1,17 +1,16 @@
 from dataclasses import dataclass, field
 from typing import override
-
 from code_dom.domain.services.ast_visitor import AstVisitor
 from code_structure.domain.value_objects.parsed_import import ParsedImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
-    AstClassDef,
-    AstFunctionDef,
-)
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
 from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 @dataclass
@@ -28,7 +27,6 @@ class ModulePreScanVisitor(AstVisitor):
     @override
     def visit_ast_class_def(self, node: AstClassDef):
         self.local_symbol_names.add(node.name)
-        # 预扫描只需获取顶级符号名字，无需向下遍历子节点，直接截断
         pass
 
     @override
@@ -58,17 +56,14 @@ class ModulePreScanVisitor(AstVisitor):
             module_prefix = current_prefix
         else:
             module_prefix = ""
-
         module = node.module or ""
         if module_prefix:
             if module:
                 module = f"{module_prefix}.{module}"
             else:
                 module = str(module_prefix)
-
         if not module:
             return
-
         for name in node.names:
             target_fqn = SymbolFqn(f"{module}::{name.name}")
             self.imports.append(ParsedImport(target_fqn=target_fqn, alias=name.asname))

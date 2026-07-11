@@ -1,47 +1,34 @@
-from typing import Annotated
-from typing import Literal
-from pydantic import Field
-from pydantic import TypeAdapter
-from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
-from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
 from codegen.code_metadata.domain.enums.ast_stmt_kind import AstStmtKind
-from codegen.code_metadata.domain.value_objects.ast_except_handler import (
-    AstExceptHandler,
-)
-from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
-from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
-from codegen.code_metadata.domain.value_objects.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_return import AstReturn
+from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assert import AstAssert
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
+from codegen.code_metadata.domain.value_objects.ast_attribute import AstAttribute
 from codegen.code_metadata.domain.value_objects.ast_aug_assign import AstAugAssign
-from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
-from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
-from codegen.code_metadata.domain.value_objects.ast_while import AstWhile
-from codegen.code_metadata.domain.value_objects.ast_if import AstIf
-from codegen.code_metadata.domain.value_objects.ast_with import AstWith
-from codegen.code_metadata.domain.value_objects.ast_raise import AstRaise
-from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_continue import AstContinue
 from codegen.code_metadata.domain.value_objects.ast_delete import AstDelete
-from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
-from codegen.code_metadata.domain.value_objects.ast_try import AstTry
+from codegen.code_metadata.domain.value_objects.ast_except_handler import AstExceptHandler
+from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
+from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
+from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
+from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
+from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
+from codegen.code_metadata.domain.value_objects.ast_name import AstName
+from codegen.code_metadata.domain.value_objects.ast_pass import AstPass
+from codegen.code_metadata.domain.value_objects.ast_raise import AstRaise
+from codegen.code_metadata.domain.value_objects.ast_return import AstReturn
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
+from codegen.code_metadata.domain.value_objects.ast_try import AstTry
+from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
+from codegen.code_metadata.domain.value_objects.ast_while import AstWhile
+from codegen.code_metadata.domain.value_objects.ast_with import AstWith
 from foundation.building_blocks.value_object import ValueObject
-
-
-class AstClassDef(ValueObject):
-    kind: Literal[AstStmtKind.CLASS_DEF] = AstStmtKind.CLASS_DEF
-    name: str
-    description: str | None = None
-    bases: list[AstExpr] = Field(default_factory=list)
-    keywords: list[AstKeyword] = Field(default_factory=list)
-    type_params: list[AstTypeParam] = Field(default_factory=list)
-    body: list[AstStmt] = Field(default_factory=list)
-    decorator_list: list[AstExpr] = Field(default_factory=list)
+from pydantic import Field, TypeAdapter
+from typing import Literal, Annotated
 
 
 class AstFunctionDef(ValueObject):

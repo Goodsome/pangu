@@ -4,9 +4,12 @@ from pathlib import Path
 from code_dom.domain.visitors.update_imports_visitor import UpdateImportsVisitor
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef, AstStmt
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from foundation.integration_events.class_moved import ModuleDepDict
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 class CodeDocument(AggregateRoot[Path]):
@@ -42,7 +45,6 @@ class CodeDocument(AggregateRoot[Path]):
         """
         target_import = _find_import_from(self.body, new_module)
         alias_to_move: AstAlias | None = None
-
         new_body: list[AstStmt] = []
         for stmt in self.body:
             if not (isinstance(stmt, AstImportFrom) and stmt.module == old_module):
@@ -55,19 +57,15 @@ class CodeDocument(AggregateRoot[Path]):
                 )
             if remaining:
                 new_body.append(stmt.model_copy(update={"names": remaining}))
-
         if alias_to_move is None:
             return
-
         if target_import is not None:
             target_import.names.append(alias_to_move)
         else:
             insert_at = _last_import_index(new_body)
             new_body.insert(
-                insert_at,
-                AstImportFrom(module=new_module, names=[alias_to_move]),
+                insert_at, AstImportFrom(module=new_module, names=[alias_to_move])
             )
-
         self.body = new_body
 
     def remove_class(self, class_name: str) -> AstClassDef | None:
@@ -100,13 +98,9 @@ def _build_imports_from_deps(deps: list[ModuleDepDict]) -> list[AstImportFrom]:
     """Group deps by (module, alias) and build one AstImportFrom per group."""
     if not deps:
         return []
-
     sorted_deps = sorted(deps, key=itemgetter("module"))
     imports: list[AstImportFrom] = []
     for module, group in groupby(sorted_deps, key=itemgetter("module")):
-        names = [
-            AstAlias(name=d["symbol"], asname=d.get("alias"))
-            for d in group
-        ]
+        names = [AstAlias(name=d["symbol"], asname=d.get("alias")) for d in group]
         imports.append(AstImportFrom(module=module, names=names))
     return imports

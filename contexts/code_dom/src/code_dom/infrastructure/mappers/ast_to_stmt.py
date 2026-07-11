@@ -19,7 +19,6 @@ from codegen.code_metadata.domain.value_objects.ast_if import AstIf
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_keyword import AstKeyword
 from codegen.code_metadata.domain.value_objects.ast_match import AstMatch
 from codegen.code_metadata.domain.value_objects.ast_match_case import AstMatchCase
@@ -39,10 +38,12 @@ from codegen.code_metadata.infrastructure.mappers.ast_to_match_pattern import (
     AstToMatchPattern,
 )
 from codegen.code_metadata.infrastructure.mappers.ast_to_expr import AstToExpr
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 class AstToStmt:
-
     @staticmethod
     def to_stmt(node: ast.stmt) -> AstStmt:
         match node:
@@ -248,13 +249,7 @@ class AstToStmt:
 
     @staticmethod
     def arguments_to_assigns(node: ast.arguments) -> list[AstAssign | AstAnnAssign]:
-        if (
-            node.posonlyargs
-            or node.vararg
-            or node.kwonlyargs
-            or node.kw_defaults
-            # or node.kwarg
-        ):
+        if node.posonlyargs or node.vararg or node.kwonlyargs or node.kw_defaults:
             raise ValueError(
                 f"Only args and defaults are supported in arguments_to_assigns, ast.dump(node)={ast.dump(node)!r}"
             )
@@ -318,29 +313,23 @@ class AstToStmt:
                 return AstTypeVar(
                     name=node.name,
                     bound=AstToExpr.to_expr(node.bound) if node.bound else None,
-                    default_value=(
-                        AstToExpr.to_expr(node.default_value)
-                        if node.default_value
-                        else None
-                    ),
+                    default_value=AstToExpr.to_expr(node.default_value)
+                    if node.default_value
+                    else None,
                 )
             case ast.TypeVarTuple():
                 return AstTypeVarTuple(
                     name=node.name,
-                    default_value=(
-                        AstToExpr.to_expr(node.default_value)
-                        if node.default_value
-                        else None
-                    ),
+                    default_value=AstToExpr.to_expr(node.default_value)
+                    if node.default_value
+                    else None,
                 )
             case ast.ParamSpec():
                 return AstParamSpec(
                     name=node.name,
-                    default_value=(
-                        AstToExpr.to_expr(node.default_value)
-                        if node.default_value
-                        else None
-                    ),
+                    default_value=AstToExpr.to_expr(node.default_value)
+                    if node.default_value
+                    else None,
                 )
             case _:
                 raise NotImplementedError(f"Unsupported type_param: {type(node)}")
@@ -354,7 +343,7 @@ class AstToStmt:
         ]
         type_params = [AstToStmt.to_type_param(tp) for tp in node.type_params]
         body = [AstToStmt.to_stmt(stmt) for stmt in node.body]
-        description=ast.get_docstring(node)
+        description = ast.get_docstring(node)
         if description:
             body = body[1:]
         decorator_list = [AstToExpr.to_expr(dec) for dec in node.decorator_list]

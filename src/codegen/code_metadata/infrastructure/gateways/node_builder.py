@@ -21,14 +21,14 @@ from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_import import AstImport
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_name import AstName
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import (
-    AstClassDef,
-    AstFunctionDef,
-)
+from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.infrastructure.gateways.document_context import (
     DocumentContext,
 )
 from codegen.code_metadata.infrastructure.gateways.utils import get_import_from_module
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 @dataclass

@@ -2,7 +2,6 @@ import ast
 from typing import cast
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
@@ -37,10 +36,12 @@ from codegen.code_metadata.infrastructure.mappers.match_pattern_to_ast import (
     MatchPatternToAst,
 )
 from codegen.code_metadata.infrastructure.mappers.expr_to_ast import ExprToAst
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 class StmtToAst:
-
     @staticmethod
     def _fix_pos(node: ast.stmt) -> ast.stmt:
         if not hasattr(node, "lineno"):
@@ -133,29 +134,23 @@ class StmtToAst:
                 return ast.TypeVar(
                     name=tp.name,
                     bound=ExprToAst.to_node(tp.bound) if tp.bound else None,
-                    default_value=(
-                        ExprToAst.to_node(tp.default_value)
-                        if tp.default_value
-                        else None
-                    ),
+                    default_value=ExprToAst.to_node(tp.default_value)
+                    if tp.default_value
+                    else None,
                 )
             case AstTypeVarTuple():
                 return ast.TypeVarTuple(
                     name=tp.name,
-                    default_value=(
-                        ExprToAst.to_node(tp.default_value)
-                        if tp.default_value
-                        else None
-                    ),
+                    default_value=ExprToAst.to_node(tp.default_value)
+                    if tp.default_value
+                    else None,
                 )
             case AstParamSpec():
                 return ast.ParamSpec(
                     name=tp.name,
-                    default_value=(
-                        ExprToAst.to_node(tp.default_value)
-                        if tp.default_value
-                        else None
-                    ),
+                    default_value=ExprToAst.to_node(tp.default_value)
+                    if tp.default_value
+                    else None,
                 )
 
     @staticmethod

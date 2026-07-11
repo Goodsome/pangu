@@ -11,7 +11,6 @@ from codegen.code_metadata.domain.value_objects.ast_bin_op import AstBinOp
 from codegen.code_metadata.domain.value_objects.ast_bool_op import AstBoolOp
 from codegen.code_metadata.domain.value_objects.ast_break import AstBreak
 from codegen.code_metadata.domain.value_objects.ast_call import AstCall
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_compare import AstCompare
 from codegen.code_metadata.domain.value_objects.ast_comprehension import (
     AstComprehension,
@@ -61,26 +60,26 @@ from codegen.code_metadata.domain.value_objects.ast_while import AstWhile
 from codegen.code_metadata.domain.value_objects.ast_with import AstWith
 from codegen.code_metadata.domain.value_objects.ast_yield import AstYield
 from codegen.code_metadata.domain.value_objects.ast_yield_from import AstYieldFrom
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 class AstVisitor:
-
     def visit(
         self,
-        node: (
-            AstStmt
-            | AstExpr
-            | AstArguments
-            | AstComprehension
-            | AstKeyword
-            | AstMatchCase
-            | AstExceptHandler
-            | Arg
-            | list[AstStmt]
-            | list[AstExpr]
-            | list[AstKeyword]
-            | None
-        ),
+        node: AstStmt
+        | AstExpr
+        | AstArguments
+        | AstComprehension
+        | AstKeyword
+        | AstMatchCase
+        | AstExceptHandler
+        | Arg
+        | list[AstStmt]
+        | list[AstExpr]
+        | list[AstKeyword]
+        | None,
     ):
         if node is None:
             return

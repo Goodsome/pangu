@@ -23,7 +23,6 @@ from codegen.code_metadata.domain.value_objects.ast_list import AstList
 from codegen.code_metadata.domain.value_objects.ast_alias import AstAlias
 from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
 from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from codegen.code_metadata.domain.value_objects.ast_expr_stmt import AstExprStmt
 from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_if import AstIf
@@ -39,6 +38,9 @@ from codegen.code_metadata.domain.value_objects.code_edge import ExportsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ImportsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import InheritsEdge
 from codegen.code_metadata.domain.value_objects.code_edge import ReadsEdge
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 @dataclass

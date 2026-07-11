@@ -1,12 +1,13 @@
 from code_structure.domain.value_objects.parsed_class import ParsedClass
 from code_structure.infrastructure.visitors.class_visitor import ClassVisitor
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstClassDef
 from foundation.common_types.fqns.fqn import SymbolFqn
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+    AstClassDef,
+)
 
 
 def ast_class_def_to_parsed_class(
-    node: AstClassDef,
-    scope_symbols: dict[str, SymbolFqn],
+    node: AstClassDef, scope_symbols: dict[str, SymbolFqn]
 ) -> ParsedClass:
     class_visitor = ClassVisitor(scope_symbols=scope_symbols)
     class_visitor.visit(node)
