@@ -13,3 +13,5 @@ class ParsedFileModule(ValueObject):
     functions: list[ParsedFunction]
     variables: list[ParsedVariable]
     imports: list[ParsedImport]
+
+    exists: bool

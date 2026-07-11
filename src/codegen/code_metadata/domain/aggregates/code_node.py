@@ -17,7 +17,7 @@ from codegen.code_metadata.domain.enums.code_node_kind import CodeNodeKind
 from codegen.code_metadata.domain.enums.edge_direction import EdgeDirection
 from codegen.code_metadata.domain.enums.edge_type import EdgeType
 from codegen.code_metadata.domain.value_objects.ast_expr import AstExpr
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstStmt
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
 from codegen.code_metadata.domain.value_objects.ast_type_param import AstTypeParam
 from codegen.code_metadata.domain.value_objects.code_edge import (
     CodeEdge,

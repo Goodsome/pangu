@@ -1,9 +1,24 @@
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import Configuration, Dict, List
-from dependency_injector.providers import Dependency
-from dependency_injector.providers import Factory
-from dependency_injector.providers import Singleton
+from dependency_injector.providers import (
+    Configuration,
+    Dependency,
+    Dict,
+    Factory,
+    List,
+    Singleton,
+)
+from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
+from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
+from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
+from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
+from foundation.integration_events.registry import EventRegistry
+from foundation.message_bus.gateways.redis_stream_subscriber import (
+    RedisStreamSubscriber,
+)
+from foundation.message_bus.message_bus import BaseMessageBus
+from foundation.system.file_system_port import FileSystemPort
 from redis.asyncio import Redis
+
 from code_dom.application.commands.generate_code import GenerateCodeHandler
 from code_dom.application.event_handlers.on_class_moved import OnClassMoved
 from code_dom.application.event_handlers.on_module_created import OnModuleCreated
@@ -34,16 +49,6 @@ from code_dom.infrastructure.repositories.file_system_document_repository import
 from code_dom.infrastructure.repositories.file_system_unit_of_work import (
     FileSystemUnitOfWork,
 )
-from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
-from foundation.integration_events.module_created import ModuleCreatedIntegrationEvent
-from foundation.integration_events.module_deleted import ModuleDeletedIntegrationEvent
-from foundation.integration_events.module_moved import ModuleMovedIntegrationEvent
-from foundation.integration_events.registry import EventRegistry
-from foundation.system.file_system_port import FileSystemPort
-from foundation.message_bus.gateways.redis_stream_subscriber import (
-    RedisStreamSubscriber,
-)
-from foundation.message_bus.message_bus import BaseMessageBus
 
 
 class Container(DeclarativeContainer):
@@ -57,10 +62,13 @@ class Container(DeclarativeContainer):
     )
     ruff_code_formatter: Singleton[RuffCodeFormatter] = Singleton(RuffCodeFormatter)
     get_project_documents: Factory[GetProjectDocumentsHandler] = Factory(
-        GetProjectDocumentsHandler, code_parser=code_parser
+        GetProjectDocumentsHandler,
+        code_parser=code_parser,
     )
     get_file_document_handler: Factory[GetFileDocumentHandler] = Factory(
-        GetFileDocumentHandler, code_parser=code_parser
+        GetFileDocumentHandler,
+        code_parser=code_parser,
+        file_system=file_system_port,
     )
     code_generator: Factory[CodeGenerator] = Factory(AstCodeGenerator)
     code_similarity_calculator: Factory[CodeSimilarityCalculator] = Factory(

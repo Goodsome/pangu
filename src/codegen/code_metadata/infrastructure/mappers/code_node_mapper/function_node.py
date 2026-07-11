@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 from codegen.code_metadata.domain.aggregates.code_node import FunctionNode
 from codegen.code_metadata.domain.value_objects.ast_expr import ast_expr_adapter
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import ast_stmt_adapter
+from codegen.code_metadata.domain.value_objects.ast_stmt import ast_stmt_adapter
 from codegen.code_metadata.infrastructure.mappers.code_edge_mapper.dispatcher import (
     to_outbound_edges,
 )

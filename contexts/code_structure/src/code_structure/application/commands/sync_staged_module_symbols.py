@@ -8,7 +8,6 @@ from foundation.common_types.fqns.fqn import ModuleFqn
 
 from code_structure.application.ports.unit_of_work import UnitOfWork
 from code_structure.domain.ports.symbol_scanner import SymbolScanner
-from code_structure.domain.aggregates.file_module import FileModule
 from code_structure.domain.value_objects.parsed_file_module import ParsedFileModule
 from code_structure.domain.serivces.sync_module_symbols_service import SyncModuleSymbolsService
 
@@ -50,7 +49,7 @@ class SyncStagedModuleSymbolsCommandHandler:
         # 3. 对每个扫描出的模块分发执行增量同步
         for module_fqn in module_fqns:
             parsed_file_module = parsed_modules_by_fqn.get(module_fqn)
-            if parsed_file_module:
+            if parsed_file_module and parsed_file_module.exists:
                 self._sync_single_module(module_fqn, parsed_file_module, uow)
 
     def _sync_single_module(

@@ -29,6 +29,15 @@ class CodeDomScanner(SymbolScanner):
         result = self.get_file_document_handler.execute(
             GetFileDocumentQuery(file_path=file_path)
         )
+        if not result.file_exists:
+            return ParsedFileModule(
+                fqn=module_fqn,
+                classes=[],
+                functions=[],
+                variables=[],
+                imports=[],
+                exists=False,
+            )
         code_document = result.code_document
 
         # 1. 预扫描以提取 imports 和本地顶级声明符号名字
@@ -55,4 +64,5 @@ class CodeDomScanner(SymbolScanner):
             functions=visitor.functions,
             variables=visitor.variables,
             imports=pre_visitor.imports,
+            exists=True,
         )

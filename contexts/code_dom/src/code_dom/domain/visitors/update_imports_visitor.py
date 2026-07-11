@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import override
 from code_dom.domain.services.ast_visitor import AstVisitor
-from codegen.code_metadata.domain.value_objects.ast_import import AstImport
-from codegen.code_metadata.domain.value_objects.ast_import_from import AstImportFrom
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import import AstImport
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
 
 
 @dataclass

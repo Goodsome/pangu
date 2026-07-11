@@ -51,7 +51,7 @@ class BaseMessageBus:
         try:
             handler(command, self.uow)
         except Exception:
-            logger.exception(f"Exception handling command {command}")
+            logger.exception(f"Exception handling command {command=}")
             raise
 
     def _handle_event(self, event: Event) -> Iterable[Command]:

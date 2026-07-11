@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from code_dom.domain.aggregates.code_document import CodeDocument
 from codegen.code_metadata.domain.aggregates.code_node import CodeNode
-from codegen.code_metadata.domain.value_objects.ast_ann_assign import AstAnnAssign
-from codegen.code_metadata.domain.value_objects.ast_assign import AstAssign
-from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionDef
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_ann_assign import AstAnnAssign
+from codegen.code_metadata.domain.value_objects.ast_stmt.ast_assign import AstAssign
+from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
 from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
     AstClassDef,
 )
