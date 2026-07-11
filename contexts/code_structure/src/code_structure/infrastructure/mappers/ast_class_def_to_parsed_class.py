@@ -1,7 +1,7 @@
 from code_structure.domain.value_objects.parsed_class import ParsedClass
 from code_structure.infrastructure.visitors.class_visitor import ClassVisitor
 from foundation.common_types.fqns.fqn import SymbolFqn
-from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+from code_dom.domain.value_objects.ast_stmt.ast_class_def import (
     AstClassDef,
 )
 

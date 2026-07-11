@@ -1,6 +1,6 @@
 from code_structure.domain.value_objects.parsed_function import ParsedFunction
 from code_structure.infrastructure.visitors.reference_visitor import FunctionVisitor
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstFunctionDef
+from code_dom.domain.value_objects.ast_stmt import AstFunctionDef
 from foundation.common_types.fqns.fqn import SymbolFqn
 
 

@@ -2,12 +2,12 @@ from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
 from code_dom.domain.visitors.update_imports_visitor import UpdateImportsVisitor
-from codegen.code_metadata.domain.value_objects.ast_stmt.ast_alias import AstAlias
-from codegen.code_metadata.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
-from codegen.code_metadata.domain.value_objects.ast_stmt import AstStmt
+from code_dom.domain.value_objects.ast_stmt.ast_alias import AstAlias
+from code_dom.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
+from code_dom.domain.value_objects.ast_stmt import AstStmt
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from foundation.integration_events.class_moved import ModuleDepDict
-from codegen.code_metadata.domain.value_objects.ast_stmt.ast_class_def import (
+from code_dom.domain.value_objects.ast_stmt.ast_class_def import (
     AstClassDef,
 )
 
