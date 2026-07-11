@@ -60,8 +60,10 @@ class ClassSymbol(AggregateRoot[ClassId]):
         self._sync_attributes(parsed_class)
 
     def _sync_references(self, parsed_class: ParsedClass) -> None:
-        """Sync class-level references by collecting variables and functions references"""
+        """Sync class-level references from the class itself, its variables, and functions"""
         self._references.clear()
+        for ref in parsed_class.references:
+            self.add_reference(ref.target_fqn, alias=ref.alias)
         for parsed_var in parsed_class.variables:
             for ref in parsed_var.references:
                 self.add_reference(ref.target_fqn, alias=ref.alias)

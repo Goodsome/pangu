@@ -97,6 +97,9 @@ class SymbolGraphBuilder:
         self.class_registry.register(class_symbol)
         file_module.define_class(class_symbol.id)
 
+        for ref in parsed_class.references:
+            class_symbol.add_reference(ref.target_fqn, alias=ref.alias)
+
         for parsed_variable in parsed_class.variables:
             self.build_attribute_symbol(parsed_variable, class_symbol)
         for parsed_function in parsed_class.functions:

@@ -14,4 +14,5 @@ def ast_class_def_to_parsed_class(
         name=node.name,
         variables=class_visitor.variables,
         functions=class_visitor.functions,
+        references=class_visitor.references,
     )

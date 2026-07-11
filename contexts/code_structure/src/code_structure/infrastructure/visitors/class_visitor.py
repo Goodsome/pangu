@@ -4,6 +4,7 @@ from typing import override
 from code_dom.domain.services.ast_visitor import AstVisitor
 from code_structure.domain.value_objects.parsed_function import ParsedFunction
 from code_structure.domain.value_objects.parsed_variable import ParsedVariable
+from code_structure.infrastructure.visitors.reference_visitor import ReferenceVisitor
 from foundation.common_types.fqns.fqn import SymbolFqn
 from code_structure.infrastructure.mappers.ast_ann_assign_to_parsed_variable import (
     ast_ann_assign_to_parsed_variable,
@@ -20,8 +21,7 @@ from codegen.code_metadata.domain.value_objects.ast_stmt_old import AstFunctionD
 
 
 @dataclass
-class ClassVisitor(AstVisitor):
-    scope_symbols: dict[str, SymbolFqn]
+class ClassVisitor(ReferenceVisitor):
 
     variables: list[ParsedVariable] = field(default_factory=list, init=False)
     functions: list[ParsedFunction] = field(default_factory=list, init=False)
