@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
 from architecture.domain.events.module_removed_dependency import ModuleRemovedDependency
@@ -15,12 +14,6 @@ class BaseModule(AggregateRoot[ModuleId]):
     @property
     def dependencies(self) -> frozenset[ModuleId]:
         return frozenset(self._dependencies)
-
-    @abstractmethod
-    def mark_as_deleted(self) -> None: ...
-
-    @abstractmethod
-    def moved(self, new_fqn: ModuleFqn) -> None: ...
 
     def add_dependency(self, target_module_id: ModuleId) -> None:
         if target_module_id == self.id:
