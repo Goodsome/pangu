@@ -49,9 +49,10 @@ class CodeDocument(AggregateRoot[Path]):
                 new_body.append(stmt)
                 continue
             remaining = [a for a in stmt.names if a.name != class_name]
-            alias_to_move = next(
-                (a for a in stmt.names if a.name == class_name), None
-            )
+            if alias_to_move is None:
+                alias_to_move = next(
+                    (a for a in stmt.names if a.name == class_name), None
+                )
             if remaining:
                 new_body.append(stmt.model_copy(update={"names": remaining}))
 
