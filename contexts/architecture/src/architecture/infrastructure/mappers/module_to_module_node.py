@@ -1,16 +1,14 @@
-from architecture.domain.aggregates.module import Module
+from architecture.domain.aggregates.file_module import FileModule
+from architecture.domain.aggregates.package_module import PackageModule
 from architecture.infrastructure.orm_models.module_node import (
     FileNode,
-    ModuleNode,
     PackageNode,
     DependsOnEdge,
     ContainsEdge,
 )
 
 
-def module_to_file_module_node(module: Module) -> FileNode:
-    if module.is_package:
-        raise ValueError("module is package")
+def file_module_to_node(module: FileModule) -> FileNode:
     node = FileNode(
         id=str(module.id),
         name=module.name,
@@ -23,9 +21,7 @@ def module_to_file_module_node(module: Module) -> FileNode:
     return node
 
 
-def module_to_package_module_node(module: Module) -> PackageNode:
-    if not module.is_package:
-        raise ValueError("module is not package")
+def package_module_to_node(module: PackageModule) -> PackageNode:
     node = PackageNode(
         id=str(module.id),
         name=module.name,
@@ -40,11 +36,3 @@ def module_to_package_module_node(module: Module) -> PackageNode:
         for i in module.contains
     ]
     return node
-
-
-def module_to_module_node(module: Module) -> ModuleNode:
-    match module.is_package:
-        case True:
-            return module_to_package_module_node(module)
-        case False:
-            return module_to_file_module_node(module)

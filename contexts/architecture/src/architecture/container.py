@@ -13,7 +13,6 @@ from foundation.message_bus.gateways.redis_stream_subscriber import (
     RedisStreamSubscriber,
 )
 from foundation.message_bus.message_bus import BaseMessageBus
-from foundation.persistence.adapters.neo4j_unit_of_work import MemgraphUnitOfWork
 from foundation.system.file_system_port import FileSystemPort
 from neo4j import Driver
 from redis.asyncio import Redis
@@ -44,9 +43,12 @@ from architecture.application.commands.sync_staged_modules import (
 from architecture.application.event_handlers.on_module_created import OnModuleCreated
 from architecture.application.event_handlers.on_module_deleted import OnModuleDeleted
 from architecture.application.event_handlers.on_module_moved import OnModuleMoved
-from architecture.domain.events.module_created import ModuleCreated
-from architecture.domain.events.module_deleted import ModuleDeleted
-from architecture.domain.events.module_moved import ModuleMoved
+from architecture.domain.events.file_module_created import FileModuleCreated
+from architecture.domain.events.file_module_deleted import FileModuleDeleted
+from architecture.domain.events.file_module_moved import FileModuleMoved
+from architecture.domain.events.package_module_created import PackageModuleCreated
+from architecture.domain.events.package_module_deleted import PackageModuleDeleted
+from architecture.domain.events.package_module_moved import PackageModuleMoved
 from architecture.infrastructure.gateways.file_system_code_scanner import (
     FileSystemCodeScanner,
 )
@@ -54,9 +56,7 @@ from architecture.infrastructure.repositories.neo4j_graph_admin import Neo4jGrap
 from architecture.infrastructure.repositories.neo4j_module_query_service import (
     Neo4jModuleQueryService,
 )
-from architecture.infrastructure.repositories.neo4j_module_repository import (
-    Neo4jModuleRepository,
-)
+from architecture.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
 
 
 class Container(DeclarativeContainer):
@@ -65,14 +65,10 @@ class Container(DeclarativeContainer):
     file_system_port: Dependency[FileSystemPort] = Dependency(
         instance_of=FileSystemPort
     )
-    module_repository_factory: Provider[Neo4jModuleRepository] = Factory(
-        Neo4jModuleRepository
-    ).provider
     db_driver: Dependency[Driver] = Dependency(instance_of=Driver)
-    unit_of_work: Factory[MemgraphUnitOfWork[Neo4jModuleRepository]] = Factory(
-        MemgraphUnitOfWork[Neo4jModuleRepository],
+    unit_of_work: Factory[Neo4jUnitOfWork] = Factory(
+        Neo4jUnitOfWork,
         driver=db_driver,
-        repository_factory=module_repository_factory,
     )
     graph_admin: Singleton[Neo4jGraphAdmin] = Singleton(
         Neo4jGraphAdmin, driver=db_driver
@@ -115,11 +111,25 @@ class Container(DeclarativeContainer):
         ),
         event_handlers=Dict(
             {
-                ModuleCreated: List(on_module_created.provided.to_integration),
-                ModuleDeleted: List(on_module_deleted.provided.to_integration),
-                ModuleMoved: List(
-                    on_module_moved.provided.update_fqn_prefix,
-                    on_module_moved.provided.to_integration,
+                FileModuleCreated: List(
+                    on_module_created.provided.to_integration_from_file
+                ),
+                PackageModuleCreated: List(
+                    on_module_created.provided.to_integration_from_package
+                ),
+                FileModuleDeleted: List(
+                    on_module_deleted.provided.to_integration_from_file
+                ),
+                PackageModuleDeleted: List(
+                    on_module_deleted.provided.to_integration_from_package
+                ),
+                FileModuleMoved: List(
+                    on_module_moved.provided.update_fqn_prefix_from_file,
+                    on_module_moved.provided.to_integration_from_file,
+                ),
+                PackageModuleMoved: List(
+                    on_module_moved.provided.update_fqn_prefix_from_package,
+                    on_module_moved.provided.to_integration_from_package,
                 ),
             }
         ),

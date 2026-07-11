@@ -1,16 +1,18 @@
 from dataclasses import dataclass, field
-from architecture.domain.aggregates.module import Module
+from architecture.domain.aggregates.base_module import BaseModule
+from architecture.domain.aggregates.file_module import FileModule
+from architecture.domain.aggregates.package_module import PackageModule
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 @dataclass
 class ModuleRegistry:
-    _store_by_fqn: dict[ModuleFqn, Module] = field(init=False)
-    _store_by_id: dict[ModuleId, Module] = field(init=False)
+    _store_by_fqn: dict[ModuleFqn, BaseModule] = field(init=False)
+    _store_by_id: dict[ModuleId, BaseModule] = field(init=False)
     _fqn_id_map: dict[ModuleFqn, ModuleId] = field(init=False)
-    dirty_modules: set[Module] = field(init=False)
-    deleted_modules: set[Module] = field(init=False)
+    dirty_modules: set[BaseModule] = field(init=False)
+    deleted_modules: set[BaseModule] = field(init=False)
 
     def __post_init__(self):
         self._store_by_fqn = {}
@@ -20,7 +22,7 @@ class ModuleRegistry:
         self.deleted_modules = set()
 
     @classmethod
-    def init(cls, modules: list[Module]) -> ModuleRegistry:
+    def init(cls, modules: list[BaseModule]) -> "ModuleRegistry":
         registry = cls()
         for module in modules:
             registry._store_by_fqn[module.fqn] = module
@@ -28,7 +30,7 @@ class ModuleRegistry:
             registry._fqn_id_map[module.fqn] = module.id
         return registry
 
-    def register(self, module: Module):
+    def register(self, module: BaseModule):
         self._store_by_fqn[module.fqn] = module
         self._store_by_id[module.id] = module
         self._fqn_id_map[module.fqn] = module.id
@@ -37,34 +39,44 @@ class ModuleRegistry:
     def has_fqn(self, fqn: ModuleFqn) -> bool:
         return fqn in self._store_by_fqn
 
-    def get_by_fqn(self, fqn: ModuleFqn) -> Module:
+    def get_by_fqn(self, fqn: ModuleFqn) -> BaseModule:
         module = self._store_by_fqn.get(fqn)
         if module is None:
             raise ValueError(f"Module with FQN {fqn} not found")
         return module
 
-    def find_module_by_fqn(self, fqn: ModuleFqn) -> Module | None:
+    def find_module_by_fqn(self, fqn: ModuleFqn) -> BaseModule | None:
         return self._store_by_fqn.get(fqn)
+
+    def get_package_by_fqn(self, fqn: ModuleFqn) -> PackageModule:
+        module = self.get_by_fqn(fqn)
+        if not isinstance(module, PackageModule):
+            raise ValueError(f"Module with FQN {fqn} is not a package")
+        return module
 
     def get_id_by_fqn(self, fqn: ModuleFqn) -> ModuleId:
         return self._fqn_id_map[fqn]
 
-    def ensure_module(self, fqn: ModuleFqn, is_package: bool) -> Module:
+    def ensure_module(self, fqn: ModuleFqn, is_package: bool) -> BaseModule:
         if fqn in self._store_by_fqn:
             return self._store_by_fqn[fqn]
-        module = Module.create(fqn=fqn, name=fqn.symbol, is_package=is_package)
+        if is_package:
+            module = PackageModule.create(fqn=fqn, name=fqn.symbol)
+        else:
+            module = FileModule.create(fqn=fqn, name=fqn.symbol)
         self.register(module)
         if fqn.is_root:
             return module
         parent_module = self.ensure_module(fqn=fqn.parent_fqn, is_package=True)
-        parent_module.add_contains(module.id)
+        if isinstance(parent_module, PackageModule):
+            parent_module.add_contains(module.id)
         self.mark_dirty(parent_module)
         return module
 
-    def mark_dirty(self, module: Module):
+    def mark_dirty(self, module: BaseModule):
         self.dirty_modules.add(module)
 
-    def _delete(self, module: Module):
+    def _delete(self, module: BaseModule):
         module.mark_as_deleted()
         self.deleted_modules.add(module)
 

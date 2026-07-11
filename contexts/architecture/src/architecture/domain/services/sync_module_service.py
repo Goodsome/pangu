@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from architecture.domain.aggregates.module import Module
+from architecture.domain.aggregates.base_module import BaseModule
 from foundation.common_types.context_name import ContextName
 from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.services.module_registry import ModuleRegistry
@@ -12,14 +12,14 @@ class SyncModuleService:
 
     def sync_from_parsed_modules(
         self, parsed_modules: list[ParsedModule]
-    ) -> list[Module]:
+    ) -> list[BaseModule]:
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
             is_package = parsed_module.is_package
             if parsed_module.is_deleted:
                 self.module_registry.delete_by_fqn(fqn)
             else:
-                module = self.module_registry.ensure_module(fqn, is_package)
+                self.module_registry.ensure_module(fqn, is_package)
         for parsed_module in parsed_modules:
             if parsed_module.is_deleted:
                 continue

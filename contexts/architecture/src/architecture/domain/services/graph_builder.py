@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import assert_never
-from architecture.domain.aggregates.module import Module
+from architecture.domain.aggregates.base_module import BaseModule
+from architecture.domain.aggregates.file_module import FileModule
+from architecture.domain.aggregates.package_module import PackageModule
 from foundation.common_types.identities.module_id import ModuleId
 from architecture.domain.services.context_registry import ContextRegistry
 from foundation.common_types.fqns.fqn import ModuleFqn
@@ -13,17 +15,21 @@ from architecture.domain.enums.edge_kind import EdgeKind
 
 @dataclass
 class GraphBuilder:
-    module_registry: dict[ModuleFqn, Module]
+    module_registry: dict[ModuleFqn, BaseModule]
 
     def build_from_parsed_modules(self, parsed_modules: list[ParsedModule]):
         contains_edges: list[ParsedEdge] = []
         depends_on_edges: list[ParsedEdge] = []
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
-            is_package = parsed_module.is_package
-            module = Module(
-                id=ModuleId.create(), fqn=fqn, name=fqn.symbol, is_package=is_package
-            )
+            if parsed_module.is_package:
+                module = PackageModule(
+                    id=ModuleId.create(), fqn=fqn, name=fqn.symbol
+                )
+            else:
+                module = FileModule(
+                    id=ModuleId.create(), fqn=fqn, name=fqn.symbol
+                )
             self.module_registry[module.fqn] = module
             if not fqn.is_root:
                 contains_edges.append(
@@ -60,11 +66,13 @@ class GraphBuilder:
         if target_fqn.is_root:
             return
         if parent_fqn not in self.module_registry:
-            parent = Module.create(
-                fqn=parent_fqn, name=parent_fqn.symbol, is_package=True
+            parent = PackageModule.create(
+                fqn=parent_fqn, name=parent_fqn.symbol
             )
             self.module_registry[parent_fqn] = parent
         parent = self.module_registry[parent_fqn]
+        if not isinstance(parent, PackageModule):
+            raise ValueError(f"Module {parent_fqn} is not a package, cannot contain")
         module = self.module_registry[target_fqn]
         parent.add_contains(module.id)
 

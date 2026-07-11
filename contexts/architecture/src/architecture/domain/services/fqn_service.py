@@ -35,3 +35,21 @@ class FqnService:
             for import_str in parsed_module.import_module_fqns:
                 fqns.add(import_str)
         return fqns
+
+    @classmethod
+    def collect_fqns_by_type(
+        cls, parsed_modules: list[ParsedModule]
+    ) -> tuple[set[ModuleFqn], set[ModuleFqn]]:
+        file_fqns: set[ModuleFqn] = set()
+        package_fqns: set[ModuleFqn] = set()
+        for parsed_module in parsed_modules:
+            module_fqn = parsed_module.fqn
+            if parsed_module.is_package:
+                package_fqns.add(module_fqn)
+            else:
+                file_fqns.add(module_fqn)
+            if not module_fqn.is_root:
+                package_fqns.add(module_fqn.parent_fqn)
+            for import_str in parsed_module.import_module_fqns:
+                file_fqns.add(import_str)
+        return file_fqns, package_fqns

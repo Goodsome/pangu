@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.domain.aggregates.package_module import PackageModule
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.building_blocks.command import Command
 
@@ -12,7 +13,7 @@ class RenameModuleCommand(Command):
 @dataclass
 class RenameModuleHandler:
     def execute(self, cmd: RenameModuleCommand, uow: UnitOfWork):
-        module = uow.repository.find_by_fqn(cmd.module_fqn)
+        module = uow.find_module_by_fqn(cmd.module_fqn)
         if module is None:
             raise ValueError(f"Module not found: {cmd.module_fqn}")
         old_fqn = module.fqn
@@ -20,9 +21,12 @@ class RenameModuleHandler:
             raise ValueError("Cannot rename root module")
         parent_fqn = old_fqn.parent_fqn
         new_fqn = ModuleFqn(f"{parent_fqn}.{cmd.new_name}")
-        target_module = uow.repository.find_by_fqn(new_fqn)
-        if target_module is not None:
+        existing = uow.find_module_by_fqn(new_fqn)
+        if existing is not None:
             raise ValueError(f"Module already exists: {new_fqn}")
 
         module.moved(new_fqn)
-        uow.repository.save(module)
+        if isinstance(module, PackageModule):
+            uow.packages.save(module)
+        else:
+            uow.file_modules.save(module)
