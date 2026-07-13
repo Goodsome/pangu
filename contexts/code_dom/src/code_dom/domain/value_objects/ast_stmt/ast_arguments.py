@@ -1,9 +1,10 @@
 from __future__ import annotations
-from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
-from typing import Optional
+
 from pydantic import Field
-from foundation.building_blocks.value_object import ValueObject
+
+from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 from code_dom.domain.value_objects.ast_expr.ast_lambda import Arg
+from foundation.building_blocks.value_object import ValueObject
 
 
 class AstArguments(ValueObject):
@@ -11,8 +12,8 @@ class AstArguments(ValueObject):
 
     posonlyargs: list[Arg] = Field(default_factory=list)
     args: list[Arg] = Field(default_factory=list)
-    vararg: Optional[Arg] = None
+    vararg: Arg | None = None
     kwonlyargs: list[Arg] = Field(default_factory=list)
-    kw_defaults: list[Optional[AstExprBase]] = Field(default_factory=list)
-    kwarg: Optional[Arg] = None
+    kw_defaults: list[AstExprBase | None] = Field(default_factory=list)
+    kwarg: Arg | None = None
     defaults: list[AstExprBase] = Field(default_factory=list)
