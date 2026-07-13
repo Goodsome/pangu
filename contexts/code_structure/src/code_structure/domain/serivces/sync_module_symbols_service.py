@@ -79,7 +79,7 @@ class SyncModuleSymbolsService:
         existing_classes: list[ClassSymbol],
         result: SyncResult,
     ) -> None:
-        parsed_classes_fqns = set()
+        parsed_classes_fqns: set[ClassFqn] = set()
         for parsed_class in parsed_file_module.classes:
             class_fqn = ClassFqn(f"{parsed_file_module.fqn}::{parsed_class.name}")
             parsed_classes_fqns.add(class_fqn)
@@ -112,7 +112,7 @@ class SyncModuleSymbolsService:
         existing_functions: list[FunctionSymbol],
         result: SyncResult,
     ) -> None:
-        parsed_funcs_fqns = set()
+        parsed_funcs_fqns: set[FunctionFqn] = set()
         for parsed_func in parsed_file_module.functions:
             func_fqn = FunctionFqn(f"{parsed_file_module.fqn}::{parsed_func.name}")
             parsed_funcs_fqns.add(func_fqn)
@@ -143,7 +143,7 @@ class SyncModuleSymbolsService:
         existing_variables: list[VariableSymbol],
         result: SyncResult,
     ) -> None:
-        parsed_vars_fqns = set()
+        parsed_vars_fqns: set[VariableFqn] = set()
         for parsed_var in parsed_file_module.variables:
             var_fqn = VariableFqn(f"{parsed_file_module.fqn}::{parsed_var.name}")
             parsed_vars_fqns.add(var_fqn)

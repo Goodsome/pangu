@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Annotated
-from typing import Literal
-from typing import Optional
+
+from typing import Annotated, Literal
 from pydantic import Field
 from pydantic import TypeAdapter
 from code_dom.domain.enums.ast_match_pattern_kind import (
@@ -14,7 +13,7 @@ class MatchValue(ValueObject):
     """Matches a constant or identifier value."""
 
     kind: Literal[AstMatchPatternKind.MATCH_VALUE] = AstMatchPatternKind.MATCH_VALUE
-    value: Optional[str] = None
+    value: str | None = None
 
 
 class MatchSingleton(ValueObject):
@@ -23,7 +22,7 @@ class MatchSingleton(ValueObject):
     kind: Literal[AstMatchPatternKind.MATCH_SINGLETON] = (
         AstMatchPatternKind.MATCH_SINGLETON
     )
-    value: Optional[bool] = None
+    value: bool | None = None
 
 
 class MatchSequence(ValueObject):
@@ -41,7 +40,7 @@ class MatchMapping(ValueObject):
     kind: Literal[AstMatchPatternKind.MATCH_MAPPING] = AstMatchPatternKind.MATCH_MAPPING
     keys: list[str] = Field(default_factory=list)
     patterns: list[MatchPattern] = Field(default_factory=list)
-    rest: Optional[str] = None
+    rest: str | None = None
 
 
 class MatchClass(ValueObject):
@@ -58,15 +57,15 @@ class MatchStar(ValueObject):
     """Matches *name or *_ in a sequence pattern."""
 
     kind: Literal[AstMatchPatternKind.MATCH_STAR] = AstMatchPatternKind.MATCH_STAR
-    name: Optional[str] = None
+    name: str | None = None
 
 
 class MatchAs(ValueObject):
     """Matches pattern as name, or a capture pattern."""
 
     kind: Literal[AstMatchPatternKind.MATCH_AS] = AstMatchPatternKind.MATCH_AS
-    pattern: Optional[MatchPattern] = None
-    name: Optional[str] = None
+    pattern: MatchPattern | None = None
+    name: str | None = None
 
 
 class MatchOr(ValueObject):
