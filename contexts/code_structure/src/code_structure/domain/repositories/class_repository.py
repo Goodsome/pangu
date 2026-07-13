@@ -21,4 +21,3 @@ class ClassRepository(Repository[ClassSymbol, ClassId], ABC):
     def find_by_fqn_prefix(self, prefix: str) -> list[ClassSymbol]:
         """Find ClassSymbols by FQN prefix"""
         ...
-

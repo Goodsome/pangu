@@ -8,9 +8,7 @@ from foundation.integration_events.module_moved import ModuleMovedIntegrationEve
 
 @dataclass
 class OnModuleMoved:
-    def to_integration_from_file(
-        self, event: FileModuleMoved, uow: UnitOfWork
-    ):
+    def to_integration_from_file(self, event: FileModuleMoved, uow: UnitOfWork):
         old_path = FqnService.build_path(event.old_fqn, is_package=False)
         new_path = FqnService.build_path(event.new_fqn, is_package=False)
         dependencies = uow.file_modules.get_dependencies(event.module_id)
@@ -25,9 +23,7 @@ class OnModuleMoved:
         )
         uow.save_outbox_message(ie)
 
-    def to_integration_from_package(
-        self, event: PackageModuleMoved, uow: UnitOfWork
-    ):
+    def to_integration_from_package(self, event: PackageModuleMoved, uow: UnitOfWork):
         old_path = FqnService.build_path(event.old_fqn, is_package=True)
         new_path = FqnService.build_path(event.new_fqn, is_package=True)
         ie = ModuleMovedIntegrationEvent(
@@ -39,9 +35,7 @@ class OnModuleMoved:
         )
         uow.save_outbox_message(ie)
 
-    def update_fqn_prefix_from_file(
-        self, event: FileModuleMoved, uow: UnitOfWork
-    ):
+    def update_fqn_prefix_from_file(self, event: FileModuleMoved, uow: UnitOfWork):
         uow.file_modules.update_fqn_prefix(event.old_fqn, event.new_fqn)
 
     def update_fqn_prefix_from_package(

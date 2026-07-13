@@ -23,13 +23,9 @@ class GraphBuilder:
         for parsed_module in parsed_modules:
             fqn = parsed_module.fqn
             if parsed_module.is_package:
-                module = PackageModule(
-                    id=ModuleId.create(), fqn=fqn, name=fqn.symbol
-                )
+                module = PackageModule(id=ModuleId.create(), fqn=fqn, name=fqn.symbol)
             else:
-                module = FileModule(
-                    id=ModuleId.create(), fqn=fqn, name=fqn.symbol
-                )
+                module = FileModule(id=ModuleId.create(), fqn=fqn, name=fqn.symbol)
             self.module_registry[module.fqn] = module
             if not fqn.is_root:
                 contains_edges.append(
@@ -66,9 +62,7 @@ class GraphBuilder:
         if target_fqn.is_root:
             return
         if parent_fqn not in self.module_registry:
-            parent = PackageModule.create(
-                fqn=parent_fqn, name=parent_fqn.symbol
-            )
+            parent = PackageModule.create(fqn=parent_fqn, name=parent_fqn.symbol)
             self.module_registry[parent_fqn] = parent
         parent = self.module_registry[parent_fqn]
         if not isinstance(parent, PackageModule):

@@ -9,4 +9,3 @@ class FunctionRepository(Repository[FunctionSymbol, FunctionId], ABC):
     def find_by_fqn_prefix(self, prefix: str) -> list[FunctionSymbol]:
         """Find FunctionSymbols by FQN prefix"""
         ...
-

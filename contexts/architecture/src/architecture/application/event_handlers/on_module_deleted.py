@@ -9,9 +9,7 @@ from foundation.integration_events.module_deleted import ModuleDeletedIntegratio
 
 @dataclass
 class OnModuleDeleted:
-    def to_integration_from_file(
-        self, event: FileModuleDeleted, uow: UnitOfWork
-    ):
+    def to_integration_from_file(self, event: FileModuleDeleted, uow: UnitOfWork):
         fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(fqn, is_package=False)
         ie = ModuleDeletedIntegrationEvent(
@@ -21,9 +19,7 @@ class OnModuleDeleted:
         )
         uow.save_outbox_message(ie)
 
-    def to_integration_from_package(
-        self, event: PackageModuleDeleted, uow: UnitOfWork
-    ):
+    def to_integration_from_package(self, event: PackageModuleDeleted, uow: UnitOfWork):
         fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(fqn, is_package=True)
         ie = ModuleDeletedIntegrationEvent(

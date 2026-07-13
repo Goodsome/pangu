@@ -56,4 +56,3 @@ class Neo4jFunctionRepository(FunctionRepository):
         for s in symbols:
             self._seens.add(s)
         return symbols
-

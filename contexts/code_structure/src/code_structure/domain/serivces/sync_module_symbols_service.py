@@ -24,6 +24,7 @@ class SyncResult:
     """
     增量同步的结果清单，包含需要保存与删除的领域实体
     """
+
     saved_classes: list[ClassSymbol] = field(default_factory=list)
     deleted_classes: list[ClassSymbol] = field(default_factory=list)
     saved_functions: list[FunctionSymbol] = field(default_factory=list)
@@ -56,8 +57,12 @@ class SyncModuleSymbolsService:
 
         # 1. 增量同步子符号聚合本身的状态，不直接触碰 file_module
         self._sync_classes(parsed_file_module, class_registry, existing_classes, result)
-        self._sync_functions(parsed_file_module, function_registry, existing_functions, result)
-        self._sync_variables(parsed_file_module, variable_registry, existing_variables, result)
+        self._sync_functions(
+            parsed_file_module, function_registry, existing_functions, result
+        )
+        self._sync_variables(
+            parsed_file_module, variable_registry, existing_variables, result
+        )
 
         # 2. 检测并生成缺失的外部依赖符号
         self._sync_imports(parsed_file_module, existing_external_fqns, result)
@@ -170,7 +175,9 @@ class SyncModuleSymbolsService:
     ) -> None:
         """检测并生成缺失的外部依赖符号"""
         for parsed_import in parsed_file_module.imports:
-            is_internal = parsed_import.target_fqn.context in {c.value for c in ContextName}
+            is_internal = parsed_import.target_fqn.context in {
+                c.value for c in ContextName
+            }
             if not is_internal:
                 if str(parsed_import.target_fqn) not in existing_external_fqns:
                     ext_symbol = ExternalSymbol(

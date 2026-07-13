@@ -20,7 +20,6 @@ from code_dom.domain.value_objects.ast_stmt import AstFunctionDef
 
 @dataclass
 class ClassVisitor(ReferenceVisitor):
-
     variables: list[ParsedVariable] = field(default_factory=list, init=False)
     functions: list[ParsedFunction] = field(default_factory=list, init=False)
 

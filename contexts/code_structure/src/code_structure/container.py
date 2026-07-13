@@ -31,8 +31,9 @@ from code_structure.domain.events.class_moved import ClassMoved
 from code_structure.application.event_handlers.on_class_moved import OnClassMoved
 from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from code_structure.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
-from code_structure.domain.serivces.sync_module_symbols_service import SyncModuleSymbolsService
-
+from code_structure.domain.serivces.sync_module_symbols_service import (
+    SyncModuleSymbolsService,
+)
 
 
 class Container(DeclarativeContainer):
@@ -61,7 +62,9 @@ class Container(DeclarativeContainer):
     sync_module_symbols_service: Singleton[SyncModuleSymbolsService] = Singleton(
         SyncModuleSymbolsService
     )
-    sync_staged_module_symbols_handler: Factory[SyncStagedModuleSymbolsCommandHandler] = Factory(
+    sync_staged_module_symbols_handler: Factory[
+        SyncStagedModuleSymbolsCommandHandler
+    ] = Factory(
         SyncStagedModuleSymbolsCommandHandler,
         symbol_scanner=code_dom_scanner,
         sync_service=sync_module_symbols_service,

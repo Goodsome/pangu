@@ -9,9 +9,7 @@ from foundation.integration_events.module_created import ModuleCreatedIntegratio
 
 @dataclass
 class OnModuleCreated:
-    def to_integration_from_file(
-        self, event: FileModuleCreated, uow: UnitOfWork
-    ):
+    def to_integration_from_file(self, event: FileModuleCreated, uow: UnitOfWork):
         module_fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(module_fqn, is_package=False)
         ie = ModuleCreatedIntegrationEvent(
@@ -21,9 +19,7 @@ class OnModuleCreated:
         )
         uow.save_outbox_message(ie)
 
-    def to_integration_from_package(
-        self, event: PackageModuleCreated, uow: UnitOfWork
-    ):
+    def to_integration_from_package(self, event: PackageModuleCreated, uow: UnitOfWork):
         module_fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(module_fqn, is_package=True)
         module_path /= "__init__.py"

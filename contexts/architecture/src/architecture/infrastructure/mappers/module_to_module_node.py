@@ -1,3 +1,4 @@
+from foundation.persistence.orm.neo4j_base import EdgeItem
 from architecture.domain.aggregates.file_module import FileModule
 from architecture.domain.aggregates.package_module import PackageModule
 from architecture.infrastructure.orm_models.module_node import (
@@ -15,7 +16,7 @@ def file_module_to_node(module: FileModule) -> FileNode:
         fqn=module.fqn,
     )
     node.dependencies.items = [
-        DependsOnEdge(source_ref=str(module.id), target_ref=str(d))
+        EdgeItem(edge=DependsOnEdge(source_ref=str(module.id), target_ref=str(d)))
         for d in module.dependencies
     ]
     return node
@@ -28,18 +29,18 @@ def package_module_to_node(module: PackageModule) -> PackageNode:
         fqn=module.fqn,
     )
     node.dependencies.items = [
-        DependsOnEdge(source_ref=str(module.id), target_ref=str(d))
+        EdgeItem(edge=DependsOnEdge(source_ref=str(module.id), target_ref=str(d)))
         for d in module.dependencies
     ]
     node.contains.items = [
-        ContainsEdge(source_ref=str(module.id), target_ref=str(i))
+        EdgeItem(edge=ContainsEdge(source_ref=str(module.id), target_ref=str(i)))
         for i in module.contains
     ]
     return node
 
 
 def node_to_file_module(node: FileNode) -> FileModule:
-    dependencies = {edge.target_ref for edge in node.dependencies.items}
+    dependencies = set(node.dependencies.get_edges_map().keys())
     return FileModule.reconstitute(
         module_id=node.id,
         fqn=node.fqn,
@@ -49,8 +50,8 @@ def node_to_file_module(node: FileNode) -> FileModule:
 
 
 def node_to_package_module(node: PackageNode) -> PackageModule:
-    dependencies = {edge.target_ref for edge in node.dependencies.items}
-    contains = {edge.target_ref for edge in node.contains.items}
+    dependencies = set(node.dependencies.get_edges_map().keys())
+    contains = set(node.contains.get_edges_map().keys())
     return PackageModule.reconstitute(
         module_id=node.id,
         fqn=node.fqn,

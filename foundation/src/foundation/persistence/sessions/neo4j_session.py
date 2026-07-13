@@ -45,37 +45,6 @@ class Neo4jSession:
         self._session = self.driver.session()
         self._transaction = self._session.begin_transaction()
 
-    def _extract_edge_info(
-        self, items: Any, rel_type: type[Rel[Any, Any]], current_node_id: str
-    ) -> dict[str, EdgeModel]:
-        proj = rel_type.get_projection_type()
-        edge_cls = rel_type.get_edge_cls()
-        if isinstance(edge_cls, str):
-            edge_cls = EdgeModel.get_cls(edge_cls)
-        direction = rel_type.get_direction()
-        result = {}
-        for item in items:
-            if proj == ProjectionType.EDGE:
-                other_id = (
-                    item.source_ref
-                    if direction == RelationDirection.IN
-                    else item.target_ref
-                )
-                result[other_id] = item
-            elif proj == ProjectionType.RELATION:
-                other_id = item.target.id if hasattr(item.target, "id") else item.target
-                result[other_id] = item.edge
-            else:  # node
-                other_id = item.id if hasattr(item, "id") else item
-                s_ref = (
-                    other_id if direction == RelationDirection.IN else current_node_id
-                )
-                t_ref = (
-                    current_node_id if direction == RelationDirection.IN else other_id
-                )
-                result[other_id] = edge_cls(source_ref=s_ref, target_ref=t_ref)
-        return result
-
     # ==========================================
     # 生命周期管理 (UoW)
     # ==========================================
@@ -137,63 +106,68 @@ class Neo4jSession:
         self,
         node: NodeModel,
         old_node: NodeModel | None,
-        edge_fields: dict[str, type[Rel[Any, Any]]],
+        edge_fields: dict[str, type[Rel[EdgeModel, NodeModel]]],
     ) -> None:
         # 2. 对比关系集合与绑定的子节点生命周期
-        for field_name, rel_type in edge_fields.items():
-            old_rel = getattr(old_node, field_name) if old_node else None
-            new_rel = getattr(node, field_name)
-
-            old_items = (
-                getattr(old_rel, "items", old_rel) if old_rel is not None else []
+        for field_name in edge_fields:
+            old_rel = cast(
+                Rel[EdgeModel, NodeModel] | None,
+                getattr(old_node, field_name) if old_node else None,
             )
-            new_items = (
-                getattr(new_rel, "items", new_rel) if new_rel is not None else []
+            new_rel = cast(Rel[EdgeModel, NodeModel], getattr(node, field_name))
+            self._track_relationship_change(new_rel, old_rel)
+
+    def _track_relationship_change(
+        self,
+        new_rel: Rel[EdgeModel, NodeModel],
+        old_rel: Rel[EdgeModel, NodeModel] | None,
+    ) -> None:
+        """
+        处理单个关系字段的变化，根据 new_rel 和 old_rel 的比对进行增/删/改操作。
+        """
+        new_items_map = new_rel.get_items_map()
+        old_items_map = old_rel.get_items_map() if old_rel is not None else {}
+
+        all_keys = set(new_items_map.keys()) | set(old_items_map.keys())
+        for key in all_keys:
+            self._track_relation_item(
+                new_items_map.get(key),
+                old_items_map.get(key),
             )
 
-            old_map = self._extract_edge_info(old_items, rel_type, node.id)
-            new_map = self._extract_edge_info(new_items, rel_type, node.id)
+    def _track_relation_item(
+        self,
+        new_item: EdgeItem[EdgeModel, NodeModel] | None,
+        old_item: EdgeItem[EdgeModel, NodeModel] | None,
+    ) -> None:
+        """
+        比对单个 EdgeItem 的变化并安排写入事务。
+        """
+        # 1. 只有 new_item：新增关系
+        if old_item is None:
+            if new_item is not None:
+                self.save_edge(new_item.edge)
+                if new_item.target is not None:
+                    self.save_node(new_item.target)
+            return
 
-            proj = rel_type.get_projection_type()
+        # 2. 只有 old_item：删除整个关系
+        if new_item is None:
+            self.delete_edge(old_item.edge)
+            if old_item.target is not None:
+                self.delete_node(old_item.target.id)
+            return
 
-            # 如果投影类型是 node 或 relation，代表子节点的生命周期受当前父节点管理
-            new_nodes_map: dict[str, NodeModel] = {}
-            if proj == ProjectionType.NODE:
-                new_nodes_map = {
-                    item.id: item for item in new_items if isinstance(item, NodeModel)
-                }
-            elif proj == ProjectionType.RELATION:
-                new_nodes_map = {
-                    item.target.id: item.target
-                    for item in new_items
-                    if isinstance(getattr(item, "target", None), NodeModel)
-                }
+        # 3. 两个都存在：对比并决定是否更新边属性，以及保存关联的节点
+        old_edge = old_item.edge
+        new_edge = new_item.edge
+        if old_edge.model_dump(
+            exclude={"source_ref", "target_ref"}
+        ) != new_edge.model_dump(exclude={"source_ref", "target_ref"}):
+            self.save_edge(new_edge)
 
-            added = set(new_map.keys()) - set(old_map.keys())
-            removed = set(old_map.keys()) - set(new_map.keys())
-            kept = set(old_map.keys()) & set(new_map.keys())
-
-            for t_id in added:
-                self.save_edge(new_map[t_id])
-                if t_id in new_nodes_map:
-                    self.save_node(new_nodes_map[t_id])
-
-            for t_id in removed:
-                self.delete_edge(old_map[t_id])
-                # 如果子节点生命周期绑定在当前关系上，关系删除时级联删除子节点
-                if proj in (ProjectionType.NODE, ProjectionType.RELATION):
-                    self.delete_node(t_id)
-
-            for t_id in kept:
-                old_edge = old_map[t_id]
-                new_edge = new_map[t_id]
-                if old_edge and new_edge:
-                    if old_edge.model_dump(
-                        exclude={"source_ref", "target_ref"}
-                    ) != new_edge.model_dump(exclude={"source_ref", "target_ref"}):
-                        self.save_edge(new_edge)
-                if t_id in new_nodes_map:
-                    self.save_node(new_nodes_map[t_id])
+        if new_item.target is not None:
+            self.save_node(new_item.target)
 
     def _update_snapshot(self, node: NodeModel) -> None:
         # 4. 将新的 node 设置为未来可能的 snapshot
@@ -366,11 +340,7 @@ class Neo4jSession:
                 )
             elif proj == ProjectionType.NODE:
                 return_clauses.append(
-                    f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN properties({target_alias}) END) AS {field_name}"
-                )
-            elif proj == ProjectionType.RELATION:
-                return_clauses.append(
-                    f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN {{edge: {rel_alias} {{.*, source_ref: {root_alias}.{s_key}, target_ref: {target_alias}.{t_key}, target: properties({target_alias})}} END) AS {field_name}"
+                    f"collect(DISTINCT CASE WHEN {target_alias} IS NOT NULL THEN {{edge: {rel_alias} {{.*, source_ref: {root_alias}.{s_key}, target_ref: {target_alias}.{t_key}}}, target: properties({target_alias})}} END) AS {field_name}"
                 )
 
         return match_clauses, return_clauses, edge_keys
@@ -426,12 +396,9 @@ class Neo4jSession:
                     target_cls = NodeModel.get_cls(target_cls)
 
                 if proj == ProjectionType.EDGE:
-                    items = [edge_cls(**item) for item in raw]
+                    items = [EdgeItem(edge=edge_cls(**item)) for item in raw]
                     node_props[edge_key] = {"items": items}
                 elif proj == ProjectionType.NODE:
-                    items = [target_cls(**item) for item in raw]
-                    node_props[edge_key] = {"items": items}
-                elif proj == ProjectionType.RELATION:
                     items = [
                         EdgeItem(
                             edge=edge_cls(**item["edge"]),

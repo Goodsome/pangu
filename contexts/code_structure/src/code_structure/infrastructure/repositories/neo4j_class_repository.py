@@ -78,4 +78,3 @@ class Neo4jClassRepository(ClassRepository):
         for s in symbols:
             self._seens.add(s)
         return symbols
-

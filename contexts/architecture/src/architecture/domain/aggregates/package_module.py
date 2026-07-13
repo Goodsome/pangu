@@ -49,9 +49,7 @@ class PackageModule(BaseModule):
     def moved(self, new_fqn: ModuleFqn) -> None:
         old_fqn = self.fqn
         self.fqn = new_fqn
-        event = PackageModuleMoved(
-            module_id=self.id, old_fqn=old_fqn, new_fqn=new_fqn
-        )
+        event = PackageModuleMoved(module_id=self.id, old_fqn=old_fqn, new_fqn=new_fqn)
         self.add_domain_event(event)
 
     def add_dependency(self, target_module_id: ModuleId) -> None:

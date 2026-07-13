@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import ClassVar, Any
+from typing import ClassVar, Any, override
 
 from foundation.common_types.snake_string import SnakeString
 from pydantic import BaseModel, Field
@@ -117,11 +117,17 @@ class RelationDirection(Enum):
 class ProjectionType(Enum):
     EDGE = auto()
     NODE = auto()
-    RELATION = auto()
+
+
+class EdgeItem[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
+    edge: TEdge
+    target: TTarget | None = None
 
 
 class Rel[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
     """Base class for all relationships. Used by Query Builder for introspection."""
+
+    items: list[EdgeItem[TEdge, TTarget]] = Field(default_factory=list)
 
     @classmethod
     def get_edge_cls(cls) -> type[TEdge]:
@@ -139,79 +145,90 @@ class Rel[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
     def get_projection_type(cls) -> ProjectionType:
         raise NotImplementedError
 
+    def get_nodes_map(self) -> dict[str, NodeModel]:
+        proj = self.get_projection_type()
+        nodes_map: dict[str, NodeModel] = {}
+        if proj == ProjectionType.NODE:
+            for item in self.items:
+                if item.target is not None:
+                    nodes_map[item.target.id] = item.target
+        return nodes_map
+
+    def get_items_map(self) -> dict[str, EdgeItem[TEdge, TTarget]]:
+        direction = self.get_direction()
+        result: dict[str, EdgeItem[TEdge, TTarget]] = {}
+        for item in self.items:
+            # 提取目标节点（对方节点）的 ID
+            if item.target is not None:
+                other_id = item.target.id
+            else:
+                other_id = (
+                    item.edge.source_ref
+                    if direction == RelationDirection.IN
+                    else item.edge.target_ref
+                )
+            result[other_id] = item
+        return result
+
+    def get_edges_map(self) -> dict[str, EdgeModel]:
+        return {other_id: item.edge for other_id, item in self.get_items_map().items()}
+
 
 class OutEdge[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
-    items: list[TEdge] = Field(default_factory=list)
-
     @classmethod
+    @override
     def get_direction(cls) -> RelationDirection:
         return RelationDirection.OUT
 
     @classmethod
+    @override
     def get_projection_type(cls) -> ProjectionType:
         return ProjectionType.EDGE
 
 
 class InEdge[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
-    items: list[TEdge] = Field(default_factory=list)
-
     @classmethod
+    @override
     def get_direction(cls) -> RelationDirection:
         return RelationDirection.IN
 
     @classmethod
+    @override
     def get_projection_type(cls) -> ProjectionType:
         return ProjectionType.EDGE
 
 
 class OutNode[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
-    items: list[TTarget] = Field(default_factory=list)
-
     @classmethod
+    @override
     def get_direction(cls) -> RelationDirection:
         return RelationDirection.OUT
 
     @classmethod
+    @override
     def get_projection_type(cls) -> ProjectionType:
         return ProjectionType.NODE
 
 
 class InNode[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
-    items: list[TTarget] = Field(default_factory=list)
-
     @classmethod
+    @override
     def get_direction(cls) -> RelationDirection:
         return RelationDirection.IN
 
     @classmethod
+    @override
     def get_projection_type(cls) -> ProjectionType:
         return ProjectionType.NODE
 
 
-class EdgeItem[TEdge: EdgeModel, TTarget: NodeModel](BaseModel):
-    edge: TEdge
-    target: TTarget
-
-
-class OutRelation[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
-    items: list[EdgeItem[TEdge, TTarget]] = Field(default_factory=list)
-
-    @classmethod
-    def get_direction(cls) -> RelationDirection:
-        return RelationDirection.OUT
-
-    @classmethod
-    def get_projection_type(cls) -> ProjectionType:
-        return ProjectionType.RELATION
-
-
 class InRelation[TEdge: EdgeModel, TTarget: NodeModel](Rel[TEdge, TTarget]):
-    items: list[EdgeItem[TEdge, TTarget]] = Field(default_factory=list)
-
     @classmethod
+    @override
     def get_direction(cls) -> RelationDirection:
         return RelationDirection.IN
 
     @classmethod
+    @override
     def get_projection_type(cls) -> ProjectionType:
-        return ProjectionType.RELATION
+        return ProjectionType.NODE

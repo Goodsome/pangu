@@ -74,7 +74,7 @@ class ClassSymbol(AggregateRoot[ClassId]):
     def _sync_methods(self, parsed_class: ParsedClass) -> None:
         """Sync methods defined inside the class"""
         new_funcs_by_name = {f.name: f for f in parsed_class.functions}
-        
+
         # Remove methods that no longer exist
         methods_to_remove = [
             m_id for m_id, m in self.methods.items() if m.name not in new_funcs_by_name
@@ -96,10 +96,12 @@ class ClassSymbol(AggregateRoot[ClassId]):
     def _sync_attributes(self, parsed_class: ParsedClass) -> None:
         """Sync attributes defined inside the class"""
         new_vars_by_name = {v.name: v for v in parsed_class.variables}
-        
+
         # Remove attributes that no longer exist
         attrs_to_remove = [
-            a_id for a_id, a in self.attributes.items() if a.name not in new_vars_by_name
+            a_id
+            for a_id, a in self.attributes.items()
+            if a.name not in new_vars_by_name
         ]
         for a_id in attrs_to_remove:
             del self.attributes[a_id]
@@ -114,5 +116,3 @@ class ClassSymbol(AggregateRoot[ClassId]):
                     fqn=AttributeFqn(f"{self.fqn}::{var_name}"),
                 )
                 self.define_attribute(new_attr)
-
-

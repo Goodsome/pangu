@@ -20,9 +20,7 @@ class UnitOfWork(BaseUnitOfWork, ABC):
     @abstractmethod
     def packages(self) -> PackageModuleRepository: ...
 
-    def find_module_by_fqn(
-        self, fqn: ModuleFqn
-    ) -> FileModule | PackageModule | None:
+    def find_module_by_fqn(self, fqn: ModuleFqn) -> FileModule | PackageModule | None:
         return self.file_modules.find_by_fqn(fqn) or self.packages.find_by_fqn(fqn)
 
     def collect_events(self) -> Iterator[DomainEvent]:

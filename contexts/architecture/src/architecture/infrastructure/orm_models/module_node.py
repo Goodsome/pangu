@@ -40,4 +40,3 @@ class PackageNode(ModuleNode):
     dependencies: OutEdge[DependsOnEdge, ModuleNode] = Field(
         default_factory=lambda: OutEdge[DependsOnEdge, ModuleNode]()
     )
-

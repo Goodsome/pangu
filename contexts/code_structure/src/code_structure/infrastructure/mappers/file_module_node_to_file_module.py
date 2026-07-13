@@ -1,3 +1,4 @@
+from typing import cast
 import logging
 from code_structure.domain.value_objects.parsed_import import ParsedImport
 from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
@@ -13,23 +14,23 @@ logger = logging.getLogger(__name__)
 
 def file_module_node_to_file_module(file_module_node: FileNode) -> FileModule:
     classes = {
-        ClassId.reconstitute(class_id.target_ref)
-        for class_id in file_module_node.classes.items
+        ClassId.reconstitute(target_ref)
+        for target_ref in file_module_node.classes.get_edges_map()
     }
     functions = {
-        FunctionId.reconstitute(function_id.target_ref)
-        for function_id in file_module_node.functions.items
+        FunctionId.reconstitute(target_ref)
+        for target_ref in file_module_node.functions.get_edges_map()
     }
     variables = {
-        VariableId.reconstitute(variable_id.target_ref)
-        for variable_id in file_module_node.variables.items
+        VariableId.reconstitute(target_ref)
+        for target_ref in file_module_node.variables.get_edges_map()
     }
     imports = [
         ParsedImport(
-            target_fqn=SymbolFqn(import_edge.target_ref),
-            alias=import_edge.alias,
+            target_fqn=SymbolFqn(target_ref),
+            alias=cast(str | None, getattr(edge, "alias", None)),
         )
-        for import_edge in file_module_node.imports.items
+        for target_ref, edge in file_module_node.imports.get_edges_map().items()
     ]
     return FileModule(
         id=str_to_module_id(file_module_node.id),

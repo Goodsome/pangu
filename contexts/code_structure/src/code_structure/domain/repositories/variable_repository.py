@@ -9,4 +9,3 @@ class VariableRepository(Repository[VariableSymbol, VariableId], ABC):
     def find_by_fqn_prefix(self, prefix: str) -> list[VariableSymbol]:
         """Find VariableSymbols by FQN prefix"""
         ...
-
