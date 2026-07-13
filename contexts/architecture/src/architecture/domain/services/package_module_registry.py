@@ -20,12 +20,13 @@ class PackageModuleRegistry:
         self.deleted_modules = set()
 
     @classmethod
-    def init(cls, modules: list[PackageModule]) -> "PackageModuleRegistry":
+    def init(cls, modules: list[PackageModule] | None = None) -> "PackageModuleRegistry":
         registry = cls()
-        for module in modules:
-            registry._store_by_fqn[module.fqn] = module
-            registry._store_by_id[module.id] = module
-            registry._fqn_id_map[module.fqn] = module.id
+        if modules is not None:
+            for module in modules:
+                registry._store_by_fqn[module.fqn] = module
+                registry._store_by_id[module.id] = module
+                registry._fqn_id_map[module.fqn] = module.id
         return registry
 
     def register(self, module: PackageModule):
