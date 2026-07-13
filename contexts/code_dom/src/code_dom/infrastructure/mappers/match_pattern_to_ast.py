@@ -11,7 +11,6 @@ from code_dom.domain.value_objects.match_pattern import MatchValue
 
 
 class MatchPatternToAst:
-
     @staticmethod
     def to_node(pattern: MatchPattern) -> ast.pattern:
         match pattern:

@@ -30,7 +30,7 @@ from code_dom.domain.value_objects.ast_expr.ast_dict_comp import (
 from code_dom.domain.value_objects.ast_stmt.ast_except_handler import (
     AstExceptHandler,
 )
-from code_dom.domain.value_objects.ast_expr import AstExpr
+from code_dom.domain.value_objects.ast_expr import AstExprBase
 from code_dom.domain.value_objects.ast_stmt.ast_expr_stmt import (
     AstExprStmt,
 )
@@ -94,7 +94,7 @@ class AstVisitor:
     def visit(
         self,
         node: AstStmtBase
-        | AstExpr
+        | AstExprBase
         | AstArguments
         | AstComprehension
         | AstKeyword
@@ -102,7 +102,7 @@ class AstVisitor:
         | AstExceptHandler
         | Arg
         | list[AstStmtBase]
-        | list[AstExpr]
+        | list[AstExprBase]
         | list[AstKeyword]
         | None,
     ):
@@ -220,6 +220,8 @@ class AstVisitor:
             case list():
                 for item in node:
                     self.visit(item)
+            case AstExprBase() | AstStmtBase():
+                raise NotImplementedError
             case _:
                 assert_never(node)
 

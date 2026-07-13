@@ -6,7 +6,6 @@ from pydantic import Field
 from foundation.building_blocks.value_object import ValueObject
 
 
-
 class AstExceptHandler(ValueObject):
     type: Optional[AstExprBase] = None
     name: Optional[str] = None

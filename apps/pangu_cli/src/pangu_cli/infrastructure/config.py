@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     )
     redis_url: str | None = Field(default=None, description="Redis Connection String")
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).resolve().parent.parent.parent.parent.parent.parent / ".env",
+        env_file=Path(__file__).resolve().parent.parent.parent.parent.parent.parent
+        / ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",

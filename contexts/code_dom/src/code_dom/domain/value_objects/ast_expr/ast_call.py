@@ -5,6 +5,7 @@ from code_dom.domain.enums.ast_expr_kind import AstExprKind
 from code_dom.domain.value_objects.ast_expr.ast_keyword import AstKeyword
 from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 
+
 class AstCall(AstExprBase):
     kind: Literal[AstExprKind.CALL] = AstExprKind.CALL
     func: AstExprBase

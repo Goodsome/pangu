@@ -84,7 +84,7 @@ class ClassSymbol(AggregateRoot[ClassId]):
 
         # Add newly introduced methods
         existing_methods_by_name = {m.name: m for m in self.methods.values()}
-        for func_name, parsed_func in new_funcs_by_name.items():
+        for func_name, _parsed_func in new_funcs_by_name.items():
             if func_name not in existing_methods_by_name:
                 new_method = MethodSymbol(
                     id=MethodId.create(),
@@ -108,7 +108,7 @@ class ClassSymbol(AggregateRoot[ClassId]):
 
         # Add newly introduced attributes
         existing_attrs_by_name = {a.name: a for a in self.attributes.values()}
-        for var_name, parsed_var in new_vars_by_name.items():
+        for var_name, _parsed_var in new_vars_by_name.items():
             if var_name not in existing_attrs_by_name:
                 new_attr = AttributeSymbol(
                     id=AttributeId.create(),

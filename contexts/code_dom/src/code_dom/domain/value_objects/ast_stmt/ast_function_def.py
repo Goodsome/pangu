@@ -10,6 +10,7 @@ from code_dom.domain.value_objects.ast_stmt.ast_stmt_base import AstStmtBase
 from code_dom.domain.value_objects.ast_stmt.ast_assign import AstAssign
 from code_dom.domain.value_objects.ast_stmt.ast_ann_assign import AstAnnAssign
 
+
 class AstFunctionDef(AstStmtBase):
     lineno: int
     kind: Literal[AstStmtKind.FUNCTION_DEF] = AstStmtKind.FUNCTION_DEF

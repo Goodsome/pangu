@@ -6,7 +6,6 @@ from code_dom.domain.value_objects.ast_stmt.ast_with_item import AstWithItem
 from code_dom.domain.value_objects.ast_stmt.ast_stmt_base import AstStmtBase
 
 
-
 class AstWith(AstStmtBase):
     kind: Literal[AstStmtKind.WITH] = AstStmtKind.WITH
     items: list[AstWithItem] = Field(default_factory=list)

@@ -7,7 +7,6 @@ from code_dom.domain.value_objects.match_pattern import MatchPattern
 from foundation.building_blocks.value_object import ValueObject
 
 
-
 class AstMatchCase(ValueObject):
     pattern: MatchPattern
     guard: Optional[AstExprBase] = None

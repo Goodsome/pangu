@@ -5,6 +5,7 @@ from pydantic import Field
 from foundation.building_blocks.value_object import ValueObject
 from code_dom.domain.value_objects.ast_expr.ast_lambda import Arg
 
+
 class AstArguments(ValueObject):
     """Represents function/lambda arguments."""
 

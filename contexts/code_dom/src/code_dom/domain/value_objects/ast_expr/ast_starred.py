@@ -4,6 +4,7 @@ from code_dom.domain.enums.ast_expr_kind import AstExprKind
 from code_dom.domain.enums.expr_context import ExprContext
 from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 
+
 class AstStarred(AstExprBase):
     kind: Literal[AstExprKind.STARRED] = AstExprKind.STARRED
     value: AstExprBase

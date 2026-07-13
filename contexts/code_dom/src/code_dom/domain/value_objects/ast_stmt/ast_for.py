@@ -5,6 +5,7 @@ from pydantic import Field
 from code_dom.domain.enums.ast_stmt_kind import AstStmtKind
 from code_dom.domain.value_objects.ast_stmt.ast_stmt_base import AstStmtBase
 
+
 class AstFor(AstStmtBase):
     kind: Literal[AstStmtKind.FOR] = AstStmtKind.FOR
     target: AstExprBase

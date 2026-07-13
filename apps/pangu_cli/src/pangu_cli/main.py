@@ -4,7 +4,9 @@ from typing import Annotated
 from architecture.interfaces.cli.init_project_graph import init_project_graph
 from architecture.interfaces.cli.sync_staged_modules import sync_staged_modules
 from code_structure.interfaces.cli.init_symbol_graph import init_symbol_graph
-from code_structure.interfaces.cli.sync_staged_module_symbols import sync_staged_module_symbols
+from code_structure.interfaces.cli.sync_staged_module_symbols import (
+    sync_staged_module_symbols,
+)
 import typer
 from foundation.logging_setup import configure_logging
 from pangu_cli.container import create_container
@@ -24,11 +26,12 @@ app.add_typer(code_dom_app, name="dom")
 app.add_typer(code_structure_app, name="structure")
 app.command()(run_worker)
 
+
 @app.command(name="init-graph")
 def init_graph() -> None:
     init_project_graph()
     init_symbol_graph()
-    
+
 
 @app.command(name="sync-stg")
 def sync_stg(

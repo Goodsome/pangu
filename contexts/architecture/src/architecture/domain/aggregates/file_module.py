@@ -7,6 +7,8 @@ from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 class FileModule(BaseModule):
+    fqn: ModuleFqn
+
     @classmethod
     def create(cls, fqn: ModuleFqn, name: str) -> "FileModule":
         module = cls(id=ModuleId.create(), fqn=fqn, name=name)

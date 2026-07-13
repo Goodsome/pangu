@@ -53,4 +53,3 @@ AstStmt = Annotated[
 ast_stmt_adapter: TypeAdapter[AstStmt] = TypeAdapter(AstStmt)
 
 # model_rebuild 已经不再需要，因为字段类型 (AstStmtBase) 在定义期均已完全解析，不再含有对联合类型 AstStmt 的循环 ForwardRef。
-

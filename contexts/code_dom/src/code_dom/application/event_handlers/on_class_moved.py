@@ -8,9 +8,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class OnClassMoved:
-    def execute_class_move(
-        self, event: ClassMovedIntegrationEvent, uow: UnitOfWork
-    ):
+    def execute_class_move(self, event: ClassMovedIntegrationEvent, uow: UnitOfWork):
         source_doc = uow.documents.get(event.current_module_path)
         target_doc = uow.documents.get(event.target_module_path)
 

@@ -7,7 +7,10 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from foundation.persistence.adapters.neo4j_driver import init_async_neo4j_driver, init_neo4j_driver
+from foundation.persistence.adapters.neo4j_driver import (
+    init_async_neo4j_driver,
+    init_neo4j_driver,
+)
 from foundation.integration_events.registry import EventRegistry
 from foundation.persistence.adapters.database import Database
 from foundation.persistence.adapters.database import init_database
@@ -31,7 +34,7 @@ class Container(DeclarativeContainer):
     redis_client: Resource[Redis] = Resource(
         init_async_redis, redis_url=config.redis_url
     )
-    async_session_factory = Singleton(
+    async_session_factory: Singleton[async_sessionmaker[AsyncSession]] = Singleton(
         async_sessionmaker,
         bind=db_engine,
         autoflush=False,

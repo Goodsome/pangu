@@ -8,7 +8,6 @@ from code_dom.domain.value_objects.ast_stmt.ast_except_handler import (
 from code_dom.domain.value_objects.ast_stmt.ast_stmt_base import AstStmtBase
 
 
-
 class AstTry(AstStmtBase):
     kind: Literal[AstStmtKind.TRY] = AstStmtKind.TRY
     body: list[AstStmtBase] = Field(default_factory=list)

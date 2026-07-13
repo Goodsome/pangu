@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import override
-from neo4j import Driver
+from neo4j import Driver, ManagedTransaction
 from architecture.application.ports.module_query_serivce import ModuleQueryService
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.common_types.fqns.fqn import ModuleFqn
@@ -26,7 +26,7 @@ class Neo4jModuleQueryService(ModuleQueryService):
         """
         with self.driver.session() as session:
 
-            def _read_tx(tx):
+            def _read_tx(tx: ManagedTransaction) -> list[ModuleFqn]:
                 result = tx.run(query, id=str(id))
                 return [ModuleFqn(record["caller_fqn"]) for record in result]
 
@@ -46,7 +46,7 @@ class Neo4jModuleQueryService(ModuleQueryService):
         query = "\n        MATCH (m:Module {id: $id})-[:CONTAINS*1..]->(descendant:Module)\n        RETURN DISTINCT descendant.id AS descendant_id\n        "
         with self.driver.session() as session:
 
-            def _read_tx(tx):
+            def _read_tx(tx: ManagedTransaction) -> list[str]:
                 result = tx.run(query, id=str(id))
                 return [record["descendant_id"] for record in result]
 
@@ -72,7 +72,7 @@ class Neo4jModuleQueryService(ModuleQueryService):
         """
         with self.driver.session() as session:
 
-            def _read_tx(tx):
+            def _read_tx(tx: ManagedTransaction) -> list[ModuleFqn]:
                 result = tx.run(query)
                 return [ModuleFqn(record["fqn"]) for record in result]
 
@@ -91,7 +91,7 @@ class Neo4jModuleQueryService(ModuleQueryService):
         """
         with self.driver.session() as session:
 
-            def _read_tx(tx):
+            def _read_tx(tx: ManagedTransaction) -> list[ModuleFqn]:
                 result = tx.run(query)
                 return [ModuleFqn(record["fqn"]) for record in result]
 

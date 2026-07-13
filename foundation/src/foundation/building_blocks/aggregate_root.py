@@ -26,11 +26,7 @@ class AggregateRoot[T_ID: Hashable | Identifier[Any]](BaseModel):
         """添加领域事件
         Args:
             event: 要添加的领域事件实例
-        Raises:
-            TypeError: 如果 event 不是 DomainEvent 的实例
         """
-        if not isinstance(event, DomainEvent):
-            raise TypeError(f"Expected DomainEvent, got {type(event).__name__}")
         self._domain_events.append(event)
 
     def collect_events(self) -> list[DomainEvent]:

@@ -1,6 +1,6 @@
 import ast
 from typing import overload
-from code_dom.domain.value_objects.ast_expr import AstExpr, AstExprBase
+from code_dom.domain.value_objects.ast_expr import AstExprBase
 from code_dom.domain.value_objects.ast_expr.ast_attribute import (
     AstAttribute,
 )

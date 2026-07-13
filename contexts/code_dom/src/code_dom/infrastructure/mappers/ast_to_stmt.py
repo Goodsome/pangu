@@ -1,5 +1,5 @@
 import ast
-from code_dom.domain.value_objects.ast_stmt import AstStmt, AstStmtBase
+from code_dom.domain.value_objects.ast_stmt import AstStmtBase
 from code_dom.domain.value_objects.ast_stmt.ast_ann_assign import (
     AstAnnAssign,
 )

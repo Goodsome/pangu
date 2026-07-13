@@ -1,3 +1,4 @@
+from typing import override
 from architecture.domain.aggregates.base_module import BaseModule
 from architecture.domain.events.module_added_contains import ModuleAddedContains
 from architecture.domain.events.module_added_dependency import ModuleAddedDependency
@@ -11,6 +12,7 @@ from foundation.common_types.fqns.fqn import ModuleFqn
 
 
 class PackageModule(BaseModule):
+    fqn: ModuleFqn
     _contains: set[ModuleId] = PrivateAttr(default_factory=set)
 
     @property
@@ -52,6 +54,7 @@ class PackageModule(BaseModule):
         event = PackageModuleMoved(module_id=self.id, old_fqn=old_fqn, new_fqn=new_fqn)
         self.add_domain_event(event)
 
+    @override
     def add_dependency(self, target_module_id: ModuleId) -> None:
         if target_module_id == self.id:
             raise ValueError("module can not dep self")

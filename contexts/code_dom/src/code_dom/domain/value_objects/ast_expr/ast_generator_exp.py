@@ -7,6 +7,7 @@ from code_dom.domain.value_objects.ast_expr.ast_comprehension import (
 )
 from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 
+
 class AstGeneratorExp(AstExprBase):
     kind: Literal[AstExprKind.GENERATOR_EXP] = AstExprKind.GENERATOR_EXP
     elt: AstExprBase

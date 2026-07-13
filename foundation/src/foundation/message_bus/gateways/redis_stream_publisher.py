@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 import logging
+from types import TracebackType
 from redis.asyncio import Redis
 from foundation.building_blocks.event import IntegrationEvent
 
@@ -21,7 +22,12 @@ class RedisStreamPublisher:
         logger.info("✅ Publisher 准备就绪")
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         pass
 
     async def publish(self, event: IntegrationEvent) -> str:

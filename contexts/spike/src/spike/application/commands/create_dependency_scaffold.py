@@ -7,7 +7,9 @@ from spike.domain.value_objects.scaffold_payload import ScaffoldPayload
 
 
 class CreateDependencyScaffoldCommand(Command):
-    scaffold_payload: ScaffoldPayload = Field(description="The payload for the scaffold")
+    scaffold_payload: ScaffoldPayload = Field(
+        description="The payload for the scaffold"
+    )
 
 
 class CreateDependencyScaffoldResult(BaseModel):
@@ -16,9 +18,8 @@ class CreateDependencyScaffoldResult(BaseModel):
 
 @dataclass
 class CreateDependencyScaffoldCommandHandler:
-
     scaffold_builder: ScaffoldBuilder
-    
+
     async def execute(
         self, cmd: CreateDependencyScaffoldCommand
     ) -> CreateDependencyScaffoldResult:

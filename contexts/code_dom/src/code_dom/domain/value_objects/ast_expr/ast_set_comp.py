@@ -7,6 +7,7 @@ from code_dom.domain.value_objects.ast_expr.ast_comprehension import (
 )
 from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
 
+
 class AstSetComp(AstExprBase):
     kind: Literal[AstExprKind.SET_COMP] = AstExprKind.SET_COMP
     elt: AstExprBase
