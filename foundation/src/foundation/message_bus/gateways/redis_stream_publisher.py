@@ -1,8 +1,10 @@
 from __future__ import annotations
-from collections.abc import Mapping
-from dataclasses import dataclass
+
 import logging
+from dataclasses import dataclass
 from types import TracebackType
+from typing import Any, cast
+
 from redis.asyncio import Redis
 from foundation.building_blocks.event import IntegrationEvent
 
@@ -13,7 +15,6 @@ logger = logging.getLogger(__name__)
 class RedisStreamPublisher:
     """Redis Stream 集成事件发布器。"""
 
-    "Redis Stream 集成事件发布器。"
     client: Redis
     maxlen: int = 10000
 
@@ -45,14 +46,18 @@ class RedisStreamPublisher:
         topic = event.topic()
         event_type_name = event.event_type_name
         payload = event.model_dump_json()
-        stream_data: Mapping[str, str] = {
+        stream_data: dict[str, str] = {
             "event_type": event_type_name,
             "payload": payload,
             "timestamp": event.timestamp.isoformat(),
         }
-        msg_id: str = await self.client.xadd(
-            name=topic, fields=stream_data, maxlen=self.maxlen, approximate=True
+        raw_msg_id = await self.client.xadd(
+            name=topic,
+            fields=cast(Any, stream_data),
+            maxlen=self.maxlen,
+            approximate=True,
         )
+        msg_id = raw_msg_id.decode() if isinstance(raw_msg_id, bytes) else raw_msg_id
         logger.info(
             "📤 [PUBLISH] → stream=%s | type=%s | id=%s | event_id=%s",
             topic,

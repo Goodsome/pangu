@@ -4,7 +4,7 @@ from pathlib import Path
 from code_dom.domain.visitors.update_imports_visitor import UpdateImportsVisitor
 from code_dom.domain.value_objects.ast_stmt.ast_alias import AstAlias
 from code_dom.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
-from code_dom.domain.value_objects.ast_stmt import AstStmt, AstStmtBase
+from code_dom.domain.value_objects.ast_stmt import AstStmtBase
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from foundation.integration_events.class_moved import ModuleDepDict
 from code_dom.domain.value_objects.ast_stmt.ast_class_def import (
@@ -45,7 +45,7 @@ class CodeDocument(AggregateRoot[Path]):
         """
         target_import = _find_import_from(self.body, new_module)
         alias_to_move: AstAlias | None = None
-        new_body: list[AstStmt] = []
+        new_body: list[AstStmtBase] = []
         for stmt in self.body:
             if not (isinstance(stmt, AstImportFrom) and stmt.module == old_module):
                 new_body.append(stmt)
@@ -79,7 +79,7 @@ class CodeDocument(AggregateRoot[Path]):
         self.body.append(class_def)
 
 
-def _last_import_index(body: list[AstStmt]) -> int:
+def _last_import_index(body: list[AstStmtBase]) -> int:
     """Return the index after the last import statement, or 0."""
     for i in range(len(body) - 1, -1, -1):
         if isinstance(body[i], AstImportFrom):
@@ -87,7 +87,7 @@ def _last_import_index(body: list[AstStmt]) -> int:
     return 0
 
 
-def _find_import_from(body: list[AstStmt], module: str) -> AstImportFrom | None:
+def _find_import_from(body: list[AstStmtBase], module: str) -> AstImportFrom | None:
     for stmt in body:
         if isinstance(stmt, AstImportFrom) and stmt.module == module:
             return stmt

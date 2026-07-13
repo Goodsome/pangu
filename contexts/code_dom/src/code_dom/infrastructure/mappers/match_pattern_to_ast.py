@@ -1,4 +1,6 @@
 import ast
+from typing import assert_never
+
 from code_dom.domain.value_objects.match_pattern import MatchAs
 from code_dom.domain.value_objects.match_pattern import MatchClass
 from code_dom.domain.value_objects.match_pattern import MatchMapping
@@ -31,15 +33,13 @@ class MatchPatternToAst:
             case MatchOr():
                 return MatchPatternToAst.from_match_or(pattern)
             case _:
-                raise NotImplementedError(
-                    f"Unsupported MatchPattern type: {type(pattern)}, pattern={pattern!r}"
-                )
+                assert_never(pattern)
 
     @staticmethod
     def from_match_value(pattern: MatchValue) -> ast.MatchValue:
-        return ast.MatchValue(
-            value=ast.parse(pattern.value, mode="eval").body if pattern.value else None
-        )
+        if not pattern.value:
+            raise ValueError("MatchValue.value must be a non-empty string")
+        return ast.MatchValue(value=ast.parse(pattern.value, mode="eval").body)
 
     @staticmethod
     def from_match_singleton(pattern: MatchSingleton) -> ast.MatchSingleton:

@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import asyncio
 import logging
 import os
 import socket
 import traceback
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
+from typing import Any, cast
+
 from redis import asyncio as aioredis
 from foundation.integration_events.registry import EventRegistry
 from foundation.message_bus.message_bus import MessageBusFactory
@@ -17,8 +19,6 @@ logger = logging.getLogger(__name__)
 class RedisStreamSubscriber:
     """Redis Stream 集成事件订阅器。"""
 
-    "Redis Stream 集成事件订阅器。"
-    "Redis Stream 集成事件订阅器。"
     client: aioredis.Redis
     message_bus_factory: MessageBusFactory
     registry: EventRegistry
@@ -95,7 +95,7 @@ class RedisStreamSubscriber:
         """消费主循环 —— 持续从所有订阅的 Stream 中读取消息。"""
         assert self.client is not None
         while self._running:
-            streams = {topic: ">" for topic in self.subscriptions}
+            streams: dict[str, str] = {topic: ">" for topic in self.subscriptions}
             if not streams:
                 logger.info("📦 没有订阅的 Stream，等待中......")
                 await asyncio.sleep(1)
@@ -104,14 +104,21 @@ class RedisStreamSubscriber:
                 results = await self.client.xreadgroup(
                     groupname=self.service_name,
                     consumername=self.consumer_name,
-                    streams=streams,
+                    streams=cast(Any, streams),
                     count=self.batch_size,
                     block=self.block_ms,
                 )
                 if not results:
                     continue
-                for stream_name, messages in results:
-                    for msg_id, data in messages:
+                for stream_name_bytes, messages in results:
+                    stream_name = (
+                        stream_name_bytes.decode()
+                        if isinstance(stream_name_bytes, bytes)
+                        else str(stream_name_bytes)
+                    )
+                    for msg_id_raw, data_raw in messages:  # pyright: ignore[reportGeneralTypeIssues]
+                        msg_id = str(msg_id_raw)
+                        data: dict[str, Any] = dict(data_raw)  # type: ignore[arg-type]
                         asyncio.create_task(
                             self._process_message(stream_name, msg_id, data),
                             name=f"process_msg_{msg_id}",
@@ -127,7 +134,7 @@ class RedisStreamSubscriber:
                 await asyncio.sleep(1)
 
     async def _process_message(
-        self, stream_name: str, msg_id: str, data: dict[str, str]
+        self, stream_name: str, msg_id: str, data: dict[str, Any]
     ) -> None:
         """处理单条消息：反序列化 → 分发 → ACK。"""
         event_type_name = data.get("event_type", "")
