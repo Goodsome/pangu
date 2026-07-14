@@ -2,8 +2,7 @@ from typing import Any
 from typing import override
 from pydantic import model_serializer
 from pydantic import model_validator
-from uuid import UUID
-from uuid import uuid4
+from uuid import UUID, uuid7
 
 from foundation.building_blocks.value_object import ValueObject
 
@@ -29,7 +28,7 @@ class UuidIdentifier(Identifier[UUID]):
 
     @classmethod
     def create(cls):
-        return cls(value=uuid4())
+        return cls(value=uuid7())
 
     @classmethod
     def reconstitute(cls, value: UUID | str):
