@@ -6,7 +6,9 @@ requires-python = ">=3.14"
 members = [
     "architecture",
     "code-dom",
+    "code-evolution",
     "code-generation",
+    "code-refactoring",
     "code-structure",
     "d4-leaderboard",
     "foundation",
@@ -199,9 +201,19 @@ version = "0.1.0"
 source = { editable = "contexts/code_dom" }
 
 [[package]]
+name = "code-evolution"
+version = "0.1.0"
+source = { editable = "contexts/code_evolution" }
+
+[[package]]
 name = "code-generation"
 version = "0.1.0"
 source = { editable = "contexts/code_generation" }
+
+[[package]]
+name = "code-refactoring"
+version = "0.1.0"
+source = { editable = "contexts/code_refactoring" }
 
 [[package]]
 name = "code-structure"
@@ -830,7 +842,9 @@ dependencies = [
     { name = "architecture" },
     { name = "case-converter" },
     { name = "code-dom" },
+    { name = "code-evolution" },
     { name = "code-generation" },
+    { name = "code-refactoring" },
     { name = "code-structure" },
     { name = "d4-leaderboard" },
     { name = "dependency-injector" },
@@ -853,7 +867,9 @@ requires-dist = [
     { name = "architecture", editable = "contexts/architecture" },
     { name = "case-converter", specifier = ">=1.2.0" },
     { name = "code-dom", editable = "contexts/code_dom" },
+    { name = "code-evolution", editable = "contexts/code_evolution" },
     { name = "code-generation", editable = "contexts/code_generation" },
+    { name = "code-refactoring", editable = "contexts/code_refactoring" },
     { name = "code-structure", editable = "contexts/code_structure" },
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "dependency-injector", specifier = ">=4.49.0" },

@@ -24,6 +24,8 @@ dependencies = [
     "ruff>=0.15.16",
     "d4-leaderboard",
     "code-generation",
+    "code-refactoring",
+    "code-evolution",
 ]
 
 [dependency-groups]
@@ -60,3 +62,5 @@ pangu_cli = { workspace = true }
 pangu_mcp = { workspace = true }
 d4-leaderboard = { workspace = true }
 code-generation = { workspace = true }
+code-refactoring = { workspace = true }
+code-evolution = { workspace = true }
