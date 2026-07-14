@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "architecture",
     "code-dom",
+    "code-generation",
     "code-structure",
     "d4-leaderboard",
     "foundation",
@@ -196,6 +197,11 @@ wheels = [
 name = "code-dom"
 version = "0.1.0"
 source = { editable = "contexts/code_dom" }
+
+[[package]]
+name = "code-generation"
+version = "0.1.0"
+source = { editable = "contexts/code_generation" }
 
 [[package]]
 name = "code-structure"
@@ -824,6 +830,7 @@ dependencies = [
     { name = "architecture" },
     { name = "case-converter" },
     { name = "code-dom" },
+    { name = "code-generation" },
     { name = "code-structure" },
     { name = "d4-leaderboard" },
     { name = "dependency-injector" },
@@ -846,6 +853,7 @@ requires-dist = [
     { name = "architecture", editable = "contexts/architecture" },
     { name = "case-converter", specifier = ">=1.2.0" },
     { name = "code-dom", editable = "contexts/code_dom" },
+    { name = "code-generation", editable = "contexts/code_generation" },
     { name = "code-structure", editable = "contexts/code_structure" },
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "dependency-injector", specifier = ">=4.49.0" },

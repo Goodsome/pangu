@@ -51,7 +51,7 @@ def main():
     configure_logging(
         app_name="cli",
         log_dir=Path.cwd() / "logs",
-        console_output=True,
+        console_output=False,
     )
     try:
         loop = asyncio.get_running_loop()

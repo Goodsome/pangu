@@ -23,6 +23,7 @@ dependencies = [
     "typer>=0.26.7",
     "ruff>=0.15.16",
     "d4-leaderboard",
+    "code-generation",
 ]
 
 [dependency-groups]
@@ -58,3 +59,4 @@ foundation = { workspace = true }
 pangu_cli = { workspace = true }
 pangu_mcp = { workspace = true }
 d4-leaderboard = { workspace = true }
+code-generation = { workspace = true }
