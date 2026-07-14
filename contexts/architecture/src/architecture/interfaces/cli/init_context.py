@@ -45,75 +45,17 @@ def _create_package(
     message_bus.handle(cmd)
 
 
-def _create_context_pyproject(context: str):
-    context_dir = Path.cwd() / "contexts" / context
-    context_dir.mkdir(parents=True, exist_ok=True)
-    pyproject_path = context_dir / "pyproject.toml"
-    if not pyproject_path.exists():
-        content = f"""[project]
-name = "{context}"
-version = "0.1.0"
-description = ""
-requires-python = ">=3.14"
-dependencies = []
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/{context}"]
-
-[tool.pyright]
-venvPath = "../../"
-venv = ".venv"
-include = ["src"]
-extraPaths = ["src", "../../src"]
-reportUnusedCallResult = "none"
-"""
-        pyproject_path.write_text(content)
-
-
-def _update_root_pyproject(context: str):
-    root_pyproject = Path.cwd() / "pyproject.toml"
-    if not root_pyproject.exists():
-        return
-    content = root_pyproject.read_text()
-
-    # Add to dependencies if not there
-    if f'"{context}",' not in content and f'"{context}"' not in content:
-        import re
-
-        # Find the dependencies list and append
-        content = re.sub(
-            r"(dependencies\s*=\s*\[)([^\]]*?)(\n\])",
-            rf'\1\2\n    "{context}",\3',
-            content,
-            count=1,
-        )
-
-    # Add to tool.uv.sources
-    source_line = f"{context} = {{ workspace = true }}"
-    if source_line not in content:
-        if "[tool.uv.sources]" in content:
-            content = content.replace(
-                "[tool.uv.sources]", f"[tool.uv.sources]\n{source_line}", 1
-            )
-        else:
-            content += f"\n[tool.uv.sources]\n{source_line}\n"
-
-    root_pyproject.write_text(content)
-
-
-def _run_uv_sync():
-    subprocess.run(["uv", "sync"], cwd=str(Path.cwd()))
-
-
 def init_context(
     context: Annotated[
         str, Argument(help="Context FQN to create (要创建的上下文 FQN)")
     ],
 ) -> None:
+    # 1. Use uv to initialize the context library
+    subprocess.run(
+        ["uv", "init", "--lib", f"contexts/{context}"], cwd=str(Path.cwd()), check=True
+    )
+
+    # 2. Scaffold DDD directories
     fqns: list[ModuleFqn] = [ModuleFqn(context)]
 
     for layer in ArchitectureLayer:
@@ -127,7 +69,6 @@ def init_context(
         cmd = CreatePackageCommand(fqn=fqn)
         _create_package(cmd)
 
-    # Automatically scaffold pyproject.toml and sync uv workspace
-    _create_context_pyproject(context)
-    _update_root_pyproject(context)
-    _run_uv_sync()
+    # 3. Add to workspace root pyproject.toml dependencies
+    project_name = context.replace("_", "-")
+    subprocess.run(["uv", "add", project_name], cwd=str(Path.cwd()), check=True)
