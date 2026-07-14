@@ -22,6 +22,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.50",
     "typer>=0.26.7",
     "ruff>=0.15.16",
+    "d4-leaderboard",
 ]
 
 [dependency-groups]
@@ -56,3 +57,4 @@ code_dom = { workspace = true }
 foundation = { workspace = true }
 pangu_cli = { workspace = true }
 pangu_mcp = { workspace = true }
+d4-leaderboard = { workspace = true }

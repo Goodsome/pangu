@@ -7,6 +7,7 @@ members = [
     "architecture",
     "code-dom",
     "code-structure",
+    "d4-leaderboard",
     "foundation",
     "pangu",
     "pangu-cli",
@@ -274,6 +275,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/74/89/f4c775c651d91f9cd
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/d4/7243bc65d33c5ff5150569c42c8c1154aadae20b25638afe35f7f568489c/cyclopts-4.20.0-py3-none-any.whl", hash = "sha256:0b4337e9c11303d86b33d3f37c629dc01638f84591681e0e5611286bdd507646", size = 229383, upload-time = "2026-06-29T15:04:40.621Z" },
 ]
+
+[[package]]
+name = "d4-leaderboard"
+version = "0.1.0"
+source = { editable = "contexts/d4_leaderboard" }
 
 [[package]]
 name = "dependency-injector"
@@ -819,6 +825,7 @@ dependencies = [
     { name = "case-converter" },
     { name = "code-dom" },
     { name = "code-structure" },
+    { name = "d4-leaderboard" },
     { name = "dependency-injector" },
     { name = "foundation" },
     { name = "neo4j" },
@@ -840,6 +847,7 @@ requires-dist = [
     { name = "case-converter", specifier = ">=1.2.0" },
     { name = "code-dom", editable = "contexts/code_dom" },
     { name = "code-structure", editable = "contexts/code_structure" },
+    { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
     { name = "neo4j", specifier = ">=6.2.0" },
