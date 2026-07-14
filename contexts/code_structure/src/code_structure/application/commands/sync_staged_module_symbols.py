@@ -2,10 +2,9 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from architecture.domain.services.context_registry import ContextRegistry
 from architecture.domain.services.fqn_service import FqnService
 from foundation.building_blocks.command import Command
-from foundation.common_types.context_name import ContextName
+from foundation.system.context_registry import ContextRegistry
 from foundation.common_types.fqns.fqn import ModuleFqn
 
 from code_structure.application.ports.unit_of_work import UnitOfWork
@@ -115,7 +114,7 @@ class SyncStagedModuleSymbolsCommandHandler:
     ) -> set[str]:
         fqns: set[str] = set()
         for imp in parsed_file_module.imports:
-            is_internal = imp.target_fqn.context in {c.value for c in ContextName}
+            is_internal = ContextRegistry.check_is_internal(imp.target_fqn.context)
             if not is_internal:
                 try:
                     ext = uow.external_symbols.get_by_fqn(imp.target_fqn)

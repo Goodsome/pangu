@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from foundation.common_types.context_name import ContextName
+from foundation.system.context_registry import ContextRegistry
 from foundation.common_types.fqns.fqn import (
     AttributeFqn,
     ClassFqn,
@@ -71,7 +71,7 @@ class SymbolGraphBuilder:
         parsed_import: ParsedImport,
         file_module: FileModule,
     ) -> None:
-        is_internal = parsed_import.target_fqn.context in {c.value for c in ContextName}
+        is_internal = ContextRegistry.check_is_internal(parsed_import.target_fqn.context)
         if not is_internal and not self.external_symbol_registry.contains_fqn(
             parsed_import.target_fqn
         ):

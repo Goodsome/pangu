@@ -6,7 +6,7 @@ from foundation.building_blocks.command import Command
 
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.application.ports.unit_of_work import UnitOfWork
-from architecture.domain.services.context_registry import ContextRegistry
+from foundation.system.context_registry import ContextRegistry
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.fqn_service import FqnService
 from architecture.domain.services.package_module_registry import PackageModuleRegistry

@@ -3,7 +3,7 @@ from architecture.domain.aggregates.base_module import BaseModule
 from architecture.domain.aggregates.package_module import PackageModule
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.package_module_registry import PackageModuleRegistry
-from foundation.common_types.context_name import ContextName
+from foundation.system.context_registry import ContextRegistry
 from foundation.common_types.identities.module_id import ModuleId
 from foundation.common_types.fqns.fqn import ModuleFqn
 from architecture.domain.value_objects.parsed_module import ParsedModule
@@ -48,7 +48,7 @@ class SyncModuleService:
         dependencies: set[ModuleId] = set()
         for import_str in parsed_module.import_module_fqns:
             target_fqn = import_str
-            if target_fqn.context not in ContextName._value2member_map_:
+            if not ContextRegistry.check_is_internal(target_fqn.context):
                 continue
             dependencies.add(self._resolve_id(target_fqn))
         synced = module.sync_dependencies(dependencies)

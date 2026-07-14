@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from foundation.common_types.fqns.fqn import ClassFqn, FunctionFqn, VariableFqn
-from foundation.common_types.context_name import ContextName
+from foundation.system.context_registry import ContextRegistry
 from code_structure.domain.identities.symbol_ids import (
     ClassId,
     FunctionId,
@@ -175,9 +175,7 @@ class SyncModuleSymbolsService:
     ) -> None:
         """检测并生成缺失的外部依赖符号"""
         for parsed_import in parsed_file_module.imports:
-            is_internal = parsed_import.target_fqn.context in {
-                c.value for c in ContextName
-            }
+            is_internal = ContextRegistry.check_is_internal(parsed_import.target_fqn.context)
             if not is_internal:
                 if str(parsed_import.target_fqn) not in existing_external_fqns:
                     ext_symbol = ExternalSymbol(

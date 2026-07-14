@@ -2,12 +2,11 @@ from dataclasses import dataclass
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.application.ports.graph_admin import GraphAdmin
 from architecture.application.ports.unit_of_work import UnitOfWork
-from architecture.domain.services.context_registry import ContextRegistry
+from foundation.system.context_registry import ContextRegistry
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.package_module_registry import PackageModuleRegistry
 from architecture.domain.services.sync_module_service import SyncModuleService
 from architecture.domain.value_objects.parsed_module import ParsedModule
-from foundation.common_types.context_name import ContextName
 from foundation.building_blocks.command import Command
 
 
@@ -22,8 +21,7 @@ class InitProjectGraphHandler:
     def execute(self, cmd: InitProjectGraphCommand, uow: UnitOfWork):
         self.graph_admin.purge_data()
         parsed_modules: list[ParsedModule] = []
-        for context_name in ContextName:
-            root_path = ContextRegistry.get_context_root_path(context_name)
+        for context_name, root_path in ContextRegistry.get_all_contexts().items():
             parsed_modules.extend(self.code_scanner.scan_directory(root_path=root_path))
         file_registry = FileModuleRegistry.init()
         package_registry = PackageModuleRegistry.init()

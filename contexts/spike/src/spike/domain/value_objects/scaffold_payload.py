@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 from foundation.building_blocks.value_object import ValueObject
 from pydantic import Field, TypeAdapter
 
-from spike.domain.enums.context_name import ContextName
+
 from spike.domain.enums.method_type import MethodType
 from spike.domain.enums.scaffold_type import ScaffoldType
 
@@ -22,7 +22,7 @@ class MethodPayload(ValueObject):
 
 class BasePayload(ValueObject):
     prompt: str = Field(description="The prompt for creating the scaffold")
-    context: ContextName = Field(
+    context: str = Field(
         description="The context in which to create the dependency scaffold"
     )
 
