@@ -1,4 +1,3 @@
-from code_dom.domain.value_objects.ast_expr import AstExprBase
 from code_dom.domain.value_objects.ast_stmt import AstClassDef
 from code_generation.domain.value_objects.symbol_def import ClassDef
 from code_generation.infrastructure.mappers.class_inheritance_to_ast_expr import class_inheritance_to_ast_expr
