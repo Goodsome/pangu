@@ -13,6 +13,7 @@ from pangu_cli.container import create_container
 from pangu_cli.run_outbox_worker import run_worker
 from architecture.interfaces.cli import arch_app
 from code_dom.interfaces.cli import code_dom_app
+from code_generation.interfaces.cli import generation_app
 from code_structure.interfaces.cli import code_structure_app
 
 app = typer.Typer(
@@ -23,6 +24,7 @@ app = typer.Typer(
 )
 app.add_typer(arch_app, name="arch")
 app.add_typer(code_dom_app, name="dom")
+app.add_typer(generation_app, name="generation")
 app.add_typer(code_structure_app, name="structure")
 app.command()(run_worker)
 
@@ -62,6 +64,7 @@ def main():
     container.wire(
         packages=[
             "architecture.interfaces.cli",
+            "code_generation.interfaces.cli",
             "code_structure.interfaces.cli",
             "code_dom.interfaces.cli",
             "pangu_cli",

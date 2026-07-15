@@ -1,5 +1,6 @@
 from pathlib import Path
 from architecture.container import Container as ArchitectureContainer
+from code_generation.container import Container as CodeGenerationContainer
 from code_structure.container import Container as CodeStructureContainer
 from dependency_injector import containers
 from dependency_injector.providers import Configuration, Container, Singleton
@@ -33,6 +34,11 @@ class AppContainer(containers.DeclarativeContainer):
         db_driver=shared_container.db_driver,
         redis_client=shared_container.redis_client,
         get_file_document_handler=code_dom_container.get_file_document_handler,
+    )
+    code_generation_container: Container[CodeGenerationContainer] = Container(
+        CodeGenerationContainer,
+        code_dom_api=code_dom_container.api,
+        code_structure_api=code_structure_container.api,
     )
 
 

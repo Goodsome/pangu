@@ -1,0 +1,41 @@
+from code_dom.interfaces.api import CodeDomApi
+from code_structure.interfaces.api import CodeStructureApi
+from dependency_injector.containers import DeclarativeContainer
+from dependency_injector.providers import Dependency, Factory
+
+from code_generation.application.commands.generate_aggregate import (
+    GenerateAggregateCommand,
+    GenerateAggregateCommandHandler,
+)
+from code_generation.domain.factories.module_blueprint_factory import (
+    ModuleBlueprintFactory,
+)
+from code_generation.infrastructure.adapters.code_dom_generator import CodeDomGenerator
+from code_generation.interfaces.api import CodeGenerationApi
+
+
+class Container(DeclarativeContainer):
+    code_dom_api: Dependency[CodeDomApi] = Dependency(instance_of=CodeDomApi)
+    code_structure_api: Dependency[CodeStructureApi] = Dependency(
+        instance_of=CodeStructureApi
+    )
+
+    generator: Factory[CodeDomGenerator] = Factory(
+        CodeDomGenerator,
+        code_dom_api=code_dom_api,
+        code_structure_api=code_structure_api,
+    )
+
+    module_blueprint_factory: Factory[ModuleBlueprintFactory] = Factory(
+        ModuleBlueprintFactory
+    )
+
+    generate_aggregate_handler: Factory[GenerateAggregateCommandHandler] = Factory(
+        GenerateAggregateCommandHandler,
+        generator=generator,
+    )
+
+    api: Factory[CodeGenerationApi] = Factory(
+        CodeGenerationApi,
+        generate_aggregate_handler=generate_aggregate_handler,
+    )
