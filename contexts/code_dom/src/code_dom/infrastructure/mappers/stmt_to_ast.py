@@ -179,6 +179,8 @@ class StmtToAst:
             body.append(doc)
         for b in stmt.body:
             body.append(StmtToAst.to_node(b))
+        if not body:
+            body.append(ast.Pass())
         return ast.ClassDef(
             name=stmt.name,
             bases=[ExprToAst.to_node(b) for b in stmt.bases],
