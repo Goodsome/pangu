@@ -11,3 +11,7 @@ class FqnFactory:
     @staticmethod
     def create_identity_fqn(context: str, name: str) -> ModuleFqn:
         return ModuleFqn(f"{context}.domain.identities.{SnakeString(name)}")
+
+    @staticmethod
+    def create_repository_fqn(context: str, name: str) -> ModuleFqn:
+        return ModuleFqn(f"{context}.domain.repositories.{SnakeString(name)}")

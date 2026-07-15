@@ -33,3 +33,17 @@ class ModuleBlueprintFactory:
             inherits=[ClassInheritance(name="UuidIdentifier")],
         )
         return builder.build()
+
+    def create_repository_port(self, context: str, aggregate_name: str) -> ModuleBlueprint:
+        name = f"{aggregate_name}Repository"
+        id_name = f"{aggregate_name}Id"
+        module_path = FqnFactory.create_repository_fqn(context, name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_class(
+            name=name,
+            inherits=[
+                ClassInheritance(name="Repository", args=[aggregate_name, id_name]),
+                ClassInheritance(name="ABC"),
+            ],
+        )
+        return builder.build()
