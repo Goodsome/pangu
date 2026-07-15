@@ -9,7 +9,7 @@ class GetSymbolsQuery(BaseModel):
 
 @dataclass
 class GetSymbolsQueryHandler:
-    query_service: SymbolQuery
+    symbol_query: SymbolQuery
 
     def execute(self, query: GetSymbolsQuery) -> list[SymbolDto]:
-        return self.query_service.find_by_names(query.names)
+        return self.symbol_query.find_by_names(query.names)
