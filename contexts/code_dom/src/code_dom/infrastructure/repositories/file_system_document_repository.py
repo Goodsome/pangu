@@ -54,4 +54,5 @@ class FileSystemDocumentRepository(DocumentRepository):
 
     @override
     def _save_all(self, aggregates: list[CodeDocument]) -> None:
-        raise NotImplementedError()
+        for aggregate in aggregates:
+            self._save(aggregate)
