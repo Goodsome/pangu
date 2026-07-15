@@ -1,3 +1,4 @@
+from code_dom.interfaces.api import CodeDomApi
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
@@ -19,7 +20,7 @@ from foundation.message_bus.message_bus import BaseMessageBus
 from foundation.system.file_system_port import FileSystemPort
 from redis.asyncio import Redis
 
-from code_dom.application.commands.generate_code import GenerateCodeHandler
+from code_dom.application.commands.generate_code import GenerateCodeCommand, GenerateCodeHandler
 from code_dom.application.event_handlers.on_class_moved import OnClassMoved
 from code_dom.application.event_handlers.on_module_created import OnModuleCreated
 from code_dom.application.event_handlers.on_module_deleted import OnModuleDeleted
@@ -82,9 +83,6 @@ class Container(DeclarativeContainer):
     )
     generate_code_handler: Factory[GenerateCodeHandler] = Factory(
         GenerateCodeHandler,
-        code_generator=code_generator,
-        file_system=file_system_port,
-        code_formatter=ruff_code_formatter,
     )
     codebase_repository: Factory[FileSystemCodebaseRepository] = Factory(
         FileSystemCodebaseRepository, file_system=file_system_port
@@ -112,7 +110,11 @@ class Container(DeclarativeContainer):
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
         uow=unit_of_work,
-        command_handlers=Dict(),
+        command_handlers=Dict(
+            {
+                GenerateCodeCommand: generate_code_handler,
+            }
+        ),
         event_handlers=Dict(
             {
                 ModuleCreatedIntegrationEvent: List(
@@ -138,4 +140,9 @@ class Container(DeclarativeContainer):
         registry=event_registry,
         service_name="code_dom",
         subscriptions=List("architecture_events", "code_structure_events"),
+    )
+
+    api: Factory[CodeDomApi] = Factory(
+        CodeDomApi,
+        message_bus=message_bus,
     )

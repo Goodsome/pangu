@@ -1,4 +1,7 @@
 from code_dom.application.queries.get_file_document import GetFileDocumentHandler
+from code_structure.application.queries.get_symbols import GetSymbolsQueryHandler
+from code_structure.infrastructure.queries.neo4j_symbol_query import Neo4jSymbolQuery
+from code_structure.interfaces.api import CodeStructureApi
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
@@ -44,6 +47,10 @@ class Container(DeclarativeContainer):
         instance_of=GetFileDocumentHandler
     )
 
+    neo4j_symbol_query: Factory[Neo4jSymbolQuery] = Factory(
+        Neo4jSymbolQuery, 
+        driver=db_driver,
+    )
     unit_of_work: Factory[Neo4jUnitOfWork] = Factory(
         Neo4jUnitOfWork,
         driver=db_driver,
@@ -68,6 +75,10 @@ class Container(DeclarativeContainer):
         SyncStagedModuleSymbolsCommandHandler,
         symbol_scanner=code_dom_scanner,
         sync_service=sync_module_symbols_service,
+    )
+    get_symbols_query_handler: Factory[GetSymbolsQueryHandler] = Factory(
+        GetSymbolsQueryHandler,
+        symbol_query=neo4j_symbol_query,
     )
     on_class_moved_handler: Factory[OnClassMoved] = Factory(OnClassMoved)
     message_bus: Factory[BaseMessageBus] = Factory(
@@ -97,4 +108,9 @@ class Container(DeclarativeContainer):
         registry=event_registry,
         service_name="code_structure",
         subscriptions=List(),
+    )
+
+    api: Factory[CodeStructureApi] = Factory(
+        CodeStructureApi,
+        get_symbols_query_handler=get_symbols_query_handler,
     )
