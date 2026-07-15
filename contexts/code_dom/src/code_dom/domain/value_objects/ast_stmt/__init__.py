@@ -1,5 +1,4 @@
 from code_dom.domain.value_objects.ast_stmt.ast_stmt_base import AstStmtBase
-from code_dom.domain.value_objects.ast_stmt.ast_stmt import AstStmt, ast_stmt_adapter
 from code_dom.domain.value_objects.ast_stmt.ast_return import AstReturn
 from code_dom.domain.value_objects.ast_stmt.ast_raise import AstRaise
 from code_dom.domain.value_objects.ast_stmt.ast_assert import AstAssert
@@ -37,8 +36,6 @@ __all__ = [
     "AstTypeParam",
     "AstWithItem",
     "AstStmtBase",
-    "AstStmt",
-    "ast_stmt_adapter",
     "AstReturn",
     "AstRaise",
     "AstAssert",

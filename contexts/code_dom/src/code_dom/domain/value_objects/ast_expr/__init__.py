@@ -1,5 +1,4 @@
 from code_dom.domain.value_objects.ast_expr.ast_expr_base import AstExprBase
-from code_dom.domain.value_objects.ast_expr.ast_expr import AstExpr, ast_expr_adapter
 from code_dom.domain.value_objects.ast_expr.ast_constant import AstConstant
 from code_dom.domain.value_objects.ast_expr.ast_name import AstName
 from code_dom.domain.value_objects.ast_expr.ast_attribute import AstAttribute
@@ -35,8 +34,6 @@ __all__ = [
     "AstComprehension",
     "AstKeyword",
     "AstExprBase",
-    "AstExpr",
-    "ast_expr_adapter",
     "AstConstant",
     "AstName",
     "AstAttribute",
