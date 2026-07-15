@@ -112,7 +112,7 @@ class Container(DeclarativeContainer):
         uow=unit_of_work,
         command_handlers=Dict(
             {
-                GenerateCodeCommand: generate_code_handler,
+                GenerateCodeCommand: generate_code_handler.provided.execute,
             }
         ),
         event_handlers=Dict(
