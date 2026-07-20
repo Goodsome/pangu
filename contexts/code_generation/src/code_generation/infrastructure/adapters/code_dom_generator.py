@@ -18,15 +18,23 @@ class CodeDomGenerator(Generator):
 
     @override
     def write_modules(self, modules: list[ModuleBlueprint]) -> None:
-        import_symbols: set[str] = set()
-        for module_blueprint in modules:
-            import_symbols.update(module_blueprint.collect_import_symbols())
-
-        symbols = self.code_structure_api.get_symbols(list(import_symbols))
-
-        name_module_map: dict[str, str] = {s.name: s.module_fqn for s in symbols}
+        name_module_map = self._query_name_module_map(modules)
         code_documents = [
             module_blueprint_to_code_document(module_blueprint, name_module_map)
             for module_blueprint in modules
         ]
         self.code_dom_api.save_documents(code_documents)
+
+    def _query_name_module_map(self, modules: list[ModuleBlueprint]) -> dict[str, str]:
+        import_symbols: set[str] = set()
+        name_module_map: dict[str, str] = {}
+        for module in modules:
+            import_symbols.update(module.collect_import_symbols())
+
+            for symbol_def in module.symbols:
+                name_module_map[symbol_def.name] = module.path
+
+        symbols = self.code_structure_api.get_symbols(list(import_symbols))
+        for symbol in symbols:
+            name_module_map[symbol.name] = symbol.module_fqn
+        return name_module_map
