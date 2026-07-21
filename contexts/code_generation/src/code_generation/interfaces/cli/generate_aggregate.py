@@ -1,6 +1,8 @@
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
+from foundation.common_types.pascal_string import PascalString
+from foundation.common_types.snake_string import SnakeString
 from typer import Argument
 
 from code_generation.application.commands.generate_aggregate import (

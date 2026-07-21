@@ -26,6 +26,9 @@ dependencies = [
     "code-generation",
     "code-refactoring",
     "code-evolution",
+    "vision-stream",
+    "sys-input",
+    "d4-client",
 ]
 
 [dependency-groups]
@@ -49,7 +52,7 @@ pythonVersion = "3.14"
 reportUnusedCallResult = "none"
 
 [tool.uv.workspace]
-members = ["contexts/*", "apps/*", "foundation"]
+members = ["contexts/*", "apps/*", "foundation", "packages/*"]
 
 [tool.uv.sources]
 
@@ -64,3 +67,6 @@ d4-leaderboard = { workspace = true }
 code-generation = { workspace = true }
 code-refactoring = { workspace = true }
 code-evolution = { workspace = true }
+vision-stream = { workspace = true }
+sys-input = { workspace = true }
+d4-client = { workspace = true }

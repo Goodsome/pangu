@@ -10,12 +10,15 @@ members = [
     "code-generation",
     "code-refactoring",
     "code-structure",
+    "d4-client",
     "d4-leaderboard",
     "foundation",
     "pangu",
     "pangu-cli",
     "pangu-mcp",
     "spike",
+    "sys-input",
+    "vision-stream",
 ]
 
 [[package]]
@@ -293,6 +296,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/74/89/f4c775c651d91f9cd
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/d4/7243bc65d33c5ff5150569c42c8c1154aadae20b25638afe35f7f568489c/cyclopts-4.20.0-py3-none-any.whl", hash = "sha256:0b4337e9c11303d86b33d3f37c629dc01638f84591681e0e5611286bdd507646", size = 229383, upload-time = "2026-06-29T15:04:40.621Z" },
 ]
+
+[[package]]
+name = "d4-client"
+version = "0.1.0"
+source = { editable = "packages/d4_client" }
 
 [[package]]
 name = "d4-leaderboard"
@@ -846,6 +854,7 @@ dependencies = [
     { name = "code-generation" },
     { name = "code-refactoring" },
     { name = "code-structure" },
+    { name = "d4-client" },
     { name = "d4-leaderboard" },
     { name = "dependency-injector" },
     { name = "foundation" },
@@ -858,7 +867,9 @@ dependencies = [
     { name = "redis", extra = ["hiredis"] },
     { name = "ruff" },
     { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "sys-input" },
     { name = "typer" },
+    { name = "vision-stream" },
 ]
 
 [package.metadata]
@@ -871,6 +882,7 @@ requires-dist = [
     { name = "code-generation", editable = "contexts/code_generation" },
     { name = "code-refactoring", editable = "contexts/code_refactoring" },
     { name = "code-structure", editable = "contexts/code_structure" },
+    { name = "d4-client", editable = "packages/d4_client" },
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
@@ -883,7 +895,9 @@ requires-dist = [
     { name = "redis", extras = ["hiredis"], specifier = ">=5.0" },
     { name = "ruff", specifier = ">=0.15.16" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.50" },
+    { name = "sys-input", editable = "packages/sys_input" },
     { name = "typer", specifier = ">=0.26.7" },
+    { name = "vision-stream", editable = "packages/vision_stream" },
 ]
 
 [package.metadata.requires-dev]
@@ -1419,6 +1433,11 @@ wheels = [
 ]
 
 [[package]]
+name = "sys-input"
+version = "0.1.0"
+source = { editable = "packages/sys_input" }
+
+[[package]]
 name = "typer"
 version = "0.26.7"
 source = { registry = "https://pypi.org/simple" }
@@ -1484,6 +1503,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/2e/41/06cce5dbb9f775915
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/3a/eb70620ca2bf8213603d5c731460687c49fee38b0072f0b4a637781f0a53/uvicorn-0.50.0-py3-none-any.whl", hash = "sha256:05f0eb19edf38208f79f43df8a63081b48df31b0cd1e5997be957a4dc97d1b19", size = 72716, upload-time = "2026-07-04T05:03:24.848Z" },
 ]
+
+[[package]]
+name = "vision-stream"
+version = "0.1.0"
+source = { editable = "packages/vision_stream" }
 
 [[package]]
 name = "watchfiles"

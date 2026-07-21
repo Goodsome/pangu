@@ -11,8 +11,8 @@ from code_generation.domain.ports.generator import Generator
 
 
 class GenerateAggregateCommand(Command):
-    context: SnakeString
-    name: PascalString
+    context: str
+    name: str
 
 
 @dataclass
@@ -21,16 +21,17 @@ class GenerateAggregateCommandHandler:
 
     def execute(self, cmd: GenerateAggregateCommand) -> None:
         factory = ModuleBlueprintFactory()
-        aggregate_name = cmd.name
+        aggregate_name = PascalString(cmd.name)
+        context_name = SnakeString(cmd.context)
         id_name = f"{aggregate_name}Id"
-        identity_blueprint = factory.create_identity(cmd.context, id_name)
+        identity_blueprint = factory.create_identity(context_name, id_name)
         aggregate_blueprint = factory.create_aggregate(
-            cmd.context,
+            context_name,
             aggregate_name,
             id_blueprint=identity_blueprint,
         )
         repo_port_blueprint = factory.create_repository_port(
-            cmd.context, aggregate_name
+            context_name, aggregate_name
         )
         self.generator.write_modules(
             modules=[identity_blueprint, aggregate_blueprint, repo_port_blueprint]
