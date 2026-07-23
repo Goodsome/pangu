@@ -1,7 +1,7 @@
 [project]
 name = "vision-stream"
 version = "0.1.0"
-description = "Add your description here"
+description = "Vision Stream capture & window frame acquisition package"
 readme = "README.md"
 authors = [
     { name = "Goodsome", email = "xlxmesh@gmail.com" }
