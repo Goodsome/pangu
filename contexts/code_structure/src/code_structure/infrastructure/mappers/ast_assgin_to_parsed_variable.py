@@ -10,7 +10,7 @@ def ast_assign_to_parsed_variable(
     scope_symbols: dict[str, SymbolFqn],
 ) -> ParsedVariable:
     if not isinstance(node.target, AstName):
-        raise ValueError("Target must be a Name node")
+        raise ValueError(f"Target must be a Name node, got {node.target}")
     name = node.target.id
 
     ref_visitor = VariableVisitor(scope_symbols=scope_symbols)

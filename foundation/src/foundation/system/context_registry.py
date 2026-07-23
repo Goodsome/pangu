@@ -1,6 +1,8 @@
 
 from pathlib import Path
 
+_CONTEXT_DIRS = ["apps", "contexts", "packages"]
+_EXCEPT_CONTEXTS = ["sys_input"]
 
 class ContextRegistry:
     _contexts_cache: dict[str, Path] | None = None
@@ -14,10 +16,12 @@ class ContextRegistry:
         if Path("foundation/src/foundation").exists():
             contexts["foundation"] = Path("foundation/src")
             
-        for base_dir in ["apps", "contexts", "packages"]:
+        for base_dir in _CONTEXT_DIRS:
             base_path = Path(base_dir)
             if base_path.exists():
                 for p in base_path.iterdir():
+                    if p.name in _EXCEPT_CONTEXTS:
+                        continue
                     if p.is_dir() and (p / "src" / p.name).exists():
                         contexts[p.name] = p / "src"
         cls._contexts_cache = contexts
