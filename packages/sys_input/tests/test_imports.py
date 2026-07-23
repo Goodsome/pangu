@@ -44,19 +44,20 @@ def test_unified_protocol_duck_typing() -> None:
     assert msg_backend.hwnd == 123456
 
 
-def test_non_windows_platform_behavior() -> None:
+@pytest.mark.anyio
+async def test_non_windows_platform_behavior_async() -> None:
     msg_backend = Win32MessageBackend(hwnd=123456)
     hw_backend = Win32HardwareBackend()
 
     if sys.platform != "win32":
         with pytest.raises(UnsupportedPlatformError):
-            msg_backend.key_down(VirtualKeyCode.VK_A)
+            await msg_backend.key_down(VirtualKeyCode.VK_A)
 
         with pytest.raises(UnsupportedPlatformError):
-            hw_backend.mouse_move(Point(x=10, y=20))
+            await hw_backend.mouse_move(Point(x=10, y=20))
 
         with pytest.raises(UnsupportedPlatformError):
-            msg_backend.mouse_down(Point(x=10, y=20))
+            await msg_backend.mouse_down(Point(x=10, y=20))
 
         with pytest.raises(UnsupportedPlatformError):
-            hw_backend.scroll(1)
+            await hw_backend.scroll(1)

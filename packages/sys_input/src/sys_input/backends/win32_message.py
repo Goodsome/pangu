@@ -3,9 +3,9 @@
 依赖内部维护的 HWND 句柄状态进行非前台抢占式的系统消息注入。
 """
 
+import asyncio
 from dataclasses import dataclass
 import sys
-import time
 from typing import Callable
 
 from sys_input.constants import (
@@ -50,7 +50,7 @@ class Win32MessageBackend:
         if sys.platform != "win32":
             pass
 
-    def key_down(self, vk_code: VirtualKeyCode | int) -> None:
+    async def key_down(self, vk_code: VirtualKeyCode | int) -> None:
         """向内部 HWND 窗口发送 WM_KEYDOWN 消息。"""
         if sys.platform != "win32" or _PostMessageW is None:
             raise UnsupportedPlatformError("Win32MessageBackend 仅支持 Windows 系统")
@@ -65,7 +65,7 @@ class Win32MessageBackend:
                 code=err,
             )
 
-    def key_up(self, vk_code: VirtualKeyCode | int) -> None:
+    async def key_up(self, vk_code: VirtualKeyCode | int) -> None:
         """向内部 HWND 窗口发送 WM_KEYUP 消息。"""
         if sys.platform != "win32" or _PostMessageW is None:
             raise UnsupportedPlatformError("Win32MessageBackend 仅支持 Windows 系统")
@@ -82,7 +82,7 @@ class Win32MessageBackend:
                 f"PostMessageW WM_KEYUP 失败 (HWND={self.hwnd}, VK={vk_code})", code=err
             )
 
-    def mouse_move(self, point: Point) -> None:
+    async def mouse_move(self, point: Point) -> None:
         """向内部 HWND 窗口发送 WM_MOUSEMOVE 消息。"""
         if sys.platform != "win32" or _PostMessageW is None:
             raise UnsupportedPlatformError("Win32MessageBackend 仅支持 Windows 系统")
@@ -98,7 +98,7 @@ class Win32MessageBackend:
                 code=err,
             )
 
-    def mouse_down(
+    async def mouse_down(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:
         """向内部 HWND 窗口发送鼠标按键按下消息。"""
@@ -128,7 +128,7 @@ class Win32MessageBackend:
                 code=err,
             )
 
-    def mouse_up(
+    async def mouse_up(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:
         """向内部 HWND 窗口发送鼠标按键抬起消息。"""
@@ -155,7 +155,7 @@ class Win32MessageBackend:
                 code=err,
             )
 
-    def mouse_click(
+    async def mouse_click(
         self,
         point: Point | None = None,
         button: MouseButton = MouseButton.LEFT,
@@ -167,12 +167,12 @@ class Win32MessageBackend:
             raise ValueError("clicks 次数必须至少为 1")
 
         for i in range(clicks):
-            self.mouse_down(point=point, button=button)
-            self.mouse_up(point=point, button=button)
+            await self.mouse_down(point=point, button=button)
+            await self.mouse_up(point=point, button=button)
             if i < clicks - 1 and interval_ms > 0:
-                time.sleep(interval_ms / 1000.0)
+                await asyncio.sleep(interval_ms / 1000.0)
 
-    def scroll(self, amount: int, point: Point | None = None) -> None:
+    async def scroll(self, amount: int, point: Point | None = None) -> None:
         """向内部 HWND 窗口发送 WM_MOUSEWHEEL 滚轮消息。"""
         if sys.platform != "win32" or _PostMessageW is None:
             raise UnsupportedPlatformError("Win32MessageBackend 仅支持 Windows 系统")

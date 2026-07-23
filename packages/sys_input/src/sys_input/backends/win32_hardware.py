@@ -4,9 +4,9 @@
 不依赖 HWND 句柄，直接在系统全局底层模拟硬件按键和鼠标输入。
 """
 
+import asyncio
 from dataclasses import dataclass
 import sys
-import time
 from typing import Callable, final
 
 from sys_input.constants import (
@@ -98,7 +98,7 @@ class Win32HardwareBackend:
         if sys.platform != "win32":
             pass
 
-    def key_down(self, vk_code: VirtualKeyCode | int) -> None:
+    async def key_down(self, vk_code: VirtualKeyCode | int) -> None:
         """全局模拟物理按键按下。"""
         if sys.platform != "win32" or _SendInput is None:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
@@ -117,7 +117,7 @@ class Win32HardwareBackend:
                 f"SendInput key_down 失败 (VK={vk_code})", code=err
             )
 
-    def key_up(self, vk_code: VirtualKeyCode | int) -> None:
+    async def key_up(self, vk_code: VirtualKeyCode | int) -> None:
         """全局模拟物理按键抬起。"""
         if sys.platform != "win32" or _SendInput is None:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
@@ -136,7 +136,7 @@ class Win32HardwareBackend:
                 f"SendInput key_up 失败 (VK={vk_code})", code=err
             )
 
-    def mouse_move(self, point: Point) -> None:
+    async def mouse_move(self, point: Point) -> None:
         """全局移动鼠标光标位置。"""
         if sys.platform != "win32" or _SetCursorPos is None:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
@@ -150,7 +150,7 @@ class Win32HardwareBackend:
                 f"SetCursorPos 失败 pos=({point.x}, {point.y})", code=err
             )
 
-    def mouse_down(
+    async def mouse_down(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:
         """全局模拟鼠标按键按下。"""
@@ -158,7 +158,7 @@ class Win32HardwareBackend:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
 
         if point is not None:
-            self.mouse_move(point)
+            await self.mouse_move(point)
 
         match button:
             case MouseButton.LEFT:
@@ -181,7 +181,7 @@ class Win32HardwareBackend:
                 f"SendInput mouse_down 失败 (button={button})", code=err
             )
 
-    def mouse_up(
+    async def mouse_up(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:
         """全局模拟鼠标按键抬起。"""
@@ -189,7 +189,7 @@ class Win32HardwareBackend:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
 
         if point is not None:
-            self.mouse_move(point)
+            await self.mouse_move(point)
 
         match button:
             case MouseButton.LEFT:
@@ -212,7 +212,7 @@ class Win32HardwareBackend:
                 f"SendInput mouse_up 失败 (button={button})", code=err
             )
 
-    def mouse_click(
+    async def mouse_click(
         self,
         point: Point | None = None,
         button: MouseButton = MouseButton.LEFT,
@@ -224,18 +224,18 @@ class Win32HardwareBackend:
             raise ValueError("clicks 次数必须至少为 1")
 
         for i in range(clicks):
-            self.mouse_down(point=point, button=button)
-            self.mouse_up(point=point, button=button)
+            await self.mouse_down(point=point, button=button)
+            await self.mouse_up(point=point, button=button)
             if i < clicks - 1 and interval_ms > 0:
-                time.sleep(interval_ms / 1000.0)
+                await asyncio.sleep(interval_ms / 1000.0)
 
-    def scroll(self, amount: int, point: Point | None = None) -> None:
+    async def scroll(self, amount: int, point: Point | None = None) -> None:
         """全局模拟鼠标滚轮滚动。"""
         if sys.platform != "win32" or _SendInput is None:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
 
         if point is not None:
-            self.mouse_move(point)
+            await self.mouse_move(point)
 
         import ctypes
 
