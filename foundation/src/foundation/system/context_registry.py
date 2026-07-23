@@ -14,7 +14,7 @@ class ContextRegistry:
         if Path("foundation/src/foundation").exists():
             contexts["foundation"] = Path("foundation/src")
             
-        for base_dir in ["apps", "contexts"]:
+        for base_dir in ["apps", "contexts", "packages"]:
             base_path = Path(base_dir)
             if base_path.exists():
                 for p in base_path.iterdir():
