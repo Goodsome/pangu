@@ -2,7 +2,7 @@
 from pathlib import Path
 
 _CONTEXT_DIRS = ["apps", "contexts", "packages"]
-_EXCEPT_CONTEXTS = ["sys_input"]
+_EXCEPT_CONTEXTS = ["sys_input", "vision_stream"]
 
 class ContextRegistry:
     _contexts_cache: dict[str, Path] | None = None
