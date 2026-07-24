@@ -15,7 +15,6 @@ from architecture.interfaces.cli import arch_app
 from code_dom.interfaces.cli import code_dom_app
 from code_generation.interfaces.cli import generation_app
 from code_structure.interfaces.cli import code_structure_app
-from d4_automation.interfaces.cli.router import d4_automation_app
 
 
 app = typer.Typer(
@@ -28,7 +27,6 @@ app.add_typer(arch_app, name="arch")
 app.add_typer(code_dom_app, name="dom")
 app.add_typer(generation_app, name="generation")
 app.add_typer(code_structure_app, name="structure")
-app.add_typer(d4_automation_app, name="d4-automation")
 
 app.command()(run_worker)
 

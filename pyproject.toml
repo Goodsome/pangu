@@ -31,14 +31,13 @@ dependencies = [
     "d4-client",
     "cv-engine",
     "d4-automation",
+    "d4-robot",
 ]
-
-[dependency-groups]
-dev = []
 
 [project.scripts]
 pangu = "pangu_cli.main:main"
 pangu_mcp = "pangu_mcp.main:main"
+d4-bot = "d4_robot.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -74,3 +73,4 @@ sys-input = { workspace = true }
 d4-client = { workspace = true }
 cv-engine = { workspace = true }
 d4-automation = { workspace = true }
+d4-robot = { workspace = true }

@@ -21,6 +21,7 @@ members = [
     "d4-automation",
     "d4-client",
     "d4-leaderboard",
+    "d4-robot",
     "foundation",
     "pangu",
     "pangu-cli",
@@ -472,6 +473,21 @@ requires-dist = [
 name = "d4-leaderboard"
 version = "0.1.0"
 source = { editable = "contexts/d4_leaderboard" }
+
+[[package]]
+name = "d4-robot"
+version = "0.1.0"
+source = { editable = "apps/d4_robot" }
+dependencies = [
+    { name = "d4-automation" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "d4-automation", editable = "contexts/d4_automation" },
+    { name = "typer", specifier = ">=0.26.7" },
+]
 
 [[package]]
 name = "dependency-injector"
@@ -1285,6 +1301,7 @@ dependencies = [
     { name = "d4-automation" },
     { name = "d4-client" },
     { name = "d4-leaderboard" },
+    { name = "d4-robot" },
     { name = "dependency-injector" },
     { name = "foundation" },
     { name = "neo4j" },
@@ -1315,6 +1332,7 @@ requires-dist = [
     { name = "d4-automation", editable = "contexts/d4_automation" },
     { name = "d4-client", editable = "packages/d4_client" },
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
+    { name = "d4-robot", editable = "apps/d4_robot" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
     { name = "neo4j", specifier = ">=6.2.0" },
@@ -1330,9 +1348,6 @@ requires-dist = [
     { name = "typer", specifier = ">=0.26.7" },
     { name = "vision-stream", editable = "packages/vision_stream" },
 ]
-
-[package.metadata.requires-dev]
-dev = []
 
 [[package]]
 name = "pangu-cli"
