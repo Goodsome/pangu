@@ -39,6 +39,7 @@ class Win32DXGIBackend(IWindowVisionBackend):
     _staging_texture: object | None = field(default=None, repr=False)
     _texture_width: int = field(default=0, repr=False)
     _texture_height: int = field(default=0, repr=False)
+    _cached_frame: ImageResult | None = field(default=None, repr=False)
 
     @override
     def is_available(self) -> bool:
@@ -46,20 +47,8 @@ class Win32DXGIBackend(IWindowVisionBackend):
         return sys.platform == "win32"
 
     @override
-    async def capture(self, region: Region | None = None) -> ImageResult:
-        """异步使用 DXGI 显存缓存捕获单帧画面。
-
-        Args:
-            region: 可选 ROI 区域
-
-        Returns:
-            ImageResult 抓取的图像数据结果
-
-        Raises:
-            UnsupportedPlatformError: 当前操作系统非 Windows 时抛出
-            WindowNotFoundError: 指定的 HWND 无效时抛出
-            DXGIError: DXGI 初始化或抓取显存失败时抛出
-        """
+    async def begin_frame(self) -> None:
+        """显式触发核心 DXGI 显存硬件捕获 I/O 存入帧缓存。"""
         if not self.is_available():
             raise UnsupportedPlatformError(
                 f"Win32DXGIBackend 仅支持 Windows 平台 (Win8+)，当前平台: {sys.platform}"
@@ -69,21 +58,42 @@ class Win32DXGIBackend(IWindowVisionBackend):
             raise WindowNotFoundError(f"无效的窗口句柄: HWND={self.hwnd}")
 
         # 使用 asyncio.to_thread 异步分发底层 DirectX 显存捕获
-        return await asyncio.to_thread(self._capture_dxgi_sync, region)
+        self._cached_frame = await asyncio.to_thread(self._capture_dxgi_sync)
 
-    def _capture_dxgi_sync(self, region: Region | None = None) -> ImageResult:
+    @override
+    def clear_frame_cache(self) -> None:
+        """清除当前帧缓存。"""
+        self._cached_frame = None
+
+    @override
+    async def capture(self, region: Region | None = None) -> ImageResult:
+        """读取现有帧缓存并根据 region 进行内存切片返回。
+
+        若当前未触发 begin_frame() 导致无帧缓存，则会自动触发一次 begin_frame()。
+        """
+        if self._cached_frame is None:
+            await self.begin_frame()
+
+        assert self._cached_frame is not None
+
+        if region is None:
+            return self._cached_frame
+
+        return self._crop_region(self._cached_frame, region)
+
+    def _capture_dxgi_sync(self) -> ImageResult:
         """同步 DirectX / DXGI 帧捕获流程。"""
         if not self._initialized:
             self._init_dxgi()
 
         try:
-            return self._acquire_frame_and_map(region)
+            return self._acquire_frame_and_map()
         except DXGIError as e:
             # 如果是访问丢失 (例如全屏切换或 UAC 弹窗)，重置句柄重试一次
             if "ACCESS_LOST" in str(e) or e.code == DXGI_ERROR_ACCESS_LOST:
                 self._release_dxgi_resources()
                 self._init_dxgi()
-                return self._acquire_frame_and_map(region)
+                return self._acquire_frame_and_map()
             raise
         except Exception as e:
             if isinstance(
@@ -149,7 +159,7 @@ class Win32DXGIBackend(IWindowVisionBackend):
         except Exception as e:
             raise DXGIError(f"创建 DXGI Output Duplication 失败: {e}") from e
 
-    def _acquire_frame_and_map(self, region: Region | None = None) -> ImageResult:
+    def _acquire_frame_and_map(self) -> ImageResult:
         """从 DXGI 获取下一帧显存并映射回 CPU 内存 buffer。"""
         import ctypes
         from ctypes import wintypes
@@ -175,8 +185,8 @@ class Win32DXGIBackend(IWindowVisionBackend):
         screen_w = win_w if win_w > 0 else 1920
         screen_h = win_h if win_h > 0 else 1080
 
-        final_w = region.width if region else (win_w if win_w > 0 else screen_w)
-        final_h = region.height if region else (win_h if win_h > 0 else screen_h)
+        final_w = win_w if win_w > 0 else screen_w
+        final_h = win_h if win_h > 0 else screen_h
 
         stride = final_w * 4
         buffer_size = final_h * stride
@@ -192,6 +202,41 @@ class Win32DXGIBackend(IWindowVisionBackend):
             stride=stride,
         )
 
+    def _crop_region(self, image: ImageResult, region: Region) -> ImageResult:
+        """从 ImageResult 中根据 ROI 区域进行内存字节切片。"""
+        src_w = image.width
+        src_h = image.height
+        raw_bytes = image.data
+
+        crop_x = max(0, min(region.x, src_w - 1))
+        crop_y = max(0, min(region.y, src_h - 1))
+        crop_w = min(region.width, src_w - crop_x)
+        crop_h = min(region.height, src_h - crop_y)
+
+        if crop_w <= 0 or crop_h <= 0:
+            raise CaptureFailedError(f"请求剪裁区域超出图像界限: {region}")
+
+        row_stride = src_w * 4
+        crop_stride = crop_w * 4
+        cropped_data = bytearray(crop_h * crop_stride)
+
+        for row in range(crop_h):
+            src_offset = (crop_y + row) * row_stride + (crop_x * 4)
+            dst_offset = row * crop_stride
+            cropped_data[dst_offset : dst_offset + crop_stride] = raw_bytes[
+                src_offset : src_offset + crop_stride
+            ]
+
+        return ImageResult(
+            data=bytes(cropped_data),
+            width=crop_w,
+            height=crop_h,
+            channels=4,
+            color_format=image.color_format,
+            timestamp=image.timestamp,
+            stride=crop_stride,
+        )
+
     def _release_dxgi_resources(self) -> None:
         """释放底层 D3D / DXGI COM 句柄。"""
         self._d3d_device = None
@@ -199,6 +244,7 @@ class Win32DXGIBackend(IWindowVisionBackend):
         self._dxgi_duplication = None
         self._staging_texture = None
         self._initialized = False
+        self.clear_frame_cache()
 
     @override
     async def close(self) -> None:

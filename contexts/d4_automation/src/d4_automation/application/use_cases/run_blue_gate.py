@@ -22,6 +22,7 @@ class RunBlueGate:
 
             try:
                 while not cancel_event.is_set():
+                    await d4_client.begin_frame()
                     status = await behavior_tree.tick(blackboard)
                     if status == NodeStatus.SUCCESS:
                         pass

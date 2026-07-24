@@ -75,7 +75,9 @@ def find_d4_window_rects(title_keyword: str = "暗黑破坏神IV") -> list[Windo
     return windows
 
 
-def sort_window_rects(windows: list[WindowRectInfo], row_tolerance: int = 50) -> list[WindowRectInfo]:
+def sort_window_rects(
+    windows: list[WindowRectInfo], row_tolerance: int = 50
+) -> list[WindowRectInfo]:
     """按网格几何位置对窗口列表进行智能排序 (1, 2 / 3, 4)。
 
     排序规则：
@@ -110,7 +112,9 @@ def sort_window_rects(windows: list[WindowRectInfo], row_tolerance: int = 50) ->
     return sorted_result
 
 
-def find_d4_hwnds(title_keyword: str = "暗黑破坏神IV", row_tolerance: int = 50) -> list[HWND]:
+def find_d4_hwnds(
+    title_keyword: str = "暗黑破坏神IV", row_tolerance: int = 50
+) -> list[HWND]:
     """按屏幕位置网格 (1, 2 / 3, 4) 顺序返回暗黑 IV 游戏窗口 HWND 列表。"""
     rects = find_d4_window_rects(title_keyword=title_keyword)
     sorted_rects = sort_window_rects(rects, row_tolerance=row_tolerance)

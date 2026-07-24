@@ -41,8 +41,12 @@ class D4Window:
     ocr_engine: IOCREngine
 
     # ---------------------------------------------------------------------------
-    # 画面捕获
+    # 画面捕获与帧缓存控制
     # ---------------------------------------------------------------------------
+    async def begin_frame(self) -> None:
+        """显式触发底层视觉后端捕获并缓存单帧画面。"""
+        await self.vision_backend.begin_frame()
+
     async def capture(self, region: Region | None = None) -> ImageFrame:
         """捕获游戏窗口当前画面。"""
         vision_roi = region.to_vision_stream() if region else None
@@ -140,7 +144,9 @@ class D4Window:
         button: MouseButton = MouseButton.LEFT,
     ) -> bool:
         """匹配模板成功后异步点击对应中心坐标。"""
-        match = await self.match_template(template=template, threshold=threshold, roi=roi)
+        match = await self.match_template(
+            template=template, threshold=threshold, roi=roi
+        )
         if match is None:
             return False
 
@@ -191,7 +197,9 @@ class D4Window:
             interval_ms=interval_ms,
         )
 
-    async def key_press(self, vk_code: VirtualKeyCode | int, duration_sec: float = 0.05) -> None:
+    async def key_press(
+        self, vk_code: VirtualKeyCode | int, duration_sec: float = 0.05
+    ) -> None:
         """异步模拟按键按下并在指定秒后抬起。"""
         await self.input_backend.key_down(vk_code)
         if duration_sec > 0:

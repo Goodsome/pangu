@@ -68,14 +68,61 @@ async def test_platform_check_on_mac_async() -> None:
         with pytest.raises(UnsupportedPlatformError):
             await pw_backend.capture()
 
+        with pytest.raises(UnsupportedPlatformError):
+            await pw_backend.begin_frame()
+
         dxgi_backend = Win32DXGIBackend(hwnd=12345)
         assert dxgi_backend.is_available() is False
 
         with pytest.raises(UnsupportedPlatformError):
             await dxgi_backend.capture()
 
+        with pytest.raises(UnsupportedPlatformError):
+            await dxgi_backend.begin_frame()
+
         await pw_backend.close()
         await dxgi_backend.close()
+
+
+@pytest.mark.anyio
+async def test_frame_cache_priority_and_cropping() -> None:
+    """测试 Backend 的帧缓存优先机制与 ROI 剪裁提取。"""
+    pw_backend = Win32PrintWindowBackend(hwnd=100)
+    dxgi_backend = Win32DXGIBackend(hwnd=100)
+
+    # 构造一个 10x10 的假全帧图像
+    mock_data = b"\x01\x02\x03\x04" * 100
+    mock_frame = ImageResult(
+        data=mock_data,
+        width=10,
+        height=10,
+        channels=4,
+        color_format=ColorFormat.BGRA,
+        timestamp=1000.0,
+        stride=40,
+    )
+
+    for backend in (pw_backend, dxgi_backend):
+        # 显式注入缓存帧
+        backend._cached_frame = mock_frame
+
+        # 不传 region，直接获取优先缓存的全帧
+        res_full = await backend.capture()
+        assert res_full == mock_frame
+
+        # 传递 region，从缓存帧中直接裁剪
+        roi = Region(x=2, y=2, width=4, height=4)
+        res_roi = await backend.capture(region=roi)
+        assert res_roi.width == 4
+        assert res_roi.height == 4
+        assert res_roi.stride == 16
+        assert len(res_roi.data) == 4 * 16
+
+        # 清除缓存
+        backend.clear_frame_cache()
+        assert backend._cached_frame is None
+
+        await backend.close()
 
 
 def test_exceptions_hierarchy() -> None:

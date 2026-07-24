@@ -4,7 +4,7 @@
 """
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import sys
 import time
 from typing import override
@@ -27,21 +27,16 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
     render_full_content: bool = True
     client_only: bool = False
 
+    _cached_frame: ImageResult | None = field(default=None, repr=False)
+
     @override
     def is_available(self) -> bool:
         """检查当前系统环境是否支持 Win32 API。"""
         return sys.platform == "win32"
 
     @override
-    async def capture(self, region: Region | None = None) -> ImageResult:
-        """异步捕获已被绑定窗口句柄 (self.hwnd) 的图像。
-
-        Args:
-            region: 可选的图像截取子区域 (ROI)
-
-        Returns:
-            ImageResult: 包含 BGRA 数据的图像对象
-        """
+    async def begin_frame(self) -> None:
+        """显式触发核心硬件 I/O 捕获当前窗口图像存入帧缓存。"""
         if not self.is_available():
             raise UnsupportedPlatformError(
                 f"Win32PrintWindowBackend 仅支持 Windows 平台，当前平台: {sys.platform}"
@@ -50,15 +45,36 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
         if self.hwnd <= 0:
             raise WindowNotFoundError(f"无效的窗口句柄: HWND={self.hwnd}")
 
-        # 使用 asyncio.to_thread 包装 CPU/Win32 GDI 阻塞调用，避免卡顿事件循环
-        return await asyncio.to_thread(self._capture_win32_sync, self.hwnd, region)
+        # 执行 CPU/Win32 GDI 硬件阻塞捕获，并写入帧缓存
+        self._cached_frame = await asyncio.to_thread(
+            self._capture_win32_sync, self.hwnd
+        )
 
-    def _capture_win32_sync(
-        self, hwnd: HWND, region: Region | None = None
-    ) -> ImageResult:
+    @override
+    def clear_frame_cache(self) -> None:
+        """清除当前帧缓存。"""
+        self._cached_frame = None
+
+    @override
+    async def capture(self, region: Region | None = None) -> ImageResult:
+        """读取现有帧缓存并根据 region 进行内存切片返回。
+
+        若当前未触发 begin_frame() 导致无帧缓存，则会自动触发一次 begin_frame()。
+        """
+        if self._cached_frame is None:
+            await self.begin_frame()
+
+        assert self._cached_frame is not None
+
+        if region is None:
+            return self._cached_frame
+
+        return self._crop_region(self._cached_frame, region)
+
+    def _capture_win32_sync(self, hwnd: HWND) -> ImageResult:
         """Win32 GDI / PrintWindow Ctypes 捕获同步逻辑。"""
         try:
-            return self._do_capture_win32(hwnd, region)
+            return self._do_capture_win32(hwnd)
         except Exception as e:
             if isinstance(
                 e, (WindowNotFoundError, UnsupportedPlatformError, CaptureFailedError)
@@ -66,9 +82,7 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
                 raise
             raise CaptureFailedError(f"PrintWindow 抓取异常: {e}") from e
 
-    def _do_capture_win32(
-        self, hwnd: HWND, region: Region | None = None
-    ) -> ImageResult:
+    def _do_capture_win32(self, hwnd: HWND) -> ImageResult:
         """底层 Win32 Ctypes 结构与 GDI 捕获。"""
         import ctypes
         from ctypes import wintypes
@@ -160,10 +174,6 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
 
         raw_bytes = bytes(buffer)
 
-        # 如果指定了 region 剪裁
-        if region:
-            return self._crop_region(raw_bytes, width, height, region)
-
         return ImageResult(
             data=raw_bytes,
             width=width,
@@ -174,10 +184,12 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
             stride=width * 4,
         )
 
-    def _crop_region(
-        self, raw_bytes: bytes, src_w: int, src_h: int, region: Region
-    ) -> ImageResult:
-        """切割 ROI 区域字节数据。"""
+    def _crop_region(self, image: ImageResult, region: Region) -> ImageResult:
+        """从 ImageResult 中根据 ROI 区域进行内存字节切片。"""
+        src_w = image.width
+        src_h = image.height
+        raw_bytes = image.data
+
         crop_x = max(0, min(region.x, src_w - 1))
         crop_y = max(0, min(region.y, src_h - 1))
         crop_w = min(region.width, src_w - crop_x)
@@ -202,12 +214,12 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
             width=crop_w,
             height=crop_h,
             channels=4,
-            color_format=ColorFormat.BGRA,
-            timestamp=time.time(),
+            color_format=image.color_format,
+            timestamp=image.timestamp,
             stride=crop_stride,
         )
 
     @override
     async def close(self) -> None:
         """异步关闭并清理 Backend 资源。"""
-        pass
+        self.clear_frame_cache()

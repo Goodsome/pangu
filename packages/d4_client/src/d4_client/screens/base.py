@@ -140,7 +140,11 @@ class AutoCalibratingScreen:
             )
 
         if rect is None:
-            logger.warning("[%s] 尝试点击元素 [%s] 失败: 未定位到目标", self.screen_name, element_key)
+            logger.warning(
+                "[%s] 尝试点击元素 [%s] 失败: 未定位到目标",
+                self.screen_name,
+                element_key,
+            )
             return False
 
         await self.window.mouse_click(point=rect.center)

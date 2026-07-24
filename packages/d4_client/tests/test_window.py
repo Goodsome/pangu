@@ -5,7 +5,12 @@ from unittest.mock import AsyncMock, MagicMock
 import numpy as np
 import pytest
 
-from cv_engine import MatchResult as CVMatchResult, OcrResult as CVOcrResult, Point as CVPoint, Region as CVRegion
+from cv_engine import (
+    MatchResult as CVMatchResult,
+    OcrResult as CVOcrResult,
+    Point as CVPoint,
+    Region as CVRegion,
+)
 from d4_client import D4Window, MatchResult, Point, Region
 from sys_input import MouseButton
 from vision_stream import ImageResult as VisionImageResult

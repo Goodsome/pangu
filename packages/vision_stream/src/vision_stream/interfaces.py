@@ -31,6 +31,18 @@ class IWindowVisionBackend(Protocol):
         """
         ...
 
+    async def begin_frame(self) -> None:
+        """显式触发捕获当前窗口图像并写入帧缓存。
+
+        在后续调用 capture() 时将优先使用此缓存帧（若指定 region 则对缓存帧进行剪裁），
+        直至再次调用 begin_frame() 刷新缓存或显式清除缓存。
+        """
+        ...
+
+    def clear_frame_cache(self) -> None:
+        """清除当前帧缓存。"""
+        ...
+
     def is_available(self) -> bool:
         """判断当前环境与操作系统是否支持并就绪该后端驱动。"""
         ...

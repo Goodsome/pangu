@@ -40,6 +40,10 @@ class D4Client:
         """获取游戏常驻主界面 (MainHUD) 页面对象。"""
         return MainHUD(window=self.window)
 
+    async def begin_frame(self) -> None:
+        """显式触发底层视觉后端捕获并缓存单帧画面。"""
+        await self.window.begin_frame()
+
     async def capture(self, region: Region | None = None) -> ImageFrame:
         """快捷代理：捕获窗口画面。"""
         return await self.window.capture(region=region)

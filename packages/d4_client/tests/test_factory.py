@@ -4,7 +4,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from d4_client.factory import WindowRectInfo, create_d4_client_by_index, create_d4_clients, sort_window_rects
+from d4_client.factory import (
+    WindowRectInfo,
+    create_d4_client_by_index,
+    create_d4_clients,
+    sort_window_rects,
+)
 
 
 def test_sort_window_rects_2x2_grid() -> None:
@@ -16,7 +21,9 @@ def test_sort_window_rects_2x2_grid() -> None:
     (left=0, top=1080)  [Win 3]  |  (left=1000, top=1080) [Win 4]
     """
     win_1 = WindowRectInfo(hwnd=101, left=0, top=0, right=960, bottom=540)
-    win_2 = WindowRectInfo(hwnd=102, left=1000, top=5, right=1960, bottom=545)  # 带微小容差偏离
+    win_2 = WindowRectInfo(
+        hwnd=102, left=1000, top=5, right=1960, bottom=545
+    )  # 带微小容差偏离
     win_3 = WindowRectInfo(hwnd=103, left=0, top=1080, right=960, bottom=1620)
     win_4 = WindowRectInfo(hwnd=104, left=1000, top=1082, right=1960, bottom=1622)
 
