@@ -5,7 +5,7 @@
 
 from typing import Protocol, runtime_checkable
 
-from vision_stream.models import HWND, ImageResult, Region
+from vision_stream.models import ImageResult, Region
 
 
 @runtime_checkable
@@ -13,10 +13,7 @@ class IWindowVisionBackend(Protocol):
     """统一窗口视觉抓取后端接口契约 (异步接口)。
 
     解耦底层抓取技术实现（例如 Win32 PrintWindow 后台抓取或 DXGI 显存硬件加速抓取）。
-    HWND 作为具体后端实现内部持有的状态。
     """
-
-    hwnd: HWND
 
     async def capture(self, region: Region | None = None) -> ImageResult:
         """异步捕获当前绑定窗口句柄的单帧图像。

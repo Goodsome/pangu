@@ -1,13 +1,17 @@
 [project]
 name = "d4-client"
 version = "0.1.0"
-description = "Add your description here"
+description = "Diablo IV Automation Client (POM & Game Interaction Engine)"
 readme = "README.md"
 authors = [
     { name = "Goodsome", email = "xlxmesh@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "sys-input",
+    "vision-stream",
+    "cv-engine",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]

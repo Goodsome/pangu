@@ -449,6 +449,18 @@ wheels = [
 name = "d4-client"
 version = "0.1.0"
 source = { editable = "packages/d4_client" }
+dependencies = [
+    { name = "cv-engine" },
+    { name = "sys-input" },
+    { name = "vision-stream" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cv-engine", editable = "packages/cv_engine" },
+    { name = "sys-input", editable = "packages/sys_input" },
+    { name = "vision-stream", editable = "packages/vision_stream" },
+]
 
 [[package]]
 name = "d4-leaderboard"
