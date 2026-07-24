@@ -1,6 +1,6 @@
 """CV 引擎数据层。
 
-定义坐标、矩形区域和匹配结果的 Dataclasses 数据结构。
+定义坐标、矩形区域、模板匹配结果与 OCR 文本识别结果的 Dataclasses 数据结构。
 """
 
 from dataclasses import dataclass, field
@@ -61,4 +61,19 @@ class MatchResult:
 
     def __post_init__(self) -> None:
         """在初始化完成后计算中心坐标。"""
+        object.__setattr__(self, "center", self.rect.center)
+
+
+@dataclass(frozen=True)
+class OcrResult:
+    """OCR 文本识别与定位结果模型。"""
+
+    text: str
+    confidence: float
+    rect: Region
+    box_points: tuple[Point, Point, Point, Point]
+    center: Point = field(init=False)
+
+    def __post_init__(self) -> None:
+        """在初始化完成后计算文本框中心坐标。"""
         object.__setattr__(self, "center", self.rect.center)

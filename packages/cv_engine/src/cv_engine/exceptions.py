@@ -1,6 +1,6 @@
 """CV 引擎异常定义层。
 
-预定义视觉计算、模板读取与匹配异常。
+预定义视觉计算、模板匹配与 OCR 文本识别异常。
 """
 
 from typing import override
@@ -34,3 +34,15 @@ class InvalidImageError(CVEngineError):
 
 class MatchFailedError(CVEngineError):
     """模板匹配过程发生异常。"""
+
+
+class OCRError(CVEngineError):
+    """OCR 引擎错误基类。"""
+
+
+class OcrInitError(OCRError):
+    """PaddleOCR 初始化或依赖库缺少异常。"""
+
+
+class OcrFailedError(OCRError):
+    """OCR 文本识别计算异常。"""
