@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import override
 
 from d4_client.screens.base import AutoCalibratingScreen
-from d4_client.screens.inventory import InventoryScreen
-from d4_client.screens.social import SocialScreen
+from d4_client.screens.inventory import InventoryPanel
+from d4_client.screens.social import SocialPanel
 from sys_input.constants import VirtualKeyCode
 
 
@@ -20,16 +20,16 @@ class MainHUD(AutoCalibratingScreen):
         """检查当前界面是否为主 HUD 视角。"""
         return True
 
-    async def open_inventory(self) -> InventoryScreen:
+    async def open_inventory(self) -> InventoryPanel:
         """按下键盘 'I' 键打开背包面板并返回 InventoryScreen 实例。"""
         await self.window.key_press(VirtualKeyCode.VK_I)
-        screen = InventoryScreen(window=self.window)
+        screen = InventoryPanel(window=self.window)
         await screen.wait_until_visible()
         return screen
 
-    async def open_social(self) -> SocialScreen:
+    async def open_social(self) -> SocialPanel:
         """按下键盘 'O' 键打开社交面板并返回 SocialScreen 实例。"""
         await self.window.key_press(VirtualKeyCode.VK_O)
-        screen = SocialScreen(window=self.window)
+        screen = SocialPanel(window=self.window)
         await screen.wait_until_visible()
         return screen

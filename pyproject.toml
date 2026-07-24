@@ -30,6 +30,7 @@ dependencies = [
     "sys-input",
     "d4-client",
     "cv-engine",
+    "d4-automation",
 ]
 
 [dependency-groups]
@@ -72,3 +73,4 @@ vision-stream = { workspace = true }
 sys-input = { workspace = true }
 d4-client = { workspace = true }
 cv-engine = { workspace = true }
+d4-automation = { workspace = true }

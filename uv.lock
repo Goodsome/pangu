@@ -18,6 +18,7 @@ members = [
     "code-refactoring",
     "code-structure",
     "cv-engine",
+    "d4-automation",
     "d4-client",
     "d4-leaderboard",
     "foundation",
@@ -444,6 +445,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/74/89/f4c775c651d91f9cd
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/d4/7243bc65d33c5ff5150569c42c8c1154aadae20b25638afe35f7f568489c/cyclopts-4.20.0-py3-none-any.whl", hash = "sha256:0b4337e9c11303d86b33d3f37c629dc01638f84591681e0e5611286bdd507646", size = 229383, upload-time = "2026-06-29T15:04:40.621Z" },
 ]
+
+[[package]]
+name = "d4-automation"
+version = "0.1.0"
+source = { editable = "contexts/d4_automation" }
 
 [[package]]
 name = "d4-client"
@@ -1276,6 +1282,7 @@ dependencies = [
     { name = "code-refactoring" },
     { name = "code-structure" },
     { name = "cv-engine" },
+    { name = "d4-automation" },
     { name = "d4-client" },
     { name = "d4-leaderboard" },
     { name = "dependency-injector" },
@@ -1305,6 +1312,7 @@ requires-dist = [
     { name = "code-refactoring", editable = "contexts/code_refactoring" },
     { name = "code-structure", editable = "contexts/code_structure" },
     { name = "cv-engine", editable = "packages/cv_engine" },
+    { name = "d4-automation", editable = "contexts/d4_automation" },
     { name = "d4-client", editable = "packages/d4_client" },
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "dependency-injector", specifier = ">=4.49.0" },

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from d4_client import D4Window, InventoryScreen, MainHUD, SocialScreen
+from d4_client import D4Window, InventoryPanel, MainHUD, SocialPanel
 from sys_input.constants import VirtualKeyCode
 
 
@@ -36,10 +36,10 @@ async def test_main_hud_open_screens(main_hud: MainHUD, mock_window: AsyncMock) 
     """测试 MainHUD 呼出并返回页面 POM 对象。"""
     inv_screen = await main_hud.open_inventory()
     mock_window.key_press.assert_called_with(VirtualKeyCode.VK_I)
-    assert isinstance(inv_screen, InventoryScreen)
+    assert isinstance(inv_screen, InventoryPanel)
     assert inv_screen.window == mock_window
 
     social_screen = await main_hud.open_social()
     mock_window.key_press.assert_called_with(VirtualKeyCode.VK_O)
-    assert isinstance(social_screen, SocialScreen)
+    assert isinstance(social_screen, SocialPanel)
     assert social_screen.window == mock_window

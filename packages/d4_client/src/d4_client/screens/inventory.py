@@ -7,7 +7,7 @@ from d4_client.screens.base import AutoCalibratingScreen
 
 
 @dataclass
-class InventoryScreen(AutoCalibratingScreen):
+class InventoryPanel(AutoCalibratingScreen):
     """暗黑破坏神 4 背包面板 POM。"""
 
     screen_name: str = "InventoryScreen"

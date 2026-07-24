@@ -7,7 +7,7 @@ from d4_client.screens.base import AutoCalibratingScreen
 
 
 @dataclass
-class SocialScreen(AutoCalibratingScreen):
+class SocialPanel(AutoCalibratingScreen):
     """暗黑破坏神 4 社交界面 POM。"""
 
     screen_name: str = "SocialScreen"
