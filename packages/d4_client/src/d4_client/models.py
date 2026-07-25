@@ -2,9 +2,12 @@
 
 定义 d4_client 自有的纯数据模型，隔离底层 sys_input, vision_stream, cv_engine 库的数据类型细节。
 """
+from functools import cached_property
+import numpy as np
 
 from dataclasses import dataclass, field
 
+from cv_engine import MatLike
 from cv_engine.models import (
     MatchResult as CVMatchResult,
     OcrResult as CVOcrResult,
@@ -100,6 +103,15 @@ class ImageFrame:
             stride=res.stride,
         )
 
+    @cached_property
+    def mat(self) -> MatLike:
+        nparr = np.frombuffer(self.data, dtype=np.uint8)
+        bytes_per_pixel = self.channels
+        stride_width = self.stride // bytes_per_pixel
+        matrix = nparr.reshape((self.height, stride_width, self.channels))
+        
+        return matrix[:, :self.width, :]
+
 
 @dataclass(frozen=True)
 class MatchResult:
@@ -149,3 +161,11 @@ class OcrResult:
             rect=Region.from_cv_engine(res.rect),
             box_points=box_tuple,
         )
+
+
+@dataclass(frozen=True)
+class Element:
+    name: str
+    region: Region
+    image: ImageFrame
+    

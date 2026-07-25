@@ -6,7 +6,7 @@ from typing import override
 from d4_client.screens.base import AutoCalibratingScreen
 from d4_client.screens.inventory import InventoryPanel
 from d4_client.screens.social import SocialPanel
-from sys_input.constants import VirtualKeyCode
+from sys_input import VirtualKeyCode
 
 
 @dataclass

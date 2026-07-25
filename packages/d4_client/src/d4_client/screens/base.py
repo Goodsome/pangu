@@ -4,11 +4,11 @@
 """
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import logging
-from pathlib import Path
+from typing import ClassVar
 
-from d4_client.models import Point, Region
+from d4_client.models import Element
 from d4_client.window import D4Window
 
 logger = logging.getLogger(__name__)
@@ -21,10 +21,10 @@ class AutoCalibratingScreen:
     window: D4Window
     screen_name: str = "BaseScreen"
 
-    # UI 元素绝对坐标缓存
-    _element_cache: dict[str, Region | Point] = field(
-        default_factory=dict, init=False, repr=False
-    )
+    _element_cache: ClassVar[dict[str, Element]] = {}
+
+    def __init_subclass__(cls) -> None:
+        cls._element_cache = {}
 
     async def is_visible(self) -> bool:
         """判断当前页面/屏幕是否处于可见/激活状态。
@@ -51,6 +51,7 @@ class AutoCalibratingScreen:
         deadline = loop.time() + timeout_sec
 
         while loop.time() < deadline:
+            await self.window.begin_frame()
             if await self.is_visible():
                 return True
             await asyncio.sleep(poll_interval_sec)
@@ -58,88 +59,52 @@ class AutoCalibratingScreen:
         logger.warning("[%s] 等待页面可见超时 (%ss)", self.screen_name, timeout_sec)
         return False
 
-    async def find_element_by_text(
+    async def locate_element(
         self,
         element_key: str,
         target_text: str,
-        confidence_threshold: float = 0.5,
-        exact_match: bool = False,
-        roi: Region | None = None,
-        use_cache: bool = True,
-    ) -> Region | None:
-        """通过文本定位 UI 元素位置（支持缓存）。"""
-        if use_cache and element_key in self._element_cache:
-            cached = self._element_cache[element_key]
-            if isinstance(cached, Region):
-                return cached
+    ) -> Element | None:
+        cached = self._element_cache.get(element_key)
+        if cached:
+            roi = cached.region
+            res = await self.window.match_template(
+                template=cached.image.mat,
+                roi=roi,
+            )
+        else:
+            roi = None
+            res = await self.window.find_text(
+                target_text=target_text,
+                roi=roi,
+            )
 
-        res = await self.window.find_text(
-            target_text=target_text,
-            confidence_threshold=confidence_threshold,
-            exact_match=exact_match,
-            roi=roi,
+        if res is None:
+            return None
+            
+        image = await self.window.capture(res.rect)
+        element = Element(
+            name=element_key,
+            region=res.rect,
+            image=image,
         )
-
-        if res is not None:
-            if use_cache:
-                self._element_cache[element_key] = res.rect
-            return res.rect
-
-        return None
-
-    async def find_element_by_template(
-        self,
-        element_key: str,
-        template: Path | str,
-        threshold: float = 0.8,
-        roi: Region | None = None,
-        use_cache: bool = True,
-    ) -> Region | None:
-        """通过图像模板定位 UI 元素位置（支持缓存）。"""
-        if use_cache and element_key in self._element_cache:
-            cached = self._element_cache[element_key]
-            if isinstance(cached, Region):
-                return cached
-
-        res = await self.window.match_template(
-            template=template,
-            threshold=threshold,
-            roi=roi,
-        )
-
-        if res is not None:
-            if use_cache:
-                self._element_cache[element_key] = res.rect
-            return res.rect
-
-        return None
+        self._element_cache[element_key] = element
+        return element
 
     async def click_element(
         self,
         element_key: str,
-        target_text_or_template: str | Path,
-        roi: Region | None = None,
-        use_cache: bool = True,
+        target_text: str,
     ) -> bool:
         """定位特定 UI 元素并进行鼠标点击。"""
-        rect: Region | None = None
-
-        if isinstance(target_text_or_template, Path):
-            rect = await self.find_element_by_template(
+        element = self._element_cache.get(element_key)
+        
+        if element is None:
+            element = await self.locate_element(
                 element_key=element_key,
-                template=target_text_or_template,
-                roi=roi,
-                use_cache=use_cache,
-            )
-        else:
-            rect = await self.find_element_by_text(
-                element_key=element_key,
-                target_text=target_text_or_template,
-                roi=roi,
-                use_cache=use_cache,
+                target_text=target_text,
             )
 
-        if rect is None:
+        if element is None:
             logger.warning(
                 "[%s] 尝试点击元素 [%s] 失败: 未定位到目标",
                 self.screen_name,
@@ -147,7 +112,7 @@ class AutoCalibratingScreen:
             )
             return False
 
-        await self.window.mouse_click(point=rect.center)
+        await self.window.mouse_click(point=element.region.center)
         return True
 
     def clear_cache(self) -> None:
