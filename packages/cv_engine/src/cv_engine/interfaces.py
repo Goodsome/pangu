@@ -20,7 +20,7 @@ class ITemplateMatcher(Protocol):
 
     def match_best(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -31,7 +31,7 @@ class ITemplateMatcher(Protocol):
 
     def match_multi(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -43,7 +43,7 @@ class ITemplateMatcher(Protocol):
 
     async def async_match_best(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -54,7 +54,7 @@ class ITemplateMatcher(Protocol):
 
     async def async_match_multi(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -75,7 +75,7 @@ class IOCREngine(Protocol):
 
     def ocr(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         confidence_threshold: float = 0.5,
         roi: Region | None = None,
     ) -> list[OcrResult]:
@@ -84,7 +84,7 @@ class IOCREngine(Protocol):
 
     def find_text(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         target_text: str,
         confidence_threshold: float = 0.5,
         exact_match: bool = False,
@@ -95,7 +95,7 @@ class IOCREngine(Protocol):
 
     async def async_ocr(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         confidence_threshold: float = 0.5,
         roi: Region | None = None,
     ) -> list[OcrResult]:
@@ -104,7 +104,7 @@ class IOCREngine(Protocol):
 
     async def async_find_text(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         target_text: str,
         confidence_threshold: float = 0.5,
         exact_match: bool = False,

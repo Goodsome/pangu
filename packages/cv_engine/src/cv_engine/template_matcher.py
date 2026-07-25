@@ -73,7 +73,7 @@ class TemplateMatcher(ITemplateMatcher):
     @override
     def match_best(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -123,7 +123,7 @@ class TemplateMatcher(ITemplateMatcher):
     @override
     def match_multi(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -201,7 +201,7 @@ class TemplateMatcher(ITemplateMatcher):
     @override
     async def async_match_best(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -215,7 +215,7 @@ class TemplateMatcher(ITemplateMatcher):
     @override
     async def async_match_multi(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         template: Path | str | MatLike,
         threshold: float = DEFAULT_MATCH_THRESHOLD,
         roi: Region | None = None,
@@ -235,15 +235,8 @@ class TemplateMatcher(ITemplateMatcher):
     # ---------------------------------------------------------------------------
     # 内部辅助方法
     # ---------------------------------------------------------------------------
-    def _normalize_scene(self, scene: MatLike | bytes) -> np.ndarray:
+    def _normalize_scene(self, scene: MatLike) -> np.ndarray:
         """将场景输入图像规范化解析为 2D 灰度单通道矩阵。"""
-        if isinstance(scene, bytes):
-            nparr = np.frombuffer(scene, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
-            if img is None or img.size == 0:
-                raise InvalidImageError("无法从 bytes 字节解压场景图像")
-            return img
-
         if isinstance(scene, np.ndarray):
             if scene.size == 0:
                 raise InvalidImageError("场景图像矩阵 size 为 0")

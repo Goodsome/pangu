@@ -88,7 +88,7 @@ class D4Window:
         cv_roi = abs_roi.to_cv_engine() if abs_roi else None
 
         res = await self.template_matcher.async_match_best(
-            scene=frame.data,
+            scene=frame.mat,
             template=template,
             threshold=threshold,
             roi=cv_roi,
@@ -108,7 +108,7 @@ class D4Window:
         cv_roi = abs_roi.to_cv_engine() if abs_roi else None
 
         results = await self.template_matcher.async_match_multi(
-            scene=frame.data,
+            scene=frame.mat,
             template=template,
             threshold=threshold,
             roi=cv_roi,
@@ -130,7 +130,7 @@ class D4Window:
         cv_roi: CVRegion | None = abs_roi.to_cv_engine() if abs_roi else None
 
         results = await self.ocr_engine.async_ocr(
-            scene=frame.data,
+            scene=frame.mat,
             confidence_threshold=confidence_threshold,
             roi=cv_roi,
         )
@@ -149,7 +149,7 @@ class D4Window:
         cv_roi: CVRegion | None = abs_roi.to_cv_engine() if abs_roi else None
 
         res = await self.ocr_engine.async_find_text(
-            scene=frame.data,
+            scene=frame.mat,
             target_text=target_text,
             confidence_threshold=confidence_threshold,
             exact_match=exact_match,

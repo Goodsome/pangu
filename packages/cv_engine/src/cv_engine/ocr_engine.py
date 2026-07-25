@@ -60,7 +60,7 @@ class OcrEngine(IOCREngine):
     @override
     def ocr(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         confidence_threshold: float = 0.5,
         roi: Region | None = None,
     ) -> list[OcrResult]:
@@ -135,7 +135,7 @@ class OcrEngine(IOCREngine):
     @override
     def find_text(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         target_text: str,
         confidence_threshold: float = 0.5,
         exact_match: bool = False,
@@ -168,7 +168,7 @@ class OcrEngine(IOCREngine):
     @override
     async def async_ocr(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         confidence_threshold: float = 0.5,
         roi: Region | None = None,
     ) -> list[OcrResult]:
@@ -178,7 +178,7 @@ class OcrEngine(IOCREngine):
     @override
     async def async_find_text(
         self,
-        scene: MatLike | bytes,
+        scene: MatLike,
         target_text: str,
         confidence_threshold: float = 0.5,
         exact_match: bool = False,
@@ -193,15 +193,10 @@ class OcrEngine(IOCREngine):
     # 内部辅助方法
     # ---------------------------------------------------------------------------
     def _prepare_image_and_offset(
-        self, scene: MatLike | bytes, roi: Region | None
+        self, scene: MatLike, roi: Region | None
     ) -> tuple[np.ndarray, int, int]:
         """将场景输入图像解析并规范化为 BGR 三通道矩阵，并计算 ROI 相对偏移量。"""
-        if isinstance(scene, bytes):
-            nparr = np.frombuffer(scene, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            if img is None or img.size == 0:
-                raise InvalidImageError("无法从 bytes 字节解压解码图像")
-        elif isinstance(scene, np.ndarray):
+        if isinstance(scene, np.ndarray):
             if scene.size == 0:
                 raise InvalidImageError("输入的图像矩阵 size 为 0")
 
