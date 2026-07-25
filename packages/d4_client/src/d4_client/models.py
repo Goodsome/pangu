@@ -82,6 +82,25 @@ class Region:
 
 
 @dataclass(frozen=True)
+class RelativeRegion:
+    """d4_client 领域相对比例检索/感知区域 (数值表示 0.0 ~ 1.0 相对关系)。"""
+
+    x: float = 0.0
+    y: float = 0.0
+    width: float = 0.0
+    height: float = 0.0
+
+    def to_absolute(self, window_width: int, window_height: int) -> Region:
+        """根据给定的窗口物理像素分辨率，转换为绝对像素 Region。"""
+        return Region(
+            x=int(round(self.x * window_width)),
+            y=int(round(self.y * window_height)),
+            width=int(round(self.width * window_width)),
+            height=int(round(self.height * window_height)),
+        )
+
+
+@dataclass(frozen=True)
 class ImageFrame:
     """d4_client 领域图像单帧画面模型。"""
 

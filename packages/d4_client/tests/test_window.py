@@ -11,7 +11,7 @@ from cv_engine import (
     Point as CVPoint,
     Region as CVRegion,
 )
-from d4_client import D4Window, MatchResult, Point, Region
+from d4_client import D4Window, MatchResult, Point, Region, RelativeRegion
 from sys_input import MouseButton
 from vision_stream import ImageResult as VisionImageResult
 
@@ -46,6 +46,8 @@ def d4_window(
         vision_backend=mock_vision,
         template_matcher=mock_matcher,
         ocr_engine=mock_ocr,
+        width=1920,
+        height=1080,
     )
 
 
@@ -69,12 +71,34 @@ def test_models_conversion() -> None:
     assert isinstance(d4_res.rect, Region)
 
 
+def test_relative_region() -> None:
+    """测试 RelativeRegion 的 0~1 相对比例坐标转换。"""
+    rel_rect = RelativeRegion(x=0.1, y=0.2, width=0.5, height=0.4)
+    resolved = rel_rect.to_absolute(1920, 1080)
+    assert resolved == Region(x=192, y=216, width=960, height=432)
+
+    full_rel = RelativeRegion(x=0.0, y=0.0, width=1.0, height=1.0)
+    assert full_rel.to_absolute(1920, 1080) == Region(x=0, y=0, width=1920, height=1080)
+
+
 @pytest.mark.anyio
 async def test_capture(d4_window: D4Window, mock_deps: tuple[MagicMock, ...]) -> None:
-    """测试画面捕获与领域模型包装。"""
+    """测试画面捕获与领域模型包装 (含相对 ROI 解算)。"""
+    # 无 roi
     img = await d4_window.capture()
     assert img.width == 10
     assert mock_deps[1].capture.called
+
+    # 传入 0~1 相对 RelativeRegion ROI
+    rel_roi = RelativeRegion(x=0.1, y=0.2, width=0.5, height=0.4)
+    await d4_window.capture(region=rel_roi)
+    # mock_deps[1].capture 被调用时接收转换后的 VisionRegion(x=192, y=216, width=960, height=432)
+    last_call_args = mock_deps[1].capture.call_args
+    passed_vision_region = last_call_args.kwargs["region"]
+    assert passed_vision_region.x == 192
+    assert passed_vision_region.y == 216
+    assert passed_vision_region.width == 960
+    assert passed_vision_region.height == 432
 
 
 @pytest.mark.anyio
@@ -143,20 +167,9 @@ async def test_async_input_methods(
 
 
 def test_window_dimensions(mock_deps: tuple[MagicMock, ...]) -> None:
-    """测试 D4Window 的 width 和 height 字段默认值与自定义实例化。"""
+    """测试 D4Window 实例化时显式传入 width 和 height 字段。"""
     mock_input, mock_vision, mock_matcher, mock_ocr = mock_deps
 
-    # 默认值测试
-    default_window = D4Window(
-        input_backend=mock_input,
-        vision_backend=mock_vision,
-        template_matcher=mock_matcher,
-        ocr_engine=mock_ocr,
-    )
-    assert default_window.width == 1920
-    assert default_window.height == 1080
-
-    # 自定义维度测试
     custom_window = D4Window(
         input_backend=mock_input,
         vision_backend=mock_vision,

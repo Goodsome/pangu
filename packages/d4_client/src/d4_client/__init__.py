@@ -18,6 +18,7 @@ from d4_client.models import (
     OcrResult,
     Point,
     Region,
+    RelativeRegion,
 )
 from d4_client.screens import (
     AutoCalibratingScreen,
@@ -44,6 +45,7 @@ __all__ = [
     "SocialPanel",
     "Point",
     "Region",
+    "RelativeRegion",
     "MatchResult",
     "OcrResult",
     "ImageFrame",

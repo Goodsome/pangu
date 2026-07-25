@@ -20,6 +20,7 @@ from d4_client.models import (
     OcrResult,
     Point,
     Region,
+    RelativeRegion,
 )
 from sys_input import (
     InputBackend,
@@ -42,6 +43,20 @@ class D4Window:
     width: int
     height: int
 
+    def _resolve_region(self, region: Region | RelativeRegion | None) -> Region | None:
+        """解析并统一 Region。
+
+        若传入的区域为 RelativeRegion (0.0 ~ 1.0 的相对比例)，
+        则结合当前窗口物理尺寸 (width, height) 自动转换为绝对像素坐标 Region。
+        """
+        if region is None:
+            return None
+        if isinstance(region, RelativeRegion):
+            return region.to_absolute(
+                window_width=self.width, window_height=self.height
+            )
+        return region
+
     # ---------------------------------------------------------------------------
     # 画面捕获与帧缓存控制
     # ---------------------------------------------------------------------------
@@ -49,9 +64,12 @@ class D4Window:
         """显式触发底层视觉后端捕获并缓存单帧画面。"""
         await self.vision_backend.begin_frame()
 
-    async def capture(self, region: Region | None = None) -> ImageFrame:
+    async def capture(
+        self, region: Region | RelativeRegion | None = None
+    ) -> ImageFrame:
         """捕获游戏窗口当前画面。"""
-        vision_roi = region.to_vision_stream() if region else None
+        abs_region = self._resolve_region(region)
+        vision_roi = abs_region.to_vision_stream() if abs_region else None
         res = await self.vision_backend.capture(region=vision_roi)
         return ImageFrame.from_vision_stream(res)
 
@@ -62,11 +80,12 @@ class D4Window:
         self,
         template: Path | str | MatLike,
         threshold: float = 0.8,
-        roi: Region | None = None,
+        roi: Region | RelativeRegion | None = None,
     ) -> MatchResult | None:
         """异步从当前游戏画面中进行单目标模板匹配。"""
-        frame = await self.capture(region=roi)
-        cv_roi = roi.to_cv_engine() if roi else None
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        cv_roi = abs_roi.to_cv_engine() if abs_roi else None
 
         res = await self.template_matcher.async_match_best(
             scene=frame.data,
@@ -80,12 +99,13 @@ class D4Window:
         self,
         template: Path | str | MatLike,
         threshold: float = 0.8,
-        roi: Region | None = None,
+        roi: Region | RelativeRegion | None = None,
         nms_threshold: float = 0.3,
     ) -> list[MatchResult]:
         """异步从当前游戏画面中匹配全部目标 (含 NMS 去重)。"""
-        frame = await self.capture(region=roi)
-        cv_roi = roi.to_cv_engine() if roi else None
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        cv_roi = abs_roi.to_cv_engine() if abs_roi else None
 
         results = await self.template_matcher.async_match_multi(
             scene=frame.data,
@@ -102,11 +122,12 @@ class D4Window:
     async def ocr(
         self,
         confidence_threshold: float = 0.5,
-        roi: Region | None = None,
+        roi: Region | RelativeRegion | None = None,
     ) -> list[OcrResult]:
         """异步对当前游戏画面进行文字识别与坐标定位。"""
-        frame = await self.capture(region=roi)
-        cv_roi: CVRegion | None = roi.to_cv_engine() if roi else None
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        cv_roi: CVRegion | None = abs_roi.to_cv_engine() if abs_roi else None
 
         results = await self.ocr_engine.async_ocr(
             scene=frame.data,
@@ -120,11 +141,12 @@ class D4Window:
         target_text: str,
         confidence_threshold: float = 0.5,
         exact_match: bool = False,
-        roi: Region | None = None,
+        roi: Region | RelativeRegion | None = None,
     ) -> OcrResult | None:
         """异步在当前游戏画面中检索特定的目标文字。"""
-        frame = await self.capture(region=roi)
-        cv_roi: CVRegion | None = roi.to_cv_engine() if roi else None
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        cv_roi: CVRegion | None = abs_roi.to_cv_engine() if abs_roi else None
 
         res = await self.ocr_engine.async_find_text(
             scene=frame.data,
@@ -142,7 +164,7 @@ class D4Window:
         self,
         template: Path | str | MatLike,
         threshold: float = 0.8,
-        roi: Region | None = None,
+        roi: Region | RelativeRegion | None = None,
         button: MouseButton = MouseButton.LEFT,
     ) -> bool:
         """匹配模板成功后异步点击对应中心坐标。"""
@@ -160,7 +182,7 @@ class D4Window:
         target_text: str,
         confidence_threshold: float = 0.5,
         exact_match: bool = False,
-        roi: Region | None = None,
+        roi: Region | RelativeRegion | None = None,
         button: MouseButton = MouseButton.LEFT,
     ) -> bool:
         """检索识别特定文本成功后异步点击其中心位置。"""
