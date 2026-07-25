@@ -33,6 +33,10 @@ def test_sort_window_rects_2x2_grid() -> None:
     # 执行 1, 2 / 3, 4 排序
     sorted_wins = sort_window_rects(raw_windows, row_tolerance=50)
 
+    # 验证 WindowRectInfo width 与 height 属性
+    assert win_1.width == 960
+    assert win_1.height == 540
+
     # 验证排序结果顺序精确等于 [win_1, win_2, win_3, win_4]
     assert [w.hwnd for w in sorted_wins] == [101, 102, 103, 104]
 
@@ -60,3 +64,27 @@ def test_create_d4_clients_factory(mock_find: MagicMock) -> None:
     # 测试超出索引界限抛出 IndexError
     with pytest.raises(IndexError):
         create_d4_client_by_index(index=2)
+
+
+def test_create_d4_client_for_rect() -> None:
+    """测试 create_d4_client_for_rect 基于 WindowRectInfo 正确传递数据。"""
+    from d4_client.factory import create_d4_client_for_rect
+
+    # 包含标题栏与边框的物理窗口外框 (1280x720)，实际客户区 (1264x681)
+    rect = WindowRectInfo(
+        hwnd=888,
+        left=100,
+        top=100,
+        right=1380,
+        bottom=820,
+        client_width=1264,
+        client_height=681,
+    )
+    assert rect.window_width == 1280
+    assert rect.window_height == 720
+    assert rect.width == 1264
+    assert rect.height == 681
+
+    client_rect = create_d4_client_for_rect(rect=rect)
+    assert client_rect.window.width == 1264
+    assert client_rect.window.height == 681

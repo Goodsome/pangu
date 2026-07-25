@@ -39,6 +39,8 @@ class D4Window:
     vision_backend: IWindowVisionBackend
     template_matcher: ITemplateMatcher
     ocr_engine: IOCREngine
+    width: int
+    height: int
 
     # ---------------------------------------------------------------------------
     # 画面捕获与帧缓存控制

@@ -9,6 +9,7 @@ from sys_input import VirtualKeyCode
 if TYPE_CHECKING:
     from d4_client.screens.main_hud import MainHUD
 
+
 @dataclass
 class SocialPanel(AutoCalibratingScreen):
     """暗黑破坏神 4 社交界面 POM。"""
@@ -26,6 +27,7 @@ class SocialPanel(AutoCalibratingScreen):
 
     async def close(self) -> MainHUD:
         from d4_client.screens.main_hud import MainHUD
+
         await self.window.key_press(VirtualKeyCode.VK_ESCAPE)
         main_hud = MainHUD(window=self.window)
         await main_hud.wait_until_visible()

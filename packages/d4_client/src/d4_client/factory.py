@@ -23,10 +23,28 @@ class WindowRectInfo:
     top: int
     right: int
     bottom: int
+    client_width: int = 0
+    client_height: int = 0
+
+    @property
+    def window_height(self) -> int:
+        """整个窗口外框高度 (含标题栏和边框)。"""
+        return self.bottom - self.top
+
+    @property
+    def window_width(self) -> int:
+        """整个窗口外框宽度 (含标题栏和边框)。"""
+        return self.right - self.left
 
     @property
     def height(self) -> int:
-        return self.bottom - self.top
+        """客户区高度 (优先使用实际 GetClientRect 高度)。"""
+        return self.client_height if self.client_height > 0 else self.window_height
+
+    @property
+    def width(self) -> int:
+        """客户区宽度 (优先使用实际 GetClientRect 宽度)。"""
+        return self.client_width if self.client_width > 0 else self.window_width
 
 
 def find_d4_window_rects(title_keyword: str = "暗黑破坏神IV") -> list[WindowRectInfo]:
@@ -60,6 +78,12 @@ def find_d4_window_rects(title_keyword: str = "暗黑破坏神IV") -> list[Windo
         if title_keyword in window_title:
             rect = wintypes.RECT()
             user32.GetWindowRect(hwnd, ctypes.byref(rect))
+
+            client_rect = wintypes.RECT()
+            user32.GetClientRect(hwnd, ctypes.byref(client_rect))
+            cw = client_rect.right - client_rect.left
+            ch = client_rect.bottom - client_rect.top
+
             windows.append(
                 WindowRectInfo(
                     hwnd=hwnd,
@@ -67,6 +91,8 @@ def find_d4_window_rects(title_keyword: str = "暗黑破坏神IV") -> list[Windo
                     top=rect.top,
                     right=rect.right,
                     bottom=rect.bottom,
+                    client_width=cw,
+                    client_height=ch,
                 )
             )
         return True
@@ -121,17 +147,17 @@ def find_d4_hwnds(
     return [w.hwnd for w in sorted_rects]
 
 
-def create_d4_client_for_hwnd(
-    hwnd: HWND,
+def create_d4_client_for_rect(
+    rect: WindowRectInfo,
     render_full_content: bool = True,
     client_only: bool = False,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
 ) -> D4Client:
-    """为具体的 HWND 句柄构建单独的 D4Client 实例。"""
-    input_backend = Win32MessageBackend(hwnd=hwnd)
+    """基于 WindowRectInfo 构建独立的 D4Client 实例。"""
+    input_backend = Win32MessageBackend(hwnd=rect.hwnd)
     vision_backend = Win32PrintWindowBackend(
-        hwnd=hwnd,
+        hwnd=rect.hwnd,
         render_full_content=render_full_content,
         client_only=client_only,
     )
@@ -143,9 +169,11 @@ def create_d4_client_for_hwnd(
         vision_backend=vision_backend,
         template_matcher=template_matcher,
         ocr_engine=ocr_engine,
+        width=rect.width,
+        height=rect.height,
     )
 
-    return D4Client(hwnd=hwnd, window=window)
+    return D4Client(hwnd=rect.hwnd, window=window)
 
 
 def create_d4_client_by_index(
@@ -156,20 +184,21 @@ def create_d4_client_by_index(
     ocr_lang: str = "ch",
     use_gpu: bool = False,
 ) -> D4Client:
-    """根据屏幕按网格位置排序后的 HWND 列表，按索引创建单个 D4Client 实例。
+    """根据屏幕按网格位置排序后的 WindowRectInfo 列表，按索引创建单个 D4Client 实例。
 
     Raises:
         IndexError: 未查找到满足条件的窗口或索引超出范围
     """
-    hwnds = find_d4_hwnds(title_keyword=title_keyword)
-    if not hwnds:
+    rects = find_d4_window_rects(title_keyword=title_keyword)
+    sorted_rects = sort_window_rects(rects)
+    if not sorted_rects:
         raise IndexError(f"未找到标题包含 '{title_keyword}' 的暗黑 4 游戏窗口")
-    if index < 0 or index >= len(hwnds):
-        raise IndexError(f"窗口索引 [{index}] 超出找到的窗口数量 ({len(hwnds)})")
+    if index < 0 or index >= len(sorted_rects):
+        raise IndexError(f"窗口索引 [{index}] 超出找到的窗口数量 ({len(sorted_rects)})")
 
-    target_hwnd = hwnds[index]
-    return create_d4_client_for_hwnd(
-        hwnd=target_hwnd,
+    target_rect = sorted_rects[index]
+    return create_d4_client_for_rect(
+        rect=target_rect,
         render_full_content=render_full_content,
         client_only=client_only,
         ocr_lang=ocr_lang,
@@ -189,14 +218,15 @@ def create_d4_clients(
     Returns:
         list[D4Client]: 按屏幕排列顺序 (1, 2 / 3, 4) 组织的 D4Client 列表
     """
-    hwnds = find_d4_hwnds(title_keyword=title_keyword)
+    rects = find_d4_window_rects(title_keyword=title_keyword)
+    sorted_rects = sort_window_rects(rects)
     return [
-        create_d4_client_for_hwnd(
-            hwnd=hwnd,
+        create_d4_client_for_rect(
+            rect=rect,
             render_full_content=render_full_content,
             client_only=client_only,
             ocr_lang=ocr_lang,
             use_gpu=use_gpu,
         )
-        for hwnd in hwnds
+        for rect in sorted_rects
     ]

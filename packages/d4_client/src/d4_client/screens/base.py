@@ -80,7 +80,7 @@ class AutoCalibratingScreen:
 
         if res is None:
             return None
-            
+
         image = await self.window.capture(res.rect)
         element = Element(
             name=element_key,
@@ -97,7 +97,7 @@ class AutoCalibratingScreen:
     ) -> bool:
         """定位特定 UI 元素并进行鼠标点击。"""
         element = self._element_cache.get(element_key)
-        
+
         if element is None:
             element = await self.locate_element(
                 element_key=element_key,

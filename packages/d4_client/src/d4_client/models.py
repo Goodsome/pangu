@@ -2,6 +2,7 @@
 
 定义 d4_client 自有的纯数据模型，隔离底层 sys_input, vision_stream, cv_engine 库的数据类型细节。
 """
+
 from functools import cached_property
 import numpy as np
 
@@ -109,8 +110,8 @@ class ImageFrame:
         bytes_per_pixel = self.channels
         stride_width = self.stride // bytes_per_pixel
         matrix = nparr.reshape((self.height, stride_width, self.channels))
-        
-        return matrix[:, :self.width, :]
+
+        return matrix[:, : self.width, :]
 
 
 @dataclass(frozen=True)
@@ -168,4 +169,3 @@ class Element:
     name: str
     region: Region
     image: ImageFrame
-    

@@ -140,3 +140,30 @@ async def test_async_input_methods(
 
     await d4_window.scroll(120)
     assert mock_input.scroll.called
+
+
+def test_window_dimensions(mock_deps: tuple[MagicMock, ...]) -> None:
+    """测试 D4Window 的 width 和 height 字段默认值与自定义实例化。"""
+    mock_input, mock_vision, mock_matcher, mock_ocr = mock_deps
+
+    # 默认值测试
+    default_window = D4Window(
+        input_backend=mock_input,
+        vision_backend=mock_vision,
+        template_matcher=mock_matcher,
+        ocr_engine=mock_ocr,
+    )
+    assert default_window.width == 1920
+    assert default_window.height == 1080
+
+    # 自定义维度测试
+    custom_window = D4Window(
+        input_backend=mock_input,
+        vision_backend=mock_vision,
+        template_matcher=mock_matcher,
+        ocr_engine=mock_ocr,
+        width=1280,
+        height=720,
+    )
+    assert custom_window.width == 1280
+    assert custom_window.height == 720

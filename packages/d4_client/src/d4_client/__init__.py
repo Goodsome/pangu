@@ -5,8 +5,9 @@
 
 from d4_client.client import D4Client
 from d4_client.factory import (
+    WindowRectInfo,
     create_d4_client_by_index,
-    create_d4_client_for_hwnd,
+    create_d4_client_for_rect,
     create_d4_clients,
     find_d4_hwnds,
     sort_window_rects,
@@ -20,19 +21,20 @@ from d4_client.models import (
 )
 from d4_client.screens import (
     AutoCalibratingScreen,
+    D4Panel,
     InventoryPanel,
     MainHUD,
     SocialPanel,
-    D4Panel,
 )
 from d4_client.window import D4Window
 
 __all__ = [
     "D4Client",
     "D4Panel",
+    "WindowRectInfo",
     "create_d4_clients",
     "create_d4_client_by_index",
-    "create_d4_client_for_hwnd",
+    "create_d4_client_for_rect",
     "find_d4_hwnds",
     "sort_window_rects",
     "D4Window",
