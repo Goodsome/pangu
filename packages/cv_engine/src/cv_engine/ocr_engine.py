@@ -47,12 +47,27 @@ class OcrEngine(IOCREngine):
             ) from e
 
         try:
-            self._ocr_app = PaddleOCR(
-                lang=self.lang,
-                use_gpu=self.use_gpu,
-                use_angle_cls=self.use_angle_cls,
-                show_log=self.show_log,
-            )
+            # 优先构建符合最新版 PaddleOCR 规范的参数字典 (移除了已被废弃的 use_gpu 和 show_log)
+            init_kwargs: dict[str, Any] = {"lang": self.lang}
+
+            # 设备设置：新版使用 device 参数 (如 'cpu' 或 'gpu')，避免传 use_gpu 导致 ValueError: Unknown argument
+            init_kwargs["device"] = "gpu" if self.use_gpu else "cpu"
+
+            # 方向文本识别：新版推荐使用 use_textline_orientation 替代 use_angle_cls
+            init_kwargs["use_textline_orientation"] = self.use_angle_cls
+
+            try:
+                self._ocr_app = PaddleOCR(**init_kwargs)
+            except (ValueError, TypeError):
+                # 兼容旧版本 PaddleOCR 入参签名
+                fallback_kwargs: dict[str, Any] = {
+                    "lang": self.lang,
+                    "use_angle_cls": self.use_angle_cls,
+                }
+                if self.use_gpu:
+                    fallback_kwargs["use_gpu"] = True
+                self._ocr_app = PaddleOCR(**fallback_kwargs)
+
             return self._ocr_app
         except Exception as e:
             raise OcrInitError(f"初始化 PaddleOCR 引擎失败: {e}") from e
