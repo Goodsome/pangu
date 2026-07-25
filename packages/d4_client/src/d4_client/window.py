@@ -13,7 +13,6 @@ from cv_engine import (
     ITemplateMatcher,
     MatLike,
 )
-from cv_engine.models import Region as CVRegion
 from d4_client.models import (
     ImageFrame,
     MatchResult,
@@ -82,18 +81,23 @@ class D4Window:
         threshold: float = 0.8,
         roi: Region | RelativeRegion | None = None,
     ) -> MatchResult | None:
-        """异步从当前游戏画面中进行单目标模板匹配。"""
+        """异步从当前游戏画面中进行单目标模板匹配 (极速局部捕获)。"""
         abs_roi = self._resolve_region(roi)
         frame = await self.capture(region=abs_roi)
-        cv_roi = abs_roi.to_cv_engine() if abs_roi else None
+        offset_x = abs_roi.x if abs_roi else 0
+        offset_y = abs_roi.y if abs_roi else 0
 
         res = await self.template_matcher.async_match_best(
             scene=frame.mat,
             template=template,
             threshold=threshold,
-            roi=cv_roi,
+            roi=None,
         )
-        return MatchResult.from_cv_engine(res) if res else None
+        return (
+            MatchResult.from_cv_engine(res, offset_x=offset_x, offset_y=offset_y)
+            if res
+            else None
+        )
 
     async def match_template_multi(
         self,
@@ -102,19 +106,23 @@ class D4Window:
         roi: Region | RelativeRegion | None = None,
         nms_threshold: float = 0.3,
     ) -> list[MatchResult]:
-        """异步从当前游戏画面中匹配全部目标 (含 NMS 去重)。"""
+        """异步从当前游戏画面中匹配全部目标 (极速局部捕获，含 NMS 去重)。"""
         abs_roi = self._resolve_region(roi)
         frame = await self.capture(region=abs_roi)
-        cv_roi = abs_roi.to_cv_engine() if abs_roi else None
+        offset_x = abs_roi.x if abs_roi else 0
+        offset_y = abs_roi.y if abs_roi else 0
 
         results = await self.template_matcher.async_match_multi(
             scene=frame.mat,
             template=template,
             threshold=threshold,
-            roi=cv_roi,
+            roi=None,
             nms_threshold=nms_threshold,
         )
-        return [MatchResult.from_cv_engine(r) for r in results]
+        return [
+            MatchResult.from_cv_engine(r, offset_x=offset_x, offset_y=offset_y)
+            for r in results
+        ]
 
     # ---------------------------------------------------------------------------
     # OCR 文本识别与定位
@@ -124,14 +132,21 @@ class D4Window:
         confidence_threshold: float = 0.5,
         roi: Region | RelativeRegion | None = None,
     ) -> list[OcrResult]:
-        """异步对当前游戏画面进行文字识别与坐标定位。"""
+        """异步对当前游戏画面进行文字识别与坐标定位 (极速局部捕获)。"""
         abs_roi = self._resolve_region(roi)
         frame = await self.capture(region=abs_roi)
+        offset_x = abs_roi.x if abs_roi else 0
+        offset_y = abs_roi.y if abs_roi else 0
+
         results = await self.ocr_engine.async_ocr(
             scene=frame.mat,
             confidence_threshold=confidence_threshold,
+            roi=None,
         )
-        return [OcrResult.from_cv_engine(r) for r in results]
+        return [
+            OcrResult.from_cv_engine(r, offset_x=offset_x, offset_y=offset_y)
+            for r in results
+        ]
 
     async def find_text(
         self,
@@ -140,19 +155,24 @@ class D4Window:
         exact_match: bool = False,
         roi: Region | RelativeRegion | None = None,
     ) -> OcrResult | None:
-        """异步在当前游戏画面中检索特定的目标文字。"""
+        """异步在当前游戏画面中检索特定的目标文字 (极速局部捕获)。"""
         abs_roi = self._resolve_region(roi)
         frame = await self.capture(region=abs_roi)
-        cv_roi: CVRegion | None = abs_roi.to_cv_engine() if abs_roi else None
+        offset_x = abs_roi.x if abs_roi else 0
+        offset_y = abs_roi.y if abs_roi else 0
 
         res = await self.ocr_engine.async_find_text(
             scene=frame.mat,
             target_text=target_text,
             confidence_threshold=confidence_threshold,
             exact_match=exact_match,
-            roi=cv_roi,
+            roi=None,
         )
-        return OcrResult.from_cv_engine(res) if res else None
+        return (
+            OcrResult.from_cv_engine(res, offset_x=offset_x, offset_y=offset_y)
+            if res
+            else None
+        )
 
     # ---------------------------------------------------------------------------
     # 组合交互操作 (Match & Click / Find Text & Click)

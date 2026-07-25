@@ -147,11 +147,21 @@ class MatchResult:
         object.__setattr__(self, "center", self.rect.center)
 
     @classmethod
-    def from_cv_engine(cls, res: CVMatchResult) -> "MatchResult":
-        """从 cv_engine 的 MatchResult 转换。"""
+    def from_cv_engine(
+        cls, res: CVMatchResult, offset_x: int = 0, offset_y: int = 0
+    ) -> "MatchResult":
+        """从 cv_engine 的 MatchResult 转换，支持叠加 ROI 全局偏移。"""
+        rect = Region.from_cv_engine(res.rect)
+        if offset_x != 0 or offset_y != 0:
+            rect = Region(
+                x=rect.x + offset_x,
+                y=rect.y + offset_y,
+                width=rect.width,
+                height=rect.height,
+            )
         return cls(
             score=res.score,
-            rect=Region.from_cv_engine(res.rect),
+            rect=rect,
             template_name=res.template_name,
         )
 
@@ -171,14 +181,27 @@ class OcrResult:
         object.__setattr__(self, "center", self.rect.center)
 
     @classmethod
-    def from_cv_engine(cls, res: CVOcrResult) -> "OcrResult":
-        """从 cv_engine 的 OcrResult 转换。"""
-        pts = tuple(Point.from_cv_engine(pt) for pt in res.box_points)
+    def from_cv_engine(
+        cls, res: CVOcrResult, offset_x: int = 0, offset_y: int = 0
+    ) -> "OcrResult":
+        """从 cv_engine 的 OcrResult 转换，支持叠加 ROI 全局偏移。"""
+        rect = Region.from_cv_engine(res.rect)
+        pts = [Point.from_cv_engine(pt) for pt in res.box_points]
+
+        if offset_x != 0 or offset_y != 0:
+            rect = Region(
+                x=rect.x + offset_x,
+                y=rect.y + offset_y,
+                width=rect.width,
+                height=rect.height,
+            )
+            pts = [Point(x=pt.x + offset_x, y=pt.y + offset_y) for pt in pts]
+
         box_tuple = (pts[0], pts[1], pts[2], pts[3])
         return cls(
             text=res.text,
             confidence=res.confidence,
-            rect=Region.from_cv_engine(res.rect),
+            rect=rect,
             box_points=box_tuple,
         )
 
