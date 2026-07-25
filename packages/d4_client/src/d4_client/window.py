@@ -127,12 +127,9 @@ class D4Window:
         """异步对当前游戏画面进行文字识别与坐标定位。"""
         abs_roi = self._resolve_region(roi)
         frame = await self.capture(region=abs_roi)
-        cv_roi: CVRegion | None = abs_roi.to_cv_engine() if abs_roi else None
-
         results = await self.ocr_engine.async_ocr(
             scene=frame.mat,
             confidence_threshold=confidence_threshold,
-            roi=cv_roi,
         )
         return [OcrResult.from_cv_engine(r) for r in results]
 
