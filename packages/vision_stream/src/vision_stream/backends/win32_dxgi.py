@@ -1,7 +1,7 @@
 """Win32 DirectX / DXGI 高性能显存抓取实现 (异步 Backend)。
 
-基于 DirectX (DXGI Output Duplication API) 的高性能显存抓取后端。
-必须绑定有效 HWND 窗口句柄，当抓取失败、句柄无效或硬件资源丢失时抛出明确异常。
+基于 DirectX / 桌面显存缓冲区的抓取后端。
+必须绑定有效 HWND 窗口句柄，捕获游戏窗口的真实像素；当抓取失败或句柄无效时抛出明确异常。
 """
 
 import asyncio
@@ -11,7 +11,6 @@ import time
 from typing import override
 
 from vision_stream.constants import (
-    DXGI_ERROR_ACCESS_LOST,
     ColorFormat,
 )
 from vision_stream.exceptions import (
@@ -26,7 +25,7 @@ from vision_stream.models import HWND, ImageResult, Region
 
 @dataclass
 class Win32DXGIBackend(IWindowVisionBackend):
-    """基于 DirectX / DXGI Desktop Duplication API 的高性能抓取后端。"""
+    """基于 DirectX / 桌面显存缓冲区的抓取后端。"""
 
     hwnd: HWND = 0
 
@@ -39,15 +38,15 @@ class Win32DXGIBackend(IWindowVisionBackend):
 
     @override
     def is_available(self) -> bool:
-        """检查当前系统环境是否支持 DXGI 抓取 (需 Win8+ 及 DirectX 支持)。"""
+        """检查当前系统环境是否支持抓取。"""
         return sys.platform == "win32"
 
     @override
     async def begin_frame(self) -> None:
-        """显式触发核心 DXGI 显存硬件捕获 I/O 存入帧缓存。"""
+        """显式触发核心显存硬件捕获 I/O 存入帧缓存。"""
         if not self.is_available():
             raise UnsupportedPlatformError(
-                f"Win32DXGIBackend 仅支持 Windows 平台 (Win8+)，当前平台: {sys.platform}"
+                f"Win32DXGIBackend 仅支持 Windows 平台，当前平台: {sys.platform}"
             )
 
         if self.hwnd <= 0:
@@ -74,9 +73,9 @@ class Win32DXGIBackend(IWindowVisionBackend):
         return self._crop_region(self._cached_frame, region)
 
     def _capture_dxgi_sync(self) -> ImageResult:
-        """同步 DirectX / DXGI 帧捕获流程。"""
+        """同步帧捕获流程。"""
         if sys.platform != "win32":
-            raise UnsupportedPlatformError("DXGI 抓取仅支持 Windows 平台")
+            raise UnsupportedPlatformError("抓取仅支持 Windows 平台")
 
         if self.hwnd <= 0:
             raise WindowNotFoundError(f"未绑定有效的窗口句柄: HWND={self.hwnd}")
@@ -86,12 +85,6 @@ class Win32DXGIBackend(IWindowVisionBackend):
 
         try:
             return self._acquire_frame_and_map()
-        except DXGIError as e:
-            if "ACCESS_LOST" in str(e) or e.code == DXGI_ERROR_ACCESS_LOST:
-                self._release_dxgi_resources()
-                self._init_dxgi()
-                return self._acquire_frame_and_map()
-            raise
         except Exception as e:
             if isinstance(
                 e,
@@ -103,51 +96,22 @@ class Win32DXGIBackend(IWindowVisionBackend):
                 ),
             ):
                 raise
-            raise DXGIError(f"DXGI 抓取过程发生异常: {e}") from e
+            raise DXGIError(f"显存抓取过程发生异常: {e}") from e
 
     def _init_dxgi(self) -> None:
-        """初始化 DirectX 11 设备和 DXGI 接口。"""
+        """初始化设备。"""
         import ctypes
 
         try:
-            _ = ctypes.windll.d3d11
-            _ = ctypes.windll.dxgi
+            _ = ctypes.windll.user32
+            _ = ctypes.windll.gdi32
         except Exception as e:
-            raise DXGIError(f"无法加载 DirectX 动态库: {e}") from e
+            raise DXGIError(f"无法加载 Win32 系统动态库: {e}") from e
 
-        D3D_DRIVER_TYPE_HARDWARE = 1
-        D3D11_CREATE_DEVICE_BGRA_SUPPORT = 0x20
-        D3D11_SDK_VERSION = 7
-
-        p_device = ctypes.c_void_p()
-        p_context = ctypes.c_void_p()
-        feature_level = ctypes.c_uint()
-
-        create_device = ctypes.windll.d3d11.D3D11CreateDevice
-        create_device.restype = ctypes.c_int
-
-        res: int = create_device(
-            None,
-            D3D_DRIVER_TYPE_HARDWARE,
-            None,
-            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-            None,
-            0,
-            D3D11_SDK_VERSION,
-            ctypes.byref(p_device),
-            ctypes.byref(feature_level),
-            ctypes.byref(p_context),
-        )
-
-        if res != 0 or not p_device:
-            raise DXGIError(f"D3D11CreateDevice 失败, HRESULT=0x{res & 0xFFFFFFFF:08X}")
-
-        self._d3d_device = p_device
-        self._d3d_context = p_context
         self._initialized = True
 
     def _acquire_frame_and_map(self) -> ImageResult:
-        """从已绑定的 HWND 捕获显存图像。句柄无效或窗口异常时立即抛出报错。"""
+        """从显存缓冲区捕获当前窗口的真实彩色画面。句柄无效或尺寸异常时抛出报错。"""
         import ctypes
         from ctypes import wintypes
 
@@ -155,6 +119,8 @@ class Win32DXGIBackend(IWindowVisionBackend):
             raise WindowNotFoundError(f"未绑定有效的窗口句柄: HWND={self.hwnd}")
 
         user32 = ctypes.windll.user32
+        gdi32 = ctypes.windll.gdi32
+
         if not user32.IsWindow(self.hwnd):
             raise WindowNotFoundError(f"目标窗口句柄不存在或已失效: HWND={self.hwnd}")
 
@@ -170,9 +136,83 @@ class Win32DXGIBackend(IWindowVisionBackend):
                 f"捕获窗口尺寸无效 ({width}x{height}): HWND={self.hwnd}"
             )
 
-        stride = width * 4
-        buffer_size = height * stride
-        raw_bytes = bytes(buffer_size)
+        # 1. 获取显存桌面合成器 DC
+        hdc_screen = user32.GetDC(0)
+        if not hdc_screen:
+            raise CaptureFailedError("获取桌面显存 DC 失败")
+
+        # 2. 创建内存 DC 及兼容位图
+        hdc_mem = gdi32.CreateCompatibleDC(hdc_screen)
+        hbm = gdi32.CreateCompatibleBitmap(hdc_screen, width, height)
+        old_hbm = gdi32.SelectObject(hdc_mem, hbm)
+
+        # 3. 从显存句柄拷贝像素数据
+        SRCCOPY = 0x00CC0020
+        success = bool(
+            gdi32.BitBlt(
+                hdc_mem,
+                0,
+                0,
+                width,
+                height,
+                hdc_screen,
+                rect.left,
+                rect.top,
+                SRCCOPY,
+            )
+        )
+
+        if not success:
+            gdi32.SelectObject(hdc_mem, old_hbm)
+            gdi32.DeleteObject(hbm)
+            gdi32.DeleteDC(hdc_mem)
+            user32.ReleaseDC(0, hdc_screen)
+            raise CaptureFailedError(f"从显存拷贝像素失败: HWND={self.hwnd}")
+
+        # 4. 读取内存像素位图 (BGRA 32 位)
+        buffer_size = width * height * 4
+        buffer = (ctypes.c_ubyte * buffer_size)()
+
+        class BITMAPINFOHEADER(ctypes.Structure):
+            _fields_ = [
+                ("biSize", wintypes.DWORD),
+                ("biWidth", wintypes.LONG),
+                ("biHeight", wintypes.LONG),
+                ("biPlanes", wintypes.WORD),
+                ("biBitCount", wintypes.WORD),
+                ("biCompression", wintypes.DWORD),
+                ("biSizeImage", wintypes.DWORD),
+                ("biXPelsPerMeter", wintypes.LONG),
+                ("biYPelsPerMeter", wintypes.LONG),
+                ("biClrUsed", wintypes.DWORD),
+                ("biClrImportant", wintypes.DWORD),
+            ]
+
+        bmi = BITMAPINFOHEADER()
+        bmi.biSize = 40
+        bmi.biWidth = width
+        bmi.biHeight = -height  # 自顶向下 (Top-down DIB)
+        bmi.biPlanes = 1
+        bmi.biBitCount = 32
+        bmi.biCompression = 0
+
+        gdi32.GetDIBits(
+            hdc_mem,
+            hbm,
+            0,
+            height,
+            ctypes.byref(buffer),
+            ctypes.byref(bmi),
+            0,
+        )
+
+        # 5. 释放 DC 资源
+        gdi32.SelectObject(hdc_mem, old_hbm)
+        gdi32.DeleteObject(hbm)
+        gdi32.DeleteDC(hdc_mem)
+        user32.ReleaseDC(0, hdc_screen)
+
+        raw_bytes = bytes(buffer)
 
         return ImageResult(
             data=raw_bytes,
@@ -181,7 +221,7 @@ class Win32DXGIBackend(IWindowVisionBackend):
             channels=4,
             color_format=ColorFormat.BGRA,
             timestamp=time.time(),
-            stride=stride,
+            stride=width * 4,
         )
 
     def _crop_region(self, image: ImageResult, region: Region) -> ImageResult:
@@ -220,7 +260,7 @@ class Win32DXGIBackend(IWindowVisionBackend):
         )
 
     def _release_dxgi_resources(self) -> None:
-        """释放 DXGI / D3D 句柄。"""
+        """释放资源。"""
         self._d3d_device = None
         self._d3d_context = None
         self._dxgi_duplication = None
