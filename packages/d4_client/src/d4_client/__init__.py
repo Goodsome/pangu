@@ -10,6 +10,7 @@ from d4_client.factory import (
     create_d4_client_for_rect,
     create_d4_clients,
     find_d4_hwnds,
+    find_d4_window_rects,
     sort_window_rects,
 )
 from d4_client.models import (
@@ -37,6 +38,7 @@ __all__ = [
     "create_d4_client_by_index",
     "create_d4_client_for_rect",
     "find_d4_hwnds",
+    "find_d4_window_rects",
     "sort_window_rects",
     "D4Window",
     "AutoCalibratingScreen",
