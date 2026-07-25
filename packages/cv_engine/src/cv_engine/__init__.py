@@ -3,6 +3,7 @@
 统一暴露对外 API、数据模型、异常、契约接口与 TemplateMatcher、OcrEngine 引擎。
 """
 
+from cv_engine.backends import RapidOcrEngine
 from cv_engine.constants import (
     DEFAULT_MATCH_THRESHOLD,
     DEFAULT_NMS_IOU_THRESHOLD,
@@ -17,7 +18,6 @@ from cv_engine.exceptions import (
     OcrInitError,
     TemplateNotFoundError,
 )
-from cv_engine.backends import PaddleOcrEngine, RapidOcrEngine
 from cv_engine.interfaces import IOCREngine, ITemplateMatcher
 from cv_engine.models import MatLike, MatchResult, OcrResult, Point, Region
 from cv_engine.ocr_engine import OcrEngine
@@ -30,7 +30,6 @@ __all__ = [
     # 核心引擎实现
     "TemplateMatcher",
     "OcrEngine",
-    "PaddleOcrEngine",
     "RapidOcrEngine",
     # 数据结构与类型
     "Point",

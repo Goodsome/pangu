@@ -24,12 +24,14 @@ from cv_engine.models import MatLike, MatchResult, Region
 
 logger = logging.getLogger(__name__)
 
-# OpenCV 匹配模式映射表
-OPENCV_MATCH_MODES: dict[MatchMode, int] = {
-    MatchMode.CCOEFF_NORMED: cv2.TM_CCOEFF_NORMED,
-    MatchMode.CCORR_NORMED: cv2.TM_CCORR_NORMED,
-    MatchMode.SQDIFF_NORMED: cv2.TM_SQDIFF_NORMED,
-}
+
+def get_opencv_match_modes() -> dict[MatchMode, int]:
+    """获取 OpenCV 匹配模式常量映射表。"""
+    return {
+        MatchMode.CCOEFF_NORMED: getattr(cv2, "TM_CCOEFF_NORMED", 5),
+        MatchMode.CCORR_NORMED: getattr(cv2, "TM_CCORR_NORMED", 3),
+        MatchMode.SQDIFF_NORMED: getattr(cv2, "TM_SQDIFF_NORMED", 1),
+    }
 
 
 @dataclass
@@ -97,12 +99,12 @@ class TemplateMatcher(ITemplateMatcher):
         roi_img, offset_x, offset_y = self._crop_roi(scene_gray, template_gray, roi)
         res = self._match_core(roi_img, template_gray, mode)
 
-        cv_mode = OPENCV_MATCH_MODES.get(mode, cv2.TM_CCOEFF_NORMED)
+        cv_mode = get_opencv_match_modes().get(mode, 5)
         th, tw = int(template_gray.shape[0]), int(template_gray.shape[1])
 
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-        if cv_mode == cv2.TM_SQDIFF_NORMED:
+        if cv_mode == getattr(cv2, "TM_SQDIFF_NORMED", 1):
             score = float(1.0 - min_val)
             best_loc = min_loc
         else:
@@ -149,10 +151,10 @@ class TemplateMatcher(ITemplateMatcher):
         roi_img, offset_x, offset_y = self._crop_roi(scene_gray, template_gray, roi)
         res = self._match_core(roi_img, template_gray, mode)
 
-        cv_mode = OPENCV_MATCH_MODES.get(mode, cv2.TM_CCOEFF_NORMED)
+        cv_mode = get_opencv_match_modes().get(mode, 5)
         th, tw = int(template_gray.shape[0]), int(template_gray.shape[1])
 
-        if cv_mode == cv2.TM_SQDIFF_NORMED:
+        if cv_mode == getattr(cv2, "TM_SQDIFF_NORMED", 1):
             score_matrix = 1.0 - res
         else:
             score_matrix = res
@@ -316,7 +318,7 @@ class TemplateMatcher(ITemplateMatcher):
     ) -> np.ndarray:
         """执行底层 OpenCV 匹配算法。"""
         try:
-            cv_mode = OPENCV_MATCH_MODES.get(mode, cv2.TM_CCOEFF_NORMED)
+            cv_mode = get_opencv_match_modes().get(mode, getattr(cv2, "TM_CCOEFF_NORMED", 5))
             return cv2.matchTemplate(roi_img, template_gray, cv_mode)
         except Exception as e:
             raise MatchFailedError(f"OpenCV matchTemplate 计算失败: {e}") from e

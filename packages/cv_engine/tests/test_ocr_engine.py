@@ -10,25 +10,10 @@ from cv_engine import (
     IOCREngine,
     OcrEngine,
     OcrResult,
-    PaddleOcrEngine,
     Point,
     RapidOcrEngine,
     Region,
 )
-
-
-@pytest.fixture
-def mock_paddle_app() -> MagicMock:
-    """构造 Mock 的 PaddleOCR APP 实例。"""
-    mock_app = MagicMock()
-    # 模拟 PaddleOCR 返回结构: [[[ [[x1,y1],[x2,y2],[x3,y3],[x4,y4]], ("文本", 置信度) ]]]
-    mock_app.ocr.return_value = [
-        [
-            [[[10.0, 20.0], [100.0, 20.0], [100.0, 50.0], [10.0, 50.0]], ("属性面板", 0.98)],
-            [[[150.0, 200.0], [250.0, 200.0], [250.0, 230.0], [150.0, 230.0]], ("等级 100", 0.91)],
-        ]
-    ]
-    return mock_app
 
 
 @pytest.fixture
@@ -38,18 +23,20 @@ def mock_rapid_app() -> MagicMock:
     # 模拟 RapidOCR 返回结构: ( [[[x1,y1],[x2,y2],[x3,y3],[x4,y4]], "文本", 置信度], elapse )
     mock_app.return_value = (
         [
-            [[[10.0, 20.0], [100.0, 20.0], [100.0, 50.0], [10.0, 50.0]], "属性面板", 0.98],
-            [[[150.0, 200.0], [250.0, 200.0], [250.0, 230.0], [150.0, 230.0]], "等级 100", 0.91],
+            [
+                [[10.0, 20.0], [100.0, 20.0], [100.0, 50.0], [10.0, 50.0]],
+                "属性面板",
+                0.98,
+            ],
+            [
+                [[150.0, 200.0], [250.0, 200.0], [250.0, 230.0], [150.0, 230.0]],
+                "等级 100",
+                0.91,
+            ],
         ],
         0.05,
     )
     return mock_app
-
-
-@pytest.fixture
-def paddle_ocr_engine(mock_paddle_app: MagicMock) -> PaddleOcrEngine:
-    """构造以 Mock 依赖注入的 PaddleOcrEngine 实例。"""
-    return PaddleOcrEngine(ocr_instance=mock_paddle_app)
 
 
 @pytest.fixture
@@ -75,24 +62,10 @@ def test_ocr_result_dataclass() -> None:
     assert res.box_points == pts
 
 
-def test_ocr_engine_protocol(
-    paddle_ocr_engine: PaddleOcrEngine, rapid_ocr_engine: RapidOcrEngine
-) -> None:
-    """测试 PaddleOcrEngine 与 RapidOcrEngine 实现了 IOCREngine Protocol。"""
-    assert isinstance(paddle_ocr_engine, IOCREngine)
+def test_ocr_engine_protocol(rapid_ocr_engine: RapidOcrEngine) -> None:
+    """测试 RapidOcrEngine 实现了 IOCREngine Protocol。"""
     assert isinstance(rapid_ocr_engine, IOCREngine)
     assert issubclass(OcrEngine, IOCREngine)
-
-
-def test_paddle_ocr_recognize(paddle_ocr_engine: PaddleOcrEngine) -> None:
-    """测试 PaddleOcrEngine 同步识别。"""
-    scene = np.zeros((300, 300, 3), dtype=np.uint8)
-    results = paddle_ocr_engine.ocr(scene, confidence_threshold=0.5)
-
-    assert len(results) == 2
-    assert results[0].text == "属性面板"
-    assert results[0].rect == Region(x=10, y=20, width=90, height=30)
-    assert results[1].text == "等级 100"
 
 
 def test_rapid_ocr_recognize(rapid_ocr_engine: RapidOcrEngine) -> None:
@@ -129,7 +102,9 @@ def test_find_text(rapid_ocr_engine: RapidOcrEngine) -> None:
     assert item.text == "等级 100"
 
     # 精确匹配搜索
-    exact_item = rapid_ocr_engine.find_text(scene, target_text="属性面板", exact_match=True)
+    exact_item = rapid_ocr_engine.find_text(
+        scene, target_text="属性面板", exact_match=True
+    )
     assert exact_item is not None
     assert exact_item.text == "属性面板"
 
