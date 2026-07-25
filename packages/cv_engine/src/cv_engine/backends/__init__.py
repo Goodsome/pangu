@@ -1,15 +1,11 @@
-"""图像文字识别与定位引擎重定向与兼容模块。"""
+"""CV 引擎各个具体的后端实现模块包。"""
 
 from cv_engine.backends.base import BaseOcrEngine
 from cv_engine.backends.paddle_ocr import PaddleOcrEngine
 from cv_engine.backends.rapid_ocr import RapidOcrEngine
 
-# 在 Python 3.14+ 环境下，使用支持该 Python 版本的 RapidOcrEngine 作为默认 OcrEngine 别名
-OcrEngine = RapidOcrEngine
-
 __all__ = [
     "BaseOcrEngine",
     "PaddleOcrEngine",
     "RapidOcrEngine",
-    "OcrEngine",
 ]
