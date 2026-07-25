@@ -153,12 +153,22 @@ def create_d4_client_for_rect(
     client_only: bool = False,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
+    use_dxgi: bool = True,
 ) -> D4Client:
     """基于 WindowRectInfo 构建独立的 D4Client 实例。"""
     input_backend = Win32MessageBackend(hwnd=rect.hwnd)
-    vision_backend = Win32DXGIBackend(
-        hwnd=rect.hwnd,
-    )
+
+    if use_dxgi:
+        vision_backend = Win32DXGIBackend(
+            hwnd=rect.hwnd
+        )
+    else:
+        vision_backend = Win32PrintWindowBackend(
+            hwnd=rect.hwnd,
+            render_full_content=render_full_content,
+            client_only=client_only,
+        )
+
     template_matcher = TemplateMatcher()
     ocr_engine = OcrEngine(lang=ocr_lang, use_gpu=use_gpu)
 
@@ -181,6 +191,7 @@ def create_d4_client_by_index(
     client_only: bool = False,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
+    use_dxgi: bool = True,
 ) -> D4Client:
     """根据屏幕按网格位置排序后的 WindowRectInfo 列表，按索引创建单个 D4Client 实例。
 
@@ -201,6 +212,7 @@ def create_d4_client_by_index(
         client_only=client_only,
         ocr_lang=ocr_lang,
         use_gpu=use_gpu,
+        use_dxgi=use_dxgi,
     )
 
 
@@ -210,6 +222,7 @@ def create_d4_clients(
     client_only: bool = False,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
+    use_dxgi: bool = True,
 ) -> list[D4Client]:
     """自动检索系统中所有匹配的暗黑 IV 窗口，并按网格位置顺序构建 list[D4Client]。
 
@@ -225,6 +238,7 @@ def create_d4_clients(
             client_only=client_only,
             ocr_lang=ocr_lang,
             use_gpu=use_gpu,
+            use_dxgi=use_dxgi,
         )
         for rect in sorted_rects
     ]

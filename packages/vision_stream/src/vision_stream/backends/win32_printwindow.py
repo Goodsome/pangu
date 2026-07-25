@@ -122,12 +122,21 @@ class Win32PrintWindowBackend(IWindowVisionBackend):
 
         success = bool(user32.PrintWindow(hwnd, hdc_mem, flags))
 
+        # 若 PrintWindow 失败，降级尝试 BitBlt 从窗口 DC 拷贝画面
+        if not success:
+            SRCCOPY = 0x00CC0020
+            success = bool(
+                gdi32.BitBlt(hdc_mem, 0, 0, width, height, hdc_window, 0, 0, SRCCOPY)
+            )
+
         if not success:
             # 清理句柄
             gdi32.DeleteObject(hbm)
             gdi32.DeleteDC(hdc_mem)
             user32.ReleaseDC(hwnd, hdc_window)
-            raise CaptureFailedError(f"PrintWindow API 调用失败: HWND={hwnd}")
+            raise CaptureFailedError(
+                f"PrintWindow API 与 BitBlt 抓取均失败: HWND={hwnd}"
+            )
 
         # 获取位图 RGB/BGRA 字节数据
         bmp_header_size = 40
