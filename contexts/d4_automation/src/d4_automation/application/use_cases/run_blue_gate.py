@@ -2,7 +2,6 @@ import asyncio
 from dataclasses import dataclass
 
 from d4_automation.domain.aggregates.blackboard import Blackboard
-from d4_automation.domain.behavior_tree.actions.open_social import OpenSocial
 from d4_automation.domain.behavior_tree.open_or_close_socical import OpenOrCloseSocial
 from d4_automation.domain.enums.node_status import NodeStatus
 from d4_client import create_d4_client_by_index

@@ -112,7 +112,7 @@ class BaseOcrEngine(ABC, IOCREngine):
             y2 = max(0, min(roi.bottom, sh))
 
             if x2 <= x1 or y2 <= y1:
-                raise InvalidImageError(f"请求的 ROI 检索切片区域无效: {roi}")
+                raise InvalidImageError(f"请求的 ROI 检索切片区域无效: {roi}, {img.shape=}")
 
             img = img[y1:y2, x1:x2]
             offset_x, offset_y = x1, y1
