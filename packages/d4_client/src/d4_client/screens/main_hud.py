@@ -7,6 +7,14 @@ from d4_client.screens.base import AutoCalibratingScreen
 from d4_client.screens.inventory import InventoryPanel
 from d4_client.screens.social import SocialPanel
 from sys_input import VirtualKeyCode
+from d4_client.models import RelativeRegion
+
+_MAP_NAME_ROI = RelativeRegion(
+    x=0.9,
+    y=0.0,
+    width=0.1,
+    height=0.01
+)
 
 
 @dataclass
@@ -18,7 +26,14 @@ class MainHUD(AutoCalibratingScreen):
     @override
     async def is_visible(self) -> bool:
         """检查当前界面是否为主 HUD 视角。"""
-        return True
+
+        results = await self.window.ocr(
+            roi=_MAP_NAME_ROI
+        )
+        for result in results:
+            if result.text:
+                return True
+        return False
 
     async def open_inventory(self) -> InventoryPanel:
         """按下键盘 'I' 键打开背包面板并返回 InventoryScreen 实例。"""

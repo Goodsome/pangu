@@ -28,8 +28,6 @@ class Win32DXGIBackend(IWindowVisionBackend):
     """基于 DirectX / DXGI Desktop Duplication API 的高性能抓取后端 (异步 Dataclass 实现)。"""
 
     hwnd: HWND = 0
-    display_index: int = 0
-    timeout_ms: int = 100
 
     # DXGI 内部上下文与资源对象指针
     _initialized: bool = field(default=False, repr=False)

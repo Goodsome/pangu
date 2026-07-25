@@ -20,8 +20,8 @@ class Selector(BaseNode):
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         for child in self.children:
             status = await child.tick(blackboard)
-            if status == NodeStatus.SUCCESS:
-                return NodeStatus.SUCCESS
+            if status != NodeStatus.FAILURE:
+                return status
         return NodeStatus.FAILURE
 
 
@@ -33,6 +33,6 @@ class Sequence(BaseNode):
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         for child in self.children:
             status = await child.tick(blackboard)
-            if status == NodeStatus.FAILURE:
-                return NodeStatus.FAILURE
+            if status != NodeStatus.SUCCESS:
+                return status
         return NodeStatus.SUCCESS

@@ -11,7 +11,7 @@ from cv_engine import OcrEngine, TemplateMatcher
 from d4_client.client import D4Client
 from d4_client.window import D4Window
 from sys_input import HWND, Win32MessageBackend
-from vision_stream import Win32PrintWindowBackend
+from vision_stream import Win32DXGIBackend, Win32PrintWindowBackend
 
 
 @dataclass(frozen=True)
@@ -156,10 +156,8 @@ def create_d4_client_for_rect(
 ) -> D4Client:
     """基于 WindowRectInfo 构建独立的 D4Client 实例。"""
     input_backend = Win32MessageBackend(hwnd=rect.hwnd)
-    vision_backend = Win32PrintWindowBackend(
+    vision_backend = Win32DXGIBackend(
         hwnd=rect.hwnd,
-        render_full_content=render_full_content,
-        client_only=client_only,
     )
     template_matcher = TemplateMatcher()
     ocr_engine = OcrEngine(lang=ocr_lang, use_gpu=use_gpu)
