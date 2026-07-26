@@ -13,7 +13,7 @@ _MAP_NAME_ROI = RelativeRegion(
     x=0.9,
     y=0.0,
     width=0.1,
-    height=0.01
+    height=0.05
 )
 
 
