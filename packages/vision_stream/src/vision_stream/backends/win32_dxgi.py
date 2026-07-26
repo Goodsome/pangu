@@ -28,6 +28,7 @@ class Win32DXGIBackend(IWindowVisionBackend):
     """基于 DirectX / 桌面显存缓冲区的抓取后端。"""
 
     hwnd: HWND = 0
+    client_only: bool = True
 
     # 内部上下文与资源对象指针
     _initialized: bool = field(default=False, repr=False)
@@ -124,12 +125,25 @@ class Win32DXGIBackend(IWindowVisionBackend):
         if not user32.IsWindow(self.hwnd):
             raise WindowNotFoundError(f"目标窗口句柄不存在或已失效: HWND={self.hwnd}")
 
-        rect = wintypes.RECT()
-        if not user32.GetWindowRect(self.hwnd, ctypes.byref(rect)):
-            raise CaptureFailedError(f"获取窗口 RECT 失败: HWND={self.hwnd}")
+        if self.client_only:
+            client_rect = wintypes.RECT()
+            if not user32.GetClientRect(self.hwnd, ctypes.byref(client_rect)):
+                raise CaptureFailedError(f"获取窗口 ClientRect 失败: HWND={self.hwnd}")
+            width = client_rect.right - client_rect.left
+            height = client_rect.bottom - client_rect.top
 
-        width = rect.right - rect.left
-        height = rect.bottom - rect.top
+            pt = wintypes.POINT(0, 0)
+            user32.ClientToScreen(self.hwnd, ctypes.byref(pt))
+            src_x = pt.x
+            src_y = pt.y
+        else:
+            rect = wintypes.RECT()
+            if not user32.GetWindowRect(self.hwnd, ctypes.byref(rect)):
+                raise CaptureFailedError(f"获取窗口 RECT 失败: HWND={self.hwnd}")
+            width = rect.right - rect.left
+            height = rect.bottom - rect.top
+            src_x = rect.left
+            src_y = rect.top
 
         if width <= 0 or height <= 0:
             raise CaptureFailedError(
@@ -156,8 +170,8 @@ class Win32DXGIBackend(IWindowVisionBackend):
                 width,
                 height,
                 hdc_screen,
-                rect.left,
-                rect.top,
+                src_x,
+                src_y,
                 SRCCOPY,
             )
         )

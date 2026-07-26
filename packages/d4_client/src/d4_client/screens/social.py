@@ -3,12 +3,19 @@
 from dataclasses import dataclass
 from typing import override, TYPE_CHECKING
 
+from d4_client.models import RelativeRegion
 from d4_client.screens.base import AutoCalibratingScreen
 from sys_input import VirtualKeyCode
 
 if TYPE_CHECKING:
     from d4_client.screens.main_hud import MainHUD
 
+_ADD_FRIEND_ROI = RelativeRegion(
+    x=0.7,
+    y=0.8,
+    width=0.2,
+    height=0.2,
+)
 
 @dataclass
 class SocialPanel(AutoCalibratingScreen):
@@ -22,6 +29,7 @@ class SocialPanel(AutoCalibratingScreen):
         add_friend_located = await self.locate_element(
             element_key="add_friend",
             target_text="添加好友",
+            roi=_ADD_FRIEND_ROI,
         )
         return add_friend_located is not None
 

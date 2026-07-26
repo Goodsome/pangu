@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar
 
-from d4_client.models import Element
+from d4_client.models import Element, Region, RelativeRegion
 from d4_client.window import D4Window
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,7 @@ class AutoCalibratingScreen:
         self,
         element_key: str,
         target_text: str,
+        roi: Region | RelativeRegion | None = None,
     ) -> Element | None:
         cached = self._element_cache.get(element_key)
         if cached:
@@ -72,7 +73,6 @@ class AutoCalibratingScreen:
                 roi=roi,
             )
         else:
-            roi = None
             res = await self.window.find_text(
                 target_text=target_text,
                 roi=roi,

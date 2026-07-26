@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 from d4_client import (
     create_d4_client_by_index,
@@ -14,6 +15,55 @@ from d4_client import (
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def draw_grid_10x10(image: np.ndarray) -> np.ndarray:
+    """在图像副本上绘制 10x10 网格线及百分比刻度标注。"""
+    grid_img = image.copy()
+    h, w = grid_img.shape[:2]
+
+    # 1. 绘制 X 轴 10 等份垂直网格线
+    for i in range(1, 10):
+        x = int(w * i / 10)
+        # 黑色双边加亮青色主线，确保在任何背景下极度清晰
+        cv2.line(grid_img, (x, 0), (x, h), (0, 0, 0), 3)
+        cv2.line(grid_img, (x, 0), (x, h), (255, 255, 0), 1)
+
+        text = f"{i * 10}%"
+        cv2.putText(
+            grid_img, text, (x + 4, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 2
+        )
+        cv2.putText(
+            grid_img,
+            text,
+            (x + 4, 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 255, 255),
+            1,
+        )
+
+    # 2. 绘制 Y 轴 10 等份水平网格线
+    for i in range(1, 10):
+        y = int(h * i / 10)
+        cv2.line(grid_img, (0, y), (w, y), (0, 0, 0), 3)
+        cv2.line(grid_img, (0, y), (w, y), (255, 255, 0), 1)
+
+        text = f"{i * 10}%"
+        cv2.putText(
+            grid_img, text, (8, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 2
+        )
+        cv2.putText(
+            grid_img,
+            text,
+            (8, y - 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 255, 255),
+            1,
+        )
+
+    return grid_img
 
 
 async def main() -> None:
@@ -48,12 +98,20 @@ async def main() -> None:
         await d4_client.begin_frame()
         frame = await d4_client.window.capture()
 
-        # 将当前截图保存到 output 目录
+        # 保存原始截图和 10x10 网格标注截图
         output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
-        save_path = output_dir / "d4_capture_screenshot.png"
-        cv2.imwrite(str(save_path), frame.mat)
-        print(f"💾 截图已成功保存至: {save_path.resolve()}")
+
+        # 1. 原始截图
+        raw_save_path = output_dir / "d4_capture_screenshot.png"
+        cv2.imwrite(str(raw_save_path), frame.mat)
+        print(f"💾 原始截图已保存至: {raw_save_path.resolve()}")
+
+        # 2. 10x10 网格线标注截图
+        grid_mat = draw_grid_10x10(frame.mat)
+        grid_save_path = output_dir / "d4_capture_screenshot_grid.png"
+        cv2.imwrite(str(grid_save_path), grid_mat)
+        print(f"📐 10x10 网格线截图已保存至: {grid_save_path.resolve()}")
 
         print("\n🔍 正在进行 OCR 文字识别...")
         results = await d4_client.window.ocr(confidence_threshold=0.5)

@@ -150,7 +150,7 @@ def find_d4_hwnds(
 def create_d4_client_for_rect(
     rect: WindowRectInfo,
     render_full_content: bool = True,
-    client_only: bool = False,
+    client_only: bool = True,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
@@ -159,8 +159,9 @@ def create_d4_client_for_rect(
     input_backend = Win32MessageBackend(hwnd=rect.hwnd)
 
     if use_dxgi:
-        vision_backend = Win32DXGIBackend(
-            hwnd=rect.hwnd
+        vision_backend: Win32DXGIBackend | Win32PrintWindowBackend = Win32DXGIBackend(
+            hwnd=rect.hwnd,
+            client_only=client_only,
         )
     else:
         vision_backend = Win32PrintWindowBackend(
@@ -188,7 +189,7 @@ def create_d4_client_by_index(
     index: int = 0,
     title_keyword: str = "暗黑破坏神IV",
     render_full_content: bool = True,
-    client_only: bool = False,
+    client_only: bool = True,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
@@ -219,7 +220,7 @@ def create_d4_client_by_index(
 def create_d4_clients(
     title_keyword: str = "暗黑破坏神IV",
     render_full_content: bool = True,
-    client_only: bool = False,
+    client_only: bool = True,
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
