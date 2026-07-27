@@ -1,79 +1,36 @@
+import builtins
 from dataclasses import dataclass, field
 from typing import Self
 
+from code_dom.domain.value_objects.ast_stmt import AstStmtBase
 from foundation.common_types.fqns.fqn import ModuleFqn
 
 from code_generation.domain.entities.module_blueprint import ModuleBlueprint
-from code_generation.domain.value_objects.import_def import ImportDef
-from code_generation.domain.value_objects.symbol_def import (
-    ClassDef,
-    ClassInheritance,
-    FunctionDef,
-    MethodDef,
-    ParamDef,
-    StmtDef,
-    SymbolDef,
-)
 
 
 @dataclass
 class ModuleBlueprintBuilder:
     path: ModuleFqn
-    imports: dict[str, ImportDef] = field(default_factory=dict)
-    symbols: list[SymbolDef] = field(default_factory=list)
+    needed_symbols: set[str] = field(default_factory=set)
+    body: list[AstStmtBase] = field(default_factory=list)
 
-    def with_import(
-        self,
-        name: str,
-        alias: str | None = None,
-        module_path: ModuleFqn | None = None,
-    ) -> Self:
-        if name in self.imports:
-            return self
-        self.imports[name] = ImportDef(module_path=module_path, name=name, alias=alias)
+    def with_symbol(self, name: str) -> Self:
+        if not hasattr(builtins, name):
+            self.needed_symbols.add(name)
         return self
 
-    def with_class(
-        self,
-        name: str,
-        inherits: list[ClassInheritance] | None = None,
-        methods: list[MethodDef] | None = None,
-        decorators: list[str] | None = None,
-    ) -> Self:
-        class_def = ClassDef(
-            name=name,
-            decorators=decorators or [],
-            inherits=inherits or [],
-            methods=methods or [],
-        )
-        return self.with_symbol(class_def)
+    def with_symbols(self, names: list[str]) -> Self:
+        for name in names:
+            self.with_symbol(name)
+        return self
 
-    def with_function(
-        self,
-        name: str,
-        params: list[ParamDef] | None = None,
-        return_type: str | None = None,
-        decorators: list[str] | None = None,
-        body: list[StmtDef] | None = None,
-    ) -> Self:
-        func_def = FunctionDef(
-            name=name,
-            decorators=decorators or [],
-            return_type=return_type,
-            params=params or [],
-            body=body or [],
-        )
-        return self.with_symbol(func_def)
-
-    def with_symbol(self, symbol_def: SymbolDef) -> Self:
-        self.symbols.append(symbol_def)
-        for dependency in symbol_def.collect_dependencies():
-            self.with_import(name=dependency)
+    def with_stmt(self, stmt: AstStmtBase) -> Self:
+        self.body.append(stmt)
         return self
 
     def build(self) -> ModuleBlueprint:
         return ModuleBlueprint(
             path=self.path,
-            imports=list(self.imports.values()),
-            symbols=self.symbols,
+            needed_symbols=self.needed_symbols,
+            body=self.body,
         )

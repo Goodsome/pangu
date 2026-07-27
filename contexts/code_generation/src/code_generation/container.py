@@ -4,17 +4,14 @@ from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Dependency, Factory
 
 from code_generation.application.commands.delete_aggregate import (
-    DeleteAggregateCommand,
     DeleteAggregateCommandHandler,
 )
 from code_generation.application.commands.generate_aggregate import (
-    GenerateAggregateCommand,
     GenerateAggregateCommandHandler,
 )
 from code_generation.domain.factories.module_blueprint_factory import (
     ModuleBlueprintFactory,
 )
-from code_generation.infrastructure.adapters.code_dom_generator import CodeDomGenerator
 from code_generation.interfaces.api import CodeGenerationApi
 
 
@@ -24,27 +21,21 @@ class Container(DeclarativeContainer):
         instance_of=CodeStructureApi
     )
 
-    generator: Factory[CodeDomGenerator] = Factory(
-        CodeDomGenerator,
-        code_dom_api=code_dom_api,
-        code_structure_api=code_structure_api,
-    )
-
     module_blueprint_factory: Factory[ModuleBlueprintFactory] = Factory(
         ModuleBlueprintFactory
     )
 
     generate_aggregate_handler: Factory[GenerateAggregateCommandHandler] = Factory(
         GenerateAggregateCommandHandler,
-        generator=generator,
         factory=module_blueprint_factory,
+        code_dom_api=code_dom_api,
         code_structure_api=code_structure_api,
     )
 
     delete_aggregate_handler: Factory[DeleteAggregateCommandHandler] = Factory(
         DeleteAggregateCommandHandler,
-        generator=generator,
         factory=module_blueprint_factory,
+        code_dom_api=code_dom_api,
         code_structure_api=code_structure_api,
     )
 
