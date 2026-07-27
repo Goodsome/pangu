@@ -1,0 +1,21 @@
+from foundation.building_blocks.command import Command
+from d4_leaderboard.application.dtos.entry_dto import EntryDto
+from d4_leaderboard.domain.identities.entry_id import EntryId
+from d4_leaderboard.application.ports.unit_of_work import UnitOfWork
+from dataclasses import dataclass
+from d4_leaderboard.application.mappers.update_entry_from_dto import (
+    update_entry_from_dto,
+)
+
+
+class UpdateEntryCommand(Command):
+    id: EntryId
+    dto: EntryDto
+
+
+@dataclass
+class UpdateEntryCommandHandler:
+    def execute(self, cmd: UpdateEntryCommand, uow: UnitOfWork) -> None:
+        entry = uow.entries.get(cmd.id)
+        update_entry_from_dto(entry, cmd.dto)
+        uow.entries.save(entry)
