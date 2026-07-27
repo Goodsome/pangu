@@ -71,3 +71,26 @@ class ModuleBlueprintFactory:
             ],
         )
         return builder.build()
+
+    def create_unit_of_work(
+        self, context: str, aggregate_names: list[str]
+    ) -> ModuleBlueprint:
+        context_name = SnakeString(context)
+        if not ContextRegistry.check_is_internal(context_name):
+            raise ValueError(f"Context {context_name} is not an internal context")
+
+        module_path = FqnFactory.create_unit_of_work_fqn(context_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+
+        for agg_name in aggregate_names:
+            repo_name = f"{PascalString(agg_name)}Repository"
+            builder.with_import(name=repo_name)
+
+        builder.with_class(
+            name="UnitOfWork",
+            inherits=[
+                ClassInheritance(name="BaseUnitOfWork"),
+                ClassInheritance(name="ABC"),
+            ],
+        )
+        return builder.build()

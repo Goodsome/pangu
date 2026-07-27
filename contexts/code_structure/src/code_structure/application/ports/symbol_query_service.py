@@ -8,3 +8,7 @@ class SymbolQuery(ABC):
     @abstractmethod
     def find_by_names(self, names: list[str]) -> list[SymbolDto]:
         ...
+
+    @abstractmethod
+    def find_aggregates_by_context(self, context: str) -> list[SymbolDto]:
+        ...

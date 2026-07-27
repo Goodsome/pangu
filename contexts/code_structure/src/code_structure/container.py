@@ -1,4 +1,5 @@
 from code_dom.application.queries.get_file_document import GetFileDocumentHandler
+from code_structure.application.queries.get_aggregates import GetAggregatesQueryHandler
 from code_structure.application.queries.get_symbols import GetSymbolsQueryHandler
 from code_structure.infrastructure.queries.neo4j_symbol_query import Neo4jSymbolQuery
 from code_structure.interfaces.api import CodeStructureApi
@@ -80,6 +81,10 @@ class Container(DeclarativeContainer):
         GetSymbolsQueryHandler,
         symbol_query=neo4j_symbol_query,
     )
+    get_aggregates_query_handler: Factory[GetAggregatesQueryHandler] = Factory(
+        GetAggregatesQueryHandler,
+        symbol_query=neo4j_symbol_query,
+    )
     on_class_moved_handler: Factory[OnClassMoved] = Factory(OnClassMoved)
     message_bus: Factory[BaseMessageBus] = Factory(
         BaseMessageBus,
@@ -113,4 +118,5 @@ class Container(DeclarativeContainer):
     api: Factory[CodeStructureApi] = Factory(
         CodeStructureApi,
         get_symbols_query_handler=get_symbols_query_handler,
+        get_aggregates_query_handler=get_aggregates_query_handler,
     )

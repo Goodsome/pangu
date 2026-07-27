@@ -38,12 +38,14 @@ class Container(DeclarativeContainer):
         GenerateAggregateCommandHandler,
         generator=generator,
         factory=module_blueprint_factory,
+        code_structure_api=code_structure_api,
     )
 
     delete_aggregate_handler: Factory[DeleteAggregateCommandHandler] = Factory(
         DeleteAggregateCommandHandler,
         generator=generator,
         factory=module_blueprint_factory,
+        code_structure_api=code_structure_api,
     )
 
     api: Factory[CodeGenerationApi] = Factory(
