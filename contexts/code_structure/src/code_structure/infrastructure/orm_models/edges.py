@@ -33,4 +33,5 @@ class ClassDefinesEdge(EdgeModel):
     __source_key__: ClassVar[str] = "id"
     __target_key__: ClassVar[str] = "id"
     __source_model__: ClassVar[type["NodeModel"] | str] = "ClassNode"
-    __target_model__: ClassVar[type["NodeModel"] | str] = "SymbolNode"
+    __target_model__: ClassVar[type["NodeModel"] | str] = "MemberNode"
+

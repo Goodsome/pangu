@@ -1,6 +1,7 @@
-from code_structure.infrastructure.orm_models.symbol_node import SymbolNode
+from code_structure.infrastructure.orm_models.member_node import MemberNode
 
 
-class MethodNode(SymbolNode):
+class MethodNode(MemberNode):
     name: str
     fqn: str
+
