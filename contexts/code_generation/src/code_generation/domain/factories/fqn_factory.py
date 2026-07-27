@@ -64,4 +64,4 @@ class FqnFactory:
     @staticmethod
     def create_sqlalchemy_repository_fqn(context: str, aggregate_name: str) -> ModuleFqn:
         snake_name = SnakeString(aggregate_name)
-        return ModuleFqn(f"{context}.infrastructure.persistence.repositories.{snake_name}_repository")
+        return ModuleFqn(f"{context}.infrastructure.persistence.repositories.sql_alchemy_{snake_name}_repository")

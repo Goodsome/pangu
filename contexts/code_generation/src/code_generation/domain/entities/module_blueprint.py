@@ -31,6 +31,7 @@ class ModuleBlueprint(Entity):
         external_symbols = self.needed_symbols - local_symbols
 
         imports_body: list[AstImportFrom] = []
+
         for name in sorted(external_symbols):
             if name in name_module_map and not hasattr(builtins, name):
                 imports_body.append(

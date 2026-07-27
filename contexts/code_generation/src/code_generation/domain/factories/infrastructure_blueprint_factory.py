@@ -96,7 +96,7 @@ class InfrastructureBlueprintFactory:
         m2e_func = f"{snake}_model_to_entity"
         e2m_func = f"{snake}_entity_to_model"
 
-        session_field = parse_body("session: Session")[0]
+        session_field = parse_body("session: SqlAlchemySession")[0]
 
         add_code = f"""
 model = {e2m_func}(aggregate)
@@ -198,7 +198,7 @@ if model:
                 [
                     "dataclass",
                     "override",
-                    "Session",
+                    "SqlAlchemySession",
                     repo_interface_name,
                     model_name,
                     str(pascal),
