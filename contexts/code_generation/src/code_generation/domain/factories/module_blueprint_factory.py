@@ -9,7 +9,9 @@ from code_generation.domain.factories.module_blueprint_builder import (
 )
 from code_generation.domain.value_objects.symbol_def import (
     ClassInheritance,
+    FunctionDef,
     MethodDef,
+    ParamDef,
 )
 
 
@@ -30,7 +32,26 @@ class ModuleBlueprintFactory:
             id_blueprint=identity_blueprint,
         )
         repo_port_blueprint = self.create_repository_port(context_name, aggregate_name)
-        return [identity_blueprint, aggregate_blueprint, repo_port_blueprint]
+
+        dto_blueprint = self.create_dto(context_name, aggregate_name)
+        dto_to_entity_blueprint = self.create_dto_to_entity_mapper(context_name, aggregate_name)
+        entity_to_dto_blueprint = self.create_entity_to_dto_mapper(context_name, aggregate_name)
+
+        create_cmd_blueprint = self.create_create_command(context_name, aggregate_name)
+        update_cmd_blueprint = self.create_update_command(context_name, aggregate_name)
+        delete_cmd_blueprint = self.create_delete_command(context_name, aggregate_name)
+
+        return [
+            identity_blueprint,
+            aggregate_blueprint,
+            repo_port_blueprint,
+            dto_blueprint,
+            dto_to_entity_blueprint,
+            entity_to_dto_blueprint,
+            create_cmd_blueprint,
+            update_cmd_blueprint,
+            delete_cmd_blueprint,
+        ]
 
     def create_aggregate(
         self,
@@ -75,6 +96,134 @@ class ModuleBlueprintFactory:
         )
         return builder.build()
 
+    def create_dto(self, context: str, aggregate_name: str) -> ModuleBlueprint:
+        dto_name = f"{PascalString(aggregate_name)}Dto"
+        module_path = FqnFactory.create_dto_fqn(context, aggregate_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_class(
+            name=dto_name,
+            inherits=[ClassInheritance(name="BaseModel")],
+        )
+        return builder.build()
+
+    def create_dto_to_entity_mapper(
+        self, context: str, aggregate_name: str
+    ) -> ModuleBlueprint:
+        snake = SnakeString(aggregate_name)
+        pascal = PascalString(aggregate_name)
+        func_name = f"{snake}_dto_to_{snake}"
+        module_path = FqnFactory.create_dto_to_entity_mapper_fqn(context, aggregate_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_symbol(
+            FunctionDef(
+                name=func_name,
+                params=[ParamDef(name="dto", type_annotation=f"{pascal}Dto")],
+                return_type=pascal,
+            )
+        )
+        return builder.build()
+
+    def create_entity_to_dto_mapper(
+        self, context: str, aggregate_name: str
+    ) -> ModuleBlueprint:
+        snake = SnakeString(aggregate_name)
+        pascal = PascalString(aggregate_name)
+        func_name = f"{snake}_to_{snake}_dto"
+        module_path = FqnFactory.create_entity_to_dto_mapper_fqn(context, aggregate_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_symbol(
+            FunctionDef(
+                name=func_name,
+                params=[ParamDef(name=str(snake), type_annotation=pascal)],
+                return_type=f"{pascal}Dto",
+            )
+        )
+        return builder.build()
+
+    def create_create_command(
+        self, context: str, aggregate_name: str
+    ) -> ModuleBlueprint:
+        pascal = PascalString(aggregate_name)
+        cmd_name = f"Create{pascal}Command"
+        handler_name = f"Create{pascal}CommandHandler"
+        module_path = FqnFactory.create_create_command_fqn(context, aggregate_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_class(
+            name=cmd_name,
+            inherits=[ClassInheritance(name="Command")],
+        )
+        builder.with_class(
+            name=handler_name,
+            decorators=["dataclass"],
+            methods=[
+                MethodDef(
+                    name="execute",
+                    params=[
+                        ParamDef(name="self"),
+                        ParamDef(name="cmd", type_annotation=cmd_name),
+                        ParamDef(name="uow", type_annotation="UnitOfWork"),
+                    ],
+                )
+            ],
+        )
+        return builder.build()
+
+    def create_update_command(
+        self, context: str, aggregate_name: str
+    ) -> ModuleBlueprint:
+        pascal = PascalString(aggregate_name)
+        cmd_name = f"Update{pascal}Command"
+        handler_name = f"Update{pascal}CommandHandler"
+        module_path = FqnFactory.create_update_command_fqn(context, aggregate_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_class(
+            name=cmd_name,
+            inherits=[ClassInheritance(name="Command")],
+        )
+        builder.with_class(
+            name=handler_name,
+            decorators=["dataclass"],
+            methods=[
+                MethodDef(
+                    name="execute",
+                    params=[
+                        ParamDef(name="self"),
+                        ParamDef(name="cmd", type_annotation=cmd_name),
+                        ParamDef(name="uow", type_annotation="UnitOfWork"),
+                    ],
+                )
+            ],
+        )
+        return builder.build()
+
+    def create_delete_command(
+        self, context: str, aggregate_name: str
+    ) -> ModuleBlueprint:
+        pascal = PascalString(aggregate_name)
+        cmd_name = f"Delete{pascal}Command"
+        handler_name = f"Delete{pascal}CommandHandler"
+        module_path = FqnFactory.create_delete_command_fqn(context, aggregate_name)
+        builder = ModuleBlueprintBuilder(path=module_path)
+        builder.with_class(
+            name=cmd_name,
+            inherits=[ClassInheritance(name="Command")],
+        )
+        builder.with_class(
+            name=handler_name,
+            decorators=["dataclass"],
+            methods=[
+                MethodDef(
+                    name="execute",
+                    params=[
+                        ParamDef(name="self"),
+                        ParamDef(name="cmd", type_annotation=cmd_name),
+                        ParamDef(name="uow", type_annotation="UnitOfWork"),
+                    ],
+                )
+            ],
+        )
+        return builder.build()
+
     def create_unit_of_work(
         self, context: str, aggregate_names: list[str]
     ) -> ModuleBlueprint:
@@ -94,7 +243,7 @@ class ModuleBlueprintFactory:
                     name=prop_name,
                     decorators=["property", "abstractmethod"],
                     return_type=repo_name,
-                    params=["self"],
+                    params=[ParamDef(name="self")],
                 )
             )
 

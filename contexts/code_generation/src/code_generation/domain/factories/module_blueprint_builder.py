@@ -8,7 +8,10 @@ from code_generation.domain.value_objects.import_def import ImportDef
 from code_generation.domain.value_objects.symbol_def import (
     ClassDef,
     ClassInheritance,
+    FunctionDef,
     MethodDef,
+    ParamDef,
+    StmtDef,
     SymbolDef,
 )
 
@@ -33,21 +36,39 @@ class ModuleBlueprintBuilder:
     def with_class(
         self,
         name: str,
-        inherits: list[ClassInheritance],
+        inherits: list[ClassInheritance] | None = None,
         methods: list[MethodDef] | None = None,
+        decorators: list[str] | None = None,
     ) -> Self:
         class_def = ClassDef(
             name=name,
-            inherits=inherits,
+            decorators=decorators or [],
+            inherits=inherits or [],
             methods=methods or [],
         )
-        self.symbols.append(class_def)
-        for dependency in class_def.collect_dependencies():
-            self.with_import(name=dependency)
-        return self
+        return self.with_symbol(class_def)
+
+    def with_function(
+        self,
+        name: str,
+        params: list[ParamDef] | None = None,
+        return_type: str | None = None,
+        decorators: list[str] | None = None,
+        body: list[StmtDef] | None = None,
+    ) -> Self:
+        func_def = FunctionDef(
+            name=name,
+            decorators=decorators or [],
+            return_type=return_type,
+            params=params or [],
+            body=body or [],
+        )
+        return self.with_symbol(func_def)
 
     def with_symbol(self, symbol_def: SymbolDef) -> Self:
         self.symbols.append(symbol_def)
+        for dependency in symbol_def.collect_dependencies():
+            self.with_import(name=dependency)
         return self
 
     def build(self) -> ModuleBlueprint:

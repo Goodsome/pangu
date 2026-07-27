@@ -36,12 +36,17 @@ class CodeDomGenerator(Generator):
         import_symbols: set[str] = set()
         name_module_map: dict[str, str] = {}
         for module in modules:
-            import_symbols.update(
-                {s for s in module.collect_import_symbols() if not hasattr(builtins, s)}
-            )
-
+            local_symbols = {s.name for s in module.symbols}
             for symbol_def in module.symbols:
                 name_module_map[symbol_def.name] = module.path
+
+            import_symbols.update(
+                {
+                    s
+                    for s in module.collect_import_symbols()
+                    if not hasattr(builtins, s) and s not in local_symbols
+                }
+            )
 
         if import_symbols:
             symbols = self.code_structure_api.get_symbols(list(import_symbols))

@@ -18,10 +18,11 @@ def module_blueprint_to_code_document(
     name_module_map: Mapping[str, str],
 ) -> CodeDocument:
     path = FqnService.build_path(module_blueprint.path, is_package=False)
+    local_symbols = {s.name for s in module_blueprint.symbols}
     imports_body = [
         import_def_to_ast_import_from(import_def, name_module_map)
         for import_def in module_blueprint.imports
-        if not hasattr(builtins, import_def.name)
+        if not hasattr(builtins, import_def.name) and import_def.name not in local_symbols
     ]
     symbols_body = [symbol_def_to_ast_stmt(s) for s in module_blueprint.symbols]
     return CodeDocument(
