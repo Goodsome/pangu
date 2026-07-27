@@ -1,3 +1,4 @@
+import builtins
 from dataclasses import dataclass
 from typing import override
 
@@ -35,12 +36,15 @@ class CodeDomGenerator(Generator):
         import_symbols: set[str] = set()
         name_module_map: dict[str, str] = {}
         for module in modules:
-            import_symbols.update(module.collect_import_symbols())
+            import_symbols.update(
+                {s for s in module.collect_import_symbols() if not hasattr(builtins, s)}
+            )
 
             for symbol_def in module.symbols:
                 name_module_map[symbol_def.name] = module.path
 
-        symbols = self.code_structure_api.get_symbols(list(import_symbols))
-        for symbol in symbols:
-            name_module_map[symbol.name] = symbol.module_fqn
+        if import_symbols:
+            symbols = self.code_structure_api.get_symbols(list(import_symbols))
+            for symbol in symbols:
+                name_module_map[symbol.name] = symbol.module_fqn
         return name_module_map

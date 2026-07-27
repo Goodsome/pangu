@@ -1,3 +1,4 @@
+import builtins
 from collections.abc import Mapping
 
 from architecture.domain.services.fqn_service import FqnService
@@ -20,6 +21,7 @@ def module_blueprint_to_code_document(
     imports_body = [
         import_def_to_ast_import_from(import_def, name_module_map)
         for import_def in module_blueprint.imports
+        if not hasattr(builtins, import_def.name)
     ]
     symbols_body = [symbol_def_to_ast_stmt(s) for s in module_blueprint.symbols]
     return CodeDocument(

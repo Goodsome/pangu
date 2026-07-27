@@ -8,6 +8,7 @@ from code_generation.domain.value_objects.import_def import ImportDef
 from code_generation.domain.value_objects.symbol_def import (
     ClassDef,
     ClassInheritance,
+    MethodDef,
     SymbolDef,
 )
 
@@ -29,8 +30,17 @@ class ModuleBlueprintBuilder:
         self.imports[name] = ImportDef(module_path=module_path, name=name, alias=alias)
         return self
 
-    def with_class(self, name: str, inherits: list[ClassInheritance]) -> Self:
-        class_def = ClassDef(name=name, inherits=inherits)
+    def with_class(
+        self,
+        name: str,
+        inherits: list[ClassInheritance],
+        methods: list[MethodDef] | None = None,
+    ) -> Self:
+        class_def = ClassDef(
+            name=name,
+            inherits=inherits,
+            methods=methods or [],
+        )
         self.symbols.append(class_def)
         for dependency in class_def.collect_dependencies():
             self.with_import(name=dependency)

@@ -35,6 +35,15 @@ class BaseUnitOfWork(ABC):
     def save_outbox_message(self, message: IntegrationEvent):
         pass
 
-    @abstractmethod
     def collect_events(self) -> Iterator[DomainEvent]:
-        pass
+        for attr_name in dir(self):
+            if attr_name.startswith("_"):
+                continue
+            try:
+                attr_val = getattr(self, attr_name)
+                if hasattr(attr_val, "collect_events") and callable(
+                    getattr(attr_val, "collect_events")
+                ):
+                    yield from attr_val.collect_events()
+            except Exception:
+                continue

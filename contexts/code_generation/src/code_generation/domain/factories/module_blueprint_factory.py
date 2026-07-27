@@ -7,7 +7,10 @@ from code_generation.domain.factories.fqn_factory import FqnFactory
 from code_generation.domain.factories.module_blueprint_builder import (
     ModuleBlueprintBuilder,
 )
-from code_generation.domain.value_objects.symbol_def import ClassInheritance
+from code_generation.domain.value_objects.symbol_def import (
+    ClassInheritance,
+    MethodDef,
+)
 
 
 class ModuleBlueprintFactory:
@@ -82,9 +85,18 @@ class ModuleBlueprintFactory:
         module_path = FqnFactory.create_unit_of_work_fqn(context_name)
         builder = ModuleBlueprintBuilder(path=module_path)
 
+        methods: list[MethodDef] = []
         for agg_name in aggregate_names:
             repo_name = f"{PascalString(agg_name)}Repository"
-            builder.with_import(name=repo_name)
+            prop_name = self._to_plural(agg_name)
+            methods.append(
+                MethodDef(
+                    name=prop_name,
+                    decorators=["property", "abstractmethod"],
+                    return_type=repo_name,
+                    params=["self"],
+                )
+            )
 
         builder.with_class(
             name="UnitOfWork",
@@ -92,5 +104,15 @@ class ModuleBlueprintFactory:
                 ClassInheritance(name="BaseUnitOfWork"),
                 ClassInheritance(name="ABC"),
             ],
+            methods=methods,
         )
         return builder.build()
+
+    @staticmethod
+    def _to_plural(name: str) -> str:
+        s = str(SnakeString(name))
+        if s.endswith("y") and not s.endswith(("ay", "ey", "iy", "oy", "uy")):
+            return s[:-1] + "ies"
+        elif s.endswith(("s", "sh", "ch", "x", "z")):
+            return s + "es"
+        return s + "s"
