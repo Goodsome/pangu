@@ -1,3 +1,4 @@
+from code_dom.application.commands.delete_code_documents import DeleteCodeDocumentsCommand, DeleteCodeDocumentsCommandHandler
 from code_dom.interfaces.api import CodeDomApi
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
@@ -84,6 +85,9 @@ class Container(DeclarativeContainer):
     generate_code_handler: Factory[GenerateCodeHandler] = Factory(
         GenerateCodeHandler,
     )
+    delete_code_documents: Factory[DeleteCodeDocumentsCommandHandler] = Factory(
+        DeleteCodeDocumentsCommandHandler
+    )
     codebase_repository: Factory[FileSystemCodebaseRepository] = Factory(
         FileSystemCodebaseRepository, file_system=file_system_port
     )
@@ -113,6 +117,7 @@ class Container(DeclarativeContainer):
         command_handlers=Dict(
             {
                 GenerateCodeCommand: generate_code_handler.provided.execute,
+                DeleteCodeDocumentsCommand: delete_code_documents.provided.execute,
             }
         ),
         event_handlers=Dict(
