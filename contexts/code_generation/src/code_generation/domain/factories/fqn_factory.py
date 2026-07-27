@@ -50,3 +50,18 @@ class FqnFactory:
     @staticmethod
     def create_delete_command_fqn(context: str, aggregate_name: str) -> ModuleFqn:
         return ModuleFqn(f"{context}.application.commands.delete_{SnakeString(aggregate_name)}")
+
+    @staticmethod
+    def create_orm_model_fqn(context: str, aggregate_name: str) -> ModuleFqn:
+        snake_name = SnakeString(aggregate_name)
+        return ModuleFqn(f"{context}.infrastructure.persistence.models.{snake_name}_model")
+
+    @staticmethod
+    def create_orm_mapper_fqn(context: str, aggregate_name: str) -> ModuleFqn:
+        snake_name = SnakeString(aggregate_name)
+        return ModuleFqn(f"{context}.infrastructure.persistence.mappers.{snake_name}_mapper")
+
+    @staticmethod
+    def create_sqlalchemy_repository_fqn(context: str, aggregate_name: str) -> ModuleFqn:
+        snake_name = SnakeString(aggregate_name)
+        return ModuleFqn(f"{context}.infrastructure.persistence.repositories.{snake_name}_repository")
