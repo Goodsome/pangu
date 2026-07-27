@@ -1,5 +1,5 @@
 from foundation.common_types.identifier import UuidIdentifier
 
 
-class LeaderboardEntryId(UuidIdentifier):
+class EntryId(UuidIdentifier):
     pass
