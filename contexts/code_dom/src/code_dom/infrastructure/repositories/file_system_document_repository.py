@@ -1,3 +1,4 @@
+from collections.abc import Collection
 import logging
 import ast
 from dataclasses import dataclass
@@ -50,9 +51,14 @@ class FileSystemDocumentRepository(DocumentRepository):
 
     @override
     def _delete(self, aggregate: CodeDocument) -> None:
-        raise NotImplementedError()
+        self.file_system.delete_file(aggregate.id)
 
     @override
     def _save_all(self, aggregates: list[CodeDocument]) -> None:
         for aggregate in aggregates:
             self._save(aggregate)
+
+    @override
+    def delete_all(self, ids: Collection[Path]) -> None:
+        for id in ids:
+            self.file_system.delete_file(id)
