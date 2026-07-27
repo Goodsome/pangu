@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import override
 
+from architecture.domain.services.fqn_service import FqnService
 from code_dom.interfaces.api import CodeDomApi
 from code_structure.interfaces.api import CodeStructureApi
 
@@ -24,6 +25,11 @@ class CodeDomGenerator(Generator):
             for module_blueprint in modules
         ]
         self.code_dom_api.save_documents(code_documents)
+
+    @override
+    def remove_modules(self, modules: list[ModuleBlueprint]) -> None:
+        paths = [FqnService.build_path(module.path, is_package=False) for module in modules]
+        self.code_dom_api.delete_documents(paths)
 
     def _query_name_module_map(self, modules: list[ModuleBlueprint]) -> dict[str, str]:
         import_symbols: set[str] = set()

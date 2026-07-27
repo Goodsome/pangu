@@ -8,16 +8,16 @@ from code_generation.domain.factories.module_blueprint_factory import (
 from code_generation.domain.ports.generator import Generator
 
 
-class GenerateAggregateCommand(Command):
+class DeleteAggregateCommand(Command):
     context: str
     name: str
 
 
 @dataclass
-class GenerateAggregateCommandHandler:
+class DeleteAggregateCommandHandler:
     generator: Generator
     factory: ModuleBlueprintFactory
 
-    def execute(self, cmd: GenerateAggregateCommand) -> None:
+    def execute(self, cmd: DeleteAggregateCommand) -> None:
         modules = self.factory.create_aggregate_modules(cmd.context, cmd.name)
-        self.generator.write_modules(modules)
+        self.generator.remove_modules(modules)

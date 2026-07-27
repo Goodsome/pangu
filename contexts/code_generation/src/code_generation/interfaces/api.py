@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 
+from code_generation.application.commands.delete_aggregate import (
+    DeleteAggregateCommand,
+    DeleteAggregateCommandHandler,
+)
 from code_generation.application.commands.generate_aggregate import (
     GenerateAggregateCommand,
     GenerateAggregateCommandHandler,
@@ -9,7 +13,12 @@ from code_generation.application.commands.generate_aggregate import (
 @dataclass
 class CodeGenerationApi:
     generate_aggregate_handler: GenerateAggregateCommandHandler
+    delete_aggregate_handler: DeleteAggregateCommandHandler
 
     def generate_aggregate(self, context: str, name: str) -> None:
         cmd = GenerateAggregateCommand(context=context, name=name)
         self.generate_aggregate_handler.execute(cmd)
+
+    def delete_aggregate(self, context: str, name: str) -> None:
+        cmd = DeleteAggregateCommand(context=context, name=name)
+        self.delete_aggregate_handler.execute(cmd)

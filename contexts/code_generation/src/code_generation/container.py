@@ -3,6 +3,10 @@ from code_structure.interfaces.api import CodeStructureApi
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Dependency, Factory
 
+from code_generation.application.commands.delete_aggregate import (
+    DeleteAggregateCommand,
+    DeleteAggregateCommandHandler,
+)
 from code_generation.application.commands.generate_aggregate import (
     GenerateAggregateCommand,
     GenerateAggregateCommandHandler,
@@ -33,9 +37,17 @@ class Container(DeclarativeContainer):
     generate_aggregate_handler: Factory[GenerateAggregateCommandHandler] = Factory(
         GenerateAggregateCommandHandler,
         generator=generator,
+        factory=module_blueprint_factory,
+    )
+
+    delete_aggregate_handler: Factory[DeleteAggregateCommandHandler] = Factory(
+        DeleteAggregateCommandHandler,
+        generator=generator,
+        factory=module_blueprint_factory,
     )
 
     api: Factory[CodeGenerationApi] = Factory(
         CodeGenerationApi,
         generate_aggregate_handler=generate_aggregate_handler,
+        delete_aggregate_handler=delete_aggregate_handler,
     )

@@ -8,4 +8,9 @@ class Generator(ABC):
     @abstractmethod
     def write_modules(self, modules: list[ModuleBlueprint]) -> None:
         ...
+
+    @abstractmethod
+    def remove_modules(self, modules: list[ModuleBlueprint]) -> None:
+        ...
+
         

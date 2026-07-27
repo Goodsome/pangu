@@ -25,7 +25,7 @@ app = typer.Typer(
 )
 app.add_typer(arch_app, name="arch")
 app.add_typer(code_dom_app, name="dom")
-app.add_typer(generation_app, name="generation")
+app.add_typer(generation_app, name="gen")
 app.add_typer(code_structure_app, name="structure")
 
 app.command()(run_worker)
