@@ -74,3 +74,8 @@ d4-client = { workspace = true }
 cv-engine = { workspace = true }
 d4-automation = { workspace = true }
 d4-robot = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
