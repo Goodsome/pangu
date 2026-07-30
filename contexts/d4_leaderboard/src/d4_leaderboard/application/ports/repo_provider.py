@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from d4_leaderboard.domain.repositories.entry_repository import EntryRepository
+from abc import abstractmethod
 
 
 class RepoProvider(ABC):

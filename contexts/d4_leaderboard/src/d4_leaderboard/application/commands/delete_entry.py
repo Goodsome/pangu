@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from d4_leaderboard.application.ports.repo_provider import RepoProvider
-from d4_leaderboard.domain.identities.entry_id import EntryId
 from foundation.building_blocks.command import Command
+from d4_leaderboard.domain.identities.entry_id import EntryId
+from d4_leaderboard.application.ports.repo_provider import RepoProvider
+from dataclasses import dataclass
 
 
 class DeleteEntryCommand(Command):
@@ -12,5 +12,4 @@ class DeleteEntryCommand(Command):
 class DeleteEntryCommandHandler:
     def execute(self, cmd: DeleteEntryCommand, uow: RepoProvider) -> None:
         entry = uow.entries.get(cmd.id)
-        if entry:
-            uow.entries.delete(entry)
+        uow.entries.delete(entry)
