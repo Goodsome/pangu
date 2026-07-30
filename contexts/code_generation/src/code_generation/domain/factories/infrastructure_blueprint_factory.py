@@ -148,7 +148,7 @@ self.session.merge(model)
             body=parse_body(save_code),
         )
 
-        save_all_code = """
+        save_all_code = f"""
 for aggregate in aggregates:
     self._save(aggregate)
 """
@@ -192,9 +192,7 @@ if model:
 
         return (
             ModuleBlueprintBuilder(
-                path=FqnFactory.create_sqlalchemy_repository_fqn(
-                    context, aggregate_name
-                )
+                path=FqnFactory.create_sqlalchemy_repository_fqn(context, aggregate_name)
             )
             .with_symbols(
                 [
@@ -212,3 +210,45 @@ if model:
             .with_stmt(repo_cls)
             .build()
         )
+
+    def create_sql_alchemy_unit_of_work(
+        self, context: str, aggregate_names: list[str]
+    ) -> ModuleBlueprint:
+        context_name = str(SnakeString(context))
+        builder = ModuleBlueprintBuilder(
+            path=FqnFactory.create_sql_alchemy_unit_of_work_fqn(context_name)
+        )
+        builder.with_symbols(
+            ["dataclass", "override", "SessionManager", "SqlAlchemySession", "RepoProvider"]
+        )
+
+        methods: list[AstStmtBase] = []
+        for agg_name in aggregate_names:
+            pascal_name = PascalString(agg_name)
+            repo_interface = f"{pascal_name}Repository"
+            sql_repo_class = f"SqlAlchemy{pascal_name}Repository"
+            prop_name = to_plural(agg_name)
+
+            prop_code = f"return {sql_repo_class}(self.session)"
+            prop_func = make_func(
+                name=prop_name,
+                params=[("self", None)],
+                returns=repo_interface,
+                decorators=["property", "override"],
+                body=parse_body(prop_code),
+            )
+            methods.append(prop_func)
+            builder.with_symbol(repo_interface)
+            builder.with_symbol(sql_repo_class)
+
+        base_session_mgr = make_generic_base("SessionManager", ["SqlAlchemySession"])
+        base_repo_provider = make_generic_base("RepoProvider")
+
+        uow_cls = make_class(
+            name="SqlAlchemyUnitOfWork",
+            bases=[base_session_mgr, base_repo_provider],
+            decorators=["dataclass"],
+            body=methods,
+        )
+
+        return builder.with_stmt(uow_cls).build()

@@ -37,9 +37,7 @@ class ApplicationBlueprintFactory:
         dto_name = f"{pascal_name}Dto"
         cls_node = make_class(name=dto_name, bases=[make_generic_base("BaseModel")])
         return (
-            ModuleBlueprintBuilder(
-                path=FqnFactory.create_dto_fqn(context, aggregate_name)
-            )
+            ModuleBlueprintBuilder(path=FqnFactory.create_dto_fqn(context, aggregate_name))
             .with_symbols(["BaseModel"])
             .with_stmt(cls_node)
             .build()
@@ -83,9 +81,7 @@ class ApplicationBlueprintFactory:
         )
         return (
             ModuleBlueprintBuilder(
-                path=FqnFactory.create_update_entity_from_dto_mapper_fqn(
-                    context, aggregate_name
-                )
+                path=FqnFactory.create_update_entity_from_dto_mapper_fqn(context, aggregate_name)
             )
             .with_symbols([f"{pascal}Dto", str(pascal)])
             .with_stmt(func_node)
@@ -145,7 +141,7 @@ uow.{plural}.add({snake})
 """
         exec_func = make_func(
             name="execute",
-            params=[("self", None), ("cmd", cmd_name), ("uow", "UnitOfWork")],
+            params=[("self", None), ("cmd", cmd_name), ("uow", "RepoProvider")],
             returns="None",
             body=parse_body(handler_code),
         )
@@ -158,7 +154,7 @@ uow.{plural}.add({snake})
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_create_command_fqn(context, aggregate_name)
             )
-            .with_symbols(["Command", "dataclass", "UnitOfWork", dto_name, mapper_func])
+            .with_symbols(["Command", "dataclass", "RepoProvider", dto_name, mapper_func])
             .with_stmt(cmd_cls)
             .with_stmt(handler_cls)
             .build()
@@ -201,7 +197,7 @@ uow.{plural}.save({snake})
 """
         exec_func = make_func(
             name="execute",
-            params=[("self", None), ("cmd", cmd_name), ("uow", "UnitOfWork")],
+            params=[("self", None), ("cmd", cmd_name), ("uow", "RepoProvider")],
             returns="None",
             body=parse_body(handler_code),
         )
@@ -214,16 +210,7 @@ uow.{plural}.save({snake})
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_update_command_fqn(context, aggregate_name)
             )
-            .with_symbols(
-                [
-                    "Command",
-                    "dataclass",
-                    "UnitOfWork",
-                    id_type_name,
-                    dto_name,
-                    update_mapper_func,
-                ]
-            )
+            .with_symbols(["Command", "dataclass", "RepoProvider", id_type_name, dto_name, update_mapper_func])
             .with_stmt(cmd_cls)
             .with_stmt(handler_cls)
             .build()
@@ -258,7 +245,7 @@ uow.{plural}.delete({snake})
 """
         exec_func = make_func(
             name="execute",
-            params=[("self", None), ("cmd", cmd_name), ("uow", "UnitOfWork")],
+            params=[("self", None), ("cmd", cmd_name), ("uow", "RepoProvider")],
             returns="None",
             body=parse_body(handler_code),
         )
@@ -271,23 +258,21 @@ uow.{plural}.delete({snake})
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_delete_command_fqn(context, aggregate_name)
             )
-            .with_symbols(["Command", "dataclass", "UnitOfWork", id_type_name])
+            .with_symbols(["Command", "dataclass", "RepoProvider", id_type_name])
             .with_stmt(cmd_cls)
             .with_stmt(handler_cls)
             .build()
         )
 
-    def create_unit_of_work(
+    def create_repo_provider(
         self, context: str, aggregate_names: list[str]
     ) -> ModuleBlueprint:
         context_name = str(SnakeString(context))
         if not ContextRegistry.check_is_internal(context_name):
             raise ValueError(f"Context {context_name} is not an internal context")
 
-        builder = ModuleBlueprintBuilder(
-            path=FqnFactory.create_repo_provider_fqn(context_name)
-        )
-        builder.with_symbols(["RepoProvider", "ABC", "abstractmethod"])
+        builder = ModuleBlueprintBuilder(path=FqnFactory.create_repo_provider_fqn(context_name))
+        builder.with_symbols(["ABC", "abstractmethod"])
 
         methods: list[AstStmtBase] = []
         for agg_name in aggregate_names:
@@ -302,9 +287,14 @@ uow.{plural}.delete({snake})
             methods.append(prop_func)
             builder.with_symbol(repo_name)
 
-        uow_cls = make_class(
-            name="UnitOfWork",
-            bases=[make_generic_base("BaseUnitOfWork"), make_generic_base("ABC")],
+        provider_cls = make_class(
+            name="RepoProvider",
+            bases=[make_generic_base("ABC")],
             body=methods,
         )
-        return builder.with_stmt(uow_cls).build()
+        return builder.with_stmt(provider_cls).build()
+
+    def create_unit_of_work(
+        self, context: str, aggregate_names: list[str]
+    ) -> ModuleBlueprint:
+        return self.create_repo_provider(context, aggregate_names)

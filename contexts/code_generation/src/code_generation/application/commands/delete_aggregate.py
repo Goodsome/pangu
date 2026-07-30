@@ -34,16 +34,14 @@ class DeleteAggregateCommandHandler:
         ]
 
         if remaining_agg_names:
-            uow_module = self.factory.create_unit_of_work(
+            uow_modules = self.factory.create_unit_of_work(
                 cmd.context, remaining_agg_names
             )
-            name_module_map = self._build_name_module_map([uow_module])
-            self.code_dom_api.save_documents(
-                [uow_module.to_code_document(name_module_map)]
-            )
+            name_module_map = self._build_name_module_map(uow_modules)
+            self.code_dom_api.save_documents([m.to_code_document(name_module_map) for m in uow_modules])
         else:
-            uow_module = self.factory.create_unit_of_work(cmd.context, [])
-            self.code_dom_api.delete_documents([uow_module.to_physical_path()])
+            uow_modules = self.factory.create_unit_of_work(cmd.context, [])
+            self.code_dom_api.delete_documents([m.to_physical_path() for m in uow_modules])
 
     def _build_name_module_map(self, modules: list[ModuleBlueprint]) -> dict[str, str]:
         name_module_map: dict[str, str] = {}

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 class FileSystemUnitOfWork(SessionManager[FileSystemSession], RepoProvider):
     codebase_repository: CodebaseRepository
     document_repository: DocumentRepository
+    session_factory: Callable[[], FileSystemSession] = FileSystemSession
 
     @property
     @override

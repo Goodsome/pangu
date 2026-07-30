@@ -42,5 +42,7 @@ class ModuleBlueprintFactory:
 
     def create_unit_of_work(
         self, context: str, aggregate_names: list[str]
-    ) -> ModuleBlueprint:
-        return self.app_factory.create_unit_of_work(context, aggregate_names)
+    ) -> list[ModuleBlueprint]:
+        repo_provider_bp = self.app_factory.create_repo_provider(context, aggregate_names)
+        sql_uow_bp = self.infra_factory.create_sql_alchemy_unit_of_work(context, aggregate_names)
+        return [repo_provider_bp, sql_uow_bp]
