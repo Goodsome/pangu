@@ -89,6 +89,8 @@ class AstToStmt:
                 return AstToStmt.to_ast_aug_assign(node)
             case ast.For():
                 return AstToStmt.to_ast_for(node)
+            case ast.AsyncFor():
+                return AstToStmt.to_ast_async_for(node)
             case ast.While():
                 return AstToStmt.to_ast_while(node)
             case ast.If():
@@ -192,13 +194,18 @@ class AstToStmt:
         )
 
     @staticmethod
-    def to_ast_for(node: ast.For) -> AstFor:
+    def to_ast_for(node: ast.For | ast.AsyncFor) -> AstFor:
         return AstFor(
             target=AstToExpr.to_expr(node.target),
             iter=AstToExpr.to_expr(node.iter),
             body=[AstToStmt.to_stmt(stmt) for stmt in node.body],
             orelse=[AstToStmt.to_stmt(stmt) for stmt in node.orelse],
+            is_async=isinstance(node, ast.AsyncFor),
         )
+
+    @staticmethod
+    def to_ast_async_for(node: ast.AsyncFor) -> AstFor:
+        return AstToStmt.to_ast_for(node)
 
     @staticmethod
     def to_ast_while(node: ast.While) -> AstWhile:

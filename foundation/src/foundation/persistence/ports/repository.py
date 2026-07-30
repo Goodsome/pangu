@@ -1,9 +1,8 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Any
+
 from foundation.building_blocks.aggregate_root import AggregateRoot
 from foundation.building_blocks.event import DomainEvent
 
@@ -61,3 +60,58 @@ class Repository[T_AR: AggregateRoot[Any], T_ID](ABC):
 
     @abstractmethod
     def _save_all(self, aggregates: list[T_AR]) -> None: ...
+
+
+@dataclass
+class AsyncRepository[T_AR: AggregateRoot[Any], T_ID](ABC):
+    _seens: set[T_AR] = field(default_factory=set, init=False)
+
+    def collect_events(self) -> Iterator[DomainEvent]:
+        for aggregate in self._seens:
+            yield from aggregate.collect_events()
+
+    def collect_seens(self) -> set[T_AR]:
+        return self._seens
+
+    async def add(self, aggregate: T_AR) -> None:
+        await self._add(aggregate=aggregate)
+        self._seens.add(aggregate)
+
+    async def add_all(self, aggregates: list[T_AR]) -> None:
+        await self._add_all(aggregates=aggregates)
+        self._seens.update(aggregates)
+
+    async def get(self, id: T_ID) -> T_AR:
+        a = await self._get(id)
+        self._seens.add(a)
+        return a
+
+    async def save(self, aggregate: T_AR) -> None:
+        await self._save(aggregate=aggregate)
+        self._seens.add(aggregate)
+
+    async def save_all(self, aggregates: list[T_AR]) -> None:
+        await self._save_all(aggregates=aggregates)
+        self._seens.update(aggregates)
+
+    async def delete(self, aggregate: T_AR) -> None:
+        await self._delete(aggregate)
+        self._seens.add(aggregate)
+
+    @abstractmethod
+    async def _add(self, aggregate: T_AR) -> None: ...
+
+    @abstractmethod
+    async def _add_all(self, aggregates: list[T_AR]) -> None: ...
+
+    @abstractmethod
+    async def _get(self, id: T_ID) -> T_AR: ...
+
+    @abstractmethod
+    async def _save(self, aggregate: T_AR) -> None: ...
+
+    @abstractmethod
+    async def _delete(self, aggregate: T_AR) -> None: ...
+
+    @abstractmethod
+    async def _save_all(self, aggregates: list[T_AR]) -> None: ...

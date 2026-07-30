@@ -278,8 +278,9 @@ class StmtToAst:
         )
 
     @staticmethod
-    def from_for(stmt: AstFor) -> ast.For:
-        return ast.For(
+    def from_for(stmt: AstFor) -> ast.For | ast.AsyncFor:
+        cls = ast.AsyncFor if stmt.is_async else ast.For
+        return cls(
             target=ExprToAst.to_node(stmt.target),
             iter=ExprToAst.to_node(stmt.iter),
             body=StmtToAst._to_body(stmt.body),

@@ -12,3 +12,4 @@ class AstFor(AstStmtBase):
     iter: AstExprBase
     body: list[AstStmtBase] = Field(default_factory=list)
     orelse: list[AstStmtBase] = Field(default_factory=list)
+    is_async: bool = False
