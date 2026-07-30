@@ -37,7 +37,9 @@ class ApplicationBlueprintFactory:
         dto_name = f"{pascal_name}Dto"
         cls_node = make_class(name=dto_name, bases=[make_generic_base("BaseModel")])
         return (
-            ModuleBlueprintBuilder(path=FqnFactory.create_dto_fqn(context, aggregate_name))
+            ModuleBlueprintBuilder(
+                path=FqnFactory.create_dto_fqn(context, aggregate_name)
+            )
             .with_symbols(["BaseModel"])
             .with_stmt(cls_node)
             .build()
@@ -81,7 +83,9 @@ class ApplicationBlueprintFactory:
         )
         return (
             ModuleBlueprintBuilder(
-                path=FqnFactory.create_update_entity_from_dto_mapper_fqn(context, aggregate_name)
+                path=FqnFactory.create_update_entity_from_dto_mapper_fqn(
+                    context, aggregate_name
+                )
             )
             .with_symbols([f"{pascal}Dto", str(pascal)])
             .with_stmt(func_node)
@@ -210,7 +214,16 @@ uow.{plural}.save({snake})
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_update_command_fqn(context, aggregate_name)
             )
-            .with_symbols(["Command", "dataclass", "UnitOfWork", id_type_name, dto_name, update_mapper_func])
+            .with_symbols(
+                [
+                    "Command",
+                    "dataclass",
+                    "UnitOfWork",
+                    id_type_name,
+                    dto_name,
+                    update_mapper_func,
+                ]
+            )
             .with_stmt(cmd_cls)
             .with_stmt(handler_cls)
             .build()
@@ -271,8 +284,10 @@ uow.{plural}.delete({snake})
         if not ContextRegistry.check_is_internal(context_name):
             raise ValueError(f"Context {context_name} is not an internal context")
 
-        builder = ModuleBlueprintBuilder(path=FqnFactory.create_unit_of_work_fqn(context_name))
-        builder.with_symbols(["BaseUnitOfWork", "ABC", "abstractmethod"])
+        builder = ModuleBlueprintBuilder(
+            path=FqnFactory.create_repo_provider_fqn(context_name)
+        )
+        builder.with_symbols(["RepoProvider", "ABC", "abstractmethod"])
 
         methods: list[AstStmtBase] = []
         for agg_name in aggregate_names:

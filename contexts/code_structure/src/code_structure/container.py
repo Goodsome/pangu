@@ -35,6 +35,7 @@ from code_structure.domain.events.class_moved import ClassMoved
 from code_structure.application.event_handlers.on_class_moved import OnClassMoved
 from code_structure.infrastructure.adapters.code_dom_scanner import CodeDomScanner
 from code_structure.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
+from foundation.persistence.sessions.neo4j_session import Neo4jSession
 from code_structure.domain.serivces.sync_module_symbols_service import (
     SyncModuleSymbolsService,
 )
@@ -49,12 +50,14 @@ class Container(DeclarativeContainer):
     )
 
     neo4j_symbol_query: Factory[Neo4jSymbolQuery] = Factory(
-        Neo4jSymbolQuery, 
+        Neo4jSymbolQuery,
         driver=db_driver,
     )
     unit_of_work: Factory[Neo4jUnitOfWork] = Factory(
         Neo4jUnitOfWork,
-        driver=db_driver,
+        session_factory=Factory(
+            lambda driver: lambda: Neo4jSession(driver=driver), driver=db_driver
+        ),
     )
     code_dom_scanner: Singleton[CodeDomScanner] = Singleton(
         CodeDomScanner,

@@ -38,7 +38,9 @@ class DeleteAggregateCommandHandler:
                 cmd.context, remaining_agg_names
             )
             name_module_map = self._build_name_module_map([uow_module])
-            self.code_dom_api.save_documents([uow_module.to_code_document(name_module_map)])
+            self.code_dom_api.save_documents(
+                [uow_module.to_code_document(name_module_map)]
+            )
         else:
             uow_module = self.factory.create_unit_of_work(cmd.context, [])
             self.code_dom_api.delete_documents([uow_module.to_physical_path()])

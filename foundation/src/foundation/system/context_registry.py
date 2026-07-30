@@ -1,8 +1,8 @@
-
 from pathlib import Path
 
 _CONTEXT_DIRS = ["apps", "contexts", "packages"]
 _EXCEPT_CONTEXTS = ["sys_input", "vision_stream"]
+
 
 class ContextRegistry:
     _contexts_cache: dict[str, Path] | None = None
@@ -11,11 +11,11 @@ class ContextRegistry:
     def get_all_contexts(cls) -> dict[str, Path]:
         if cls._contexts_cache is not None:
             return cls._contexts_cache
-            
+
         contexts: dict[str, Path] = {}
         if Path("foundation/src/foundation").exists():
             contexts["foundation"] = Path("foundation/src")
-            
+
         for base_dir in _CONTEXT_DIRS:
             base_path = Path(base_dir)
             if base_path.exists():

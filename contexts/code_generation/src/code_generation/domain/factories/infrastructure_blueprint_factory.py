@@ -148,7 +148,7 @@ self.session.merge(model)
             body=parse_body(save_code),
         )
 
-        save_all_code = f"""
+        save_all_code = """
 for aggregate in aggregates:
     self._save(aggregate)
 """
@@ -192,7 +192,9 @@ if model:
 
         return (
             ModuleBlueprintBuilder(
-                path=FqnFactory.create_sqlalchemy_repository_fqn(context, aggregate_name)
+                path=FqnFactory.create_sqlalchemy_repository_fqn(
+                    context, aggregate_name
+                )
             )
             .with_symbols(
                 [

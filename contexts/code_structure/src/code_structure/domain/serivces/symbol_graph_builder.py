@@ -71,7 +71,9 @@ class SymbolGraphBuilder:
         parsed_import: ParsedImport,
         file_module: FileModule,
     ) -> None:
-        is_internal = ContextRegistry.check_is_internal(parsed_import.target_fqn.context)
+        is_internal = ContextRegistry.check_is_internal(
+            parsed_import.target_fqn.context
+        )
         if not is_internal and not self.external_symbol_registry.contains_fqn(
             parsed_import.target_fqn
         ):

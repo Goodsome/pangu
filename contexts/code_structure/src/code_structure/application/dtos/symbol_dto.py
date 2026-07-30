@@ -1,4 +1,3 @@
-
 from foundation.common_types.fqns.fqn import ModuleFqn, SymbolFqn
 from pydantic import BaseModel
 

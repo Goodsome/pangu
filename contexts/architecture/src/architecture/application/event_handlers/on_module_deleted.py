@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.application.ports.repo_provider import RepoProvider
 from architecture.domain.events.file_module_deleted import FileModuleDeleted
 from architecture.domain.events.package_module_deleted import PackageModuleDeleted
 from architecture.domain.services.fqn_service import FqnService
@@ -9,7 +9,7 @@ from foundation.integration_events.module_deleted import ModuleDeletedIntegratio
 
 @dataclass
 class OnModuleDeleted:
-    def to_integration_from_file(self, event: FileModuleDeleted, uow: UnitOfWork):
+    def to_integration_from_file(self, event: FileModuleDeleted, uow: RepoProvider):
         fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(fqn, is_package=False)
         ie = ModuleDeletedIntegrationEvent(
@@ -17,9 +17,11 @@ class OnModuleDeleted:
             module_path=module_path,
             is_package=False,
         )
-        uow.save_outbox_message(ie)
+        uow.outbox.save(ie)
 
-    def to_integration_from_package(self, event: PackageModuleDeleted, uow: UnitOfWork):
+    def to_integration_from_package(
+        self, event: PackageModuleDeleted, uow: RepoProvider
+    ):
         fqn = ModuleFqn(event.module_fqn)
         module_path = FqnService.build_path(fqn, is_package=True)
         ie = ModuleDeletedIntegrationEvent(
@@ -27,4 +29,4 @@ class OnModuleDeleted:
             module_path=module_path,
             is_package=True,
         )
-        uow.save_outbox_message(ie)
+        uow.outbox.save(ie)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from architecture.application.ports.code_scanner import CodeScanner
 from architecture.application.ports.graph_admin import GraphAdmin
-from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.application.ports.repo_provider import RepoProvider
 from foundation.system.context_registry import ContextRegistry
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.package_module_registry import PackageModuleRegistry
@@ -18,7 +18,7 @@ class InitProjectGraphHandler:
     graph_admin: GraphAdmin
     code_scanner: CodeScanner
 
-    def execute(self, cmd: InitProjectGraphCommand, uow: UnitOfWork):
+    def execute(self, cmd: InitProjectGraphCommand, uow: RepoProvider):
         self.graph_admin.purge_data()
         parsed_modules: list[ParsedModule] = []
         for context_name, root_path in ContextRegistry.get_all_contexts().items():

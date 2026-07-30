@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from code_structure.application.ports.unit_of_work import UnitOfWork
+from code_structure.application.ports.repo_provider import RepoProvider
 from code_structure.domain.ports.symbol_scanner import SymbolScanner
 from code_structure.domain.serivces.class_symbol_registry import ClassRegistry
 from code_structure.domain.serivces.file_module_registry import FileModuleRegistry
@@ -19,7 +19,7 @@ class InitSymbolGraphCommand(Command): ...
 class InitSymbolGraphCommandHandler:
     symbol_scanner: SymbolScanner
 
-    def execute(self, cmd: InitSymbolGraphCommand, uow: UnitOfWork) -> None:
+    def execute(self, cmd: InitSymbolGraphCommand, uow: RepoProvider) -> None:
         _ = cmd
         uow.graph_admin.purge_data()
         file_modules = uow.file_modules.get_all_modules()

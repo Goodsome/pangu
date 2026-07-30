@@ -175,7 +175,9 @@ class SyncModuleSymbolsService:
     ) -> None:
         """检测并生成缺失的外部依赖符号"""
         for parsed_import in parsed_file_module.imports:
-            is_internal = ContextRegistry.check_is_internal(parsed_import.target_fqn.context)
+            is_internal = ContextRegistry.check_is_internal(
+                parsed_import.target_fqn.context
+            )
             if not is_internal:
                 if str(parsed_import.target_fqn) not in existing_external_fqns:
                     ext_symbol = ExternalSymbol(

@@ -5,7 +5,7 @@ from pathlib import Path
 from foundation.building_blocks.command import Command
 
 from architecture.application.ports.code_scanner import CodeScanner
-from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.application.ports.repo_provider import RepoProvider
 from foundation.system.context_registry import ContextRegistry
 from architecture.domain.services.file_module_registry import FileModuleRegistry
 from architecture.domain.services.fqn_service import FqnService
@@ -23,7 +23,7 @@ class SyncStagedModulesCommand(Command):
 class SyncStagedModulesHandler:
     code_scanner: CodeScanner
 
-    def execute(self, cmd: SyncStagedModulesCommand, uow: UnitOfWork) -> None:
+    def execute(self, cmd: SyncStagedModulesCommand, uow: RepoProvider) -> None:
         validated_paths = [
             path
             for path in cmd.file_path

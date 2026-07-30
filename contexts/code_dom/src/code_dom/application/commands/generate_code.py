@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from code_dom.application.ports.unit_of_work import UnitOfWork
+from code_dom.application.ports.repo_provider import RepoProvider
 from foundation.building_blocks.command import Command
 from code_dom.domain.aggregates.code_document import CodeDocument
 
@@ -10,6 +10,5 @@ class GenerateCodeCommand(Command):
 
 @dataclass
 class GenerateCodeHandler:
-
-    def execute(self, cmd: GenerateCodeCommand, uow: UnitOfWork):
+    def execute(self, cmd: GenerateCodeCommand, uow: RepoProvider):
         uow.documents.save_all(cmd.code_documents)

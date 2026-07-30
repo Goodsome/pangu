@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from code_structure.application.ports.unit_of_work import UnitOfWork
+from code_structure.application.ports.repo_provider import RepoProvider
 from foundation.building_blocks.command import Command
 from foundation.common_types.fqns.fqn import ClassFqn, ModuleFqn
 
@@ -20,7 +20,7 @@ class MoveClassCommandHandler:
     MoveClass 命令处理器
     """
 
-    def execute(self, cmd: MoveClassCommand, uow: UnitOfWork) -> None:
+    def execute(self, cmd: MoveClassCommand, uow: RepoProvider) -> None:
         """
         执行具体的命令逻辑：获取聚合根，在领域层中更新模块绑定并移动类，然后保存更新。
         """

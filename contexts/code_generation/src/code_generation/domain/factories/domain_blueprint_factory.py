@@ -31,7 +31,9 @@ class DomainBlueprintFactory:
         base_expr = make_generic_base("AggregateRoot", [id_type_name])
         cls_node = make_class(name=str(pascal_name), bases=[base_expr])
         return (
-            ModuleBlueprintBuilder(path=FqnFactory.create_aggregate_fqn(context, aggregate_name))
+            ModuleBlueprintBuilder(
+                path=FqnFactory.create_aggregate_fqn(context, aggregate_name)
+            )
             .with_symbols(["AggregateRoot", id_type_name])
             .with_stmt(cls_node)
             .build()
@@ -40,9 +42,13 @@ class DomainBlueprintFactory:
     def create_identity(self, context: str, aggregate_name: str) -> ModuleBlueprint:
         pascal_name = PascalString(aggregate_name)
         id_type_name = f"{pascal_name}Id"
-        cls_node = make_class(name=id_type_name, bases=[make_generic_base("UuidIdentifier")])
+        cls_node = make_class(
+            name=id_type_name, bases=[make_generic_base("UuidIdentifier")]
+        )
         return (
-            ModuleBlueprintBuilder(path=FqnFactory.create_identity_fqn(context, aggregate_name))
+            ModuleBlueprintBuilder(
+                path=FqnFactory.create_identity_fqn(context, aggregate_name)
+            )
             .with_symbols(["UuidIdentifier"])
             .with_stmt(cls_node)
             .build()
@@ -58,7 +64,9 @@ class DomainBlueprintFactory:
         abc_base = make_generic_base("ABC")
         cls_node = make_class(name=repo_name, bases=[repo_base, abc_base])
         return (
-            ModuleBlueprintBuilder(path=FqnFactory.create_repository_fqn(context, aggregate_name))
+            ModuleBlueprintBuilder(
+                path=FqnFactory.create_repository_fqn(context, aggregate_name)
+            )
             .with_symbols(["Repository", "ABC", str(pascal_name), id_name])
             .with_stmt(cls_node)
             .build()

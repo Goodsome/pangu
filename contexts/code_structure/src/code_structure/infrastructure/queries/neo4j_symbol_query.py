@@ -4,6 +4,7 @@ from code_structure.application.ports.symbol_query_service import SymbolQuery
 
 from neo4j import Driver, ManagedTransaction
 
+
 @dataclass
 class Neo4jSymbolQuery(SymbolQuery):
     driver: Driver
@@ -15,10 +16,11 @@ class Neo4jSymbolQuery(SymbolQuery):
         RETURN s
         """
         with self.driver.session() as session:
+
             def _read_tx(tx: ManagedTransaction) -> list[SymbolDto]:
                 result = tx.run(query, names=names)
                 return [SymbolDto(**record["s"]) for record in result]
-                
+
             return session.execute_read(_read_tx)
 
     def find_aggregates_by_context(self, context: str) -> list[SymbolDto]:
@@ -29,6 +31,7 @@ class Neo4jSymbolQuery(SymbolQuery):
         RETURN c
         """
         with self.driver.session() as session:
+
             def _read_tx(tx: ManagedTransaction) -> list[SymbolDto]:
                 result = tx.run(query, prefix=prefix)
                 return [SymbolDto(**record["c"]) for record in result]

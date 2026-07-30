@@ -4,11 +4,8 @@ from code_structure.application.dtos.symbol_dto import SymbolDto
 
 
 class SymbolQuery(ABC):
+    @abstractmethod
+    def find_by_names(self, names: list[str]) -> list[SymbolDto]: ...
 
     @abstractmethod
-    def find_by_names(self, names: list[str]) -> list[SymbolDto]:
-        ...
-
-    @abstractmethod
-    def find_aggregates_by_context(self, context: str) -> list[SymbolDto]:
-        ...
+    def find_aggregates_by_context(self, context: str) -> list[SymbolDto]: ...

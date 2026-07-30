@@ -9,7 +9,6 @@ from d4_client import MainHUD
 
 @dataclass
 class OpenSocial(BaseNode):
-
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         panel = blackboard.current_panel

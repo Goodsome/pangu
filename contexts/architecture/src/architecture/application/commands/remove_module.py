@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from architecture.application.ports.module_query_serivce import ModuleQueryService
-from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.application.ports.repo_provider import RepoProvider
 from architecture.domain.aggregates.package_module import PackageModule
 from architecture.domain.exceptions.module_in_use_exception import ModuleInUseException
 from foundation.common_types.fqns.fqn import ModuleFqn
@@ -15,7 +15,7 @@ class RemoveModuleCommand(Command):
 class RemoveModuleHandler:
     query_service: ModuleQueryService
 
-    def execute(self, cmd: RemoveModuleCommand, uow: UnitOfWork):
+    def execute(self, cmd: RemoveModuleCommand, uow: RepoProvider):
         module = uow.find_module_by_fqn(cmd.fqn)
         if module is None:
             return

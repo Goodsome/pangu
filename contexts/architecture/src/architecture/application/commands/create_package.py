@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.application.ports.repo_provider import RepoProvider
 from architecture.domain.aggregates.package_module import PackageModule
 from architecture.domain.exceptions.father_module_not_exists import (
     FatherModuleNotExists,
@@ -14,7 +14,7 @@ class CreatePackageCommand(Command):
 
 @dataclass
 class CreatePackageHandler:
-    def execute(self, cmd: CreatePackageCommand, uow: UnitOfWork):
+    def execute(self, cmd: CreatePackageCommand, uow: RepoProvider):
         fqn = cmd.fqn
         if not fqn.is_root:
             parent_fqn = fqn.parent_fqn

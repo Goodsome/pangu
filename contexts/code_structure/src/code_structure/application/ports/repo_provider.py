@@ -1,21 +1,20 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from typing import override
 from code_structure.application.ports.symbol_graph_admin import SymbolGraphAdmin
 from code_structure.domain.repositories.class_repository import ClassRepository
-from code_structure.domain.repositories.function_repository import FunctionRepository
-from code_structure.domain.repositories.file_module_repository import (
-    FileModuleRepository,
-)
-from code_structure.domain.repositories.variable_repository import VariableRepository
 from code_structure.domain.repositories.external_symbol_repository import (
     ExternalSymbolRepository,
 )
+from code_structure.domain.repositories.file_module_repository import (
+    FileModuleRepository,
+)
+from code_structure.domain.repositories.function_repository import FunctionRepository
+from code_structure.domain.repositories.variable_repository import VariableRepository
 from foundation.building_blocks.event import DomainEvent
-from foundation.persistence.ports.base_unit_of_work import BaseUnitOfWork
+from foundation.persistence.ports.outbox_repository import OutboxRepository
 
 
-class UnitOfWork(BaseUnitOfWork, ABC):
+class RepoProvider(ABC):
     @property
     @abstractmethod
     def file_modules(self) -> FileModuleRepository: ...
@@ -40,7 +39,10 @@ class UnitOfWork(BaseUnitOfWork, ABC):
     @abstractmethod
     def graph_admin(self) -> SymbolGraphAdmin: ...
 
-    @override
+    @property
+    @abstractmethod
+    def outbox(self) -> OutboxRepository: ...
+
     def collect_events(self) -> Iterator[DomainEvent]:
         yield from self.file_modules.collect_events()
         yield from self.classes.collect_events()

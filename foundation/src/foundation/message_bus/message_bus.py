@@ -1,28 +1,27 @@
 from collections.abc import Iterable
 import logging
 from dataclasses import dataclass
-from typing import Protocol
-from typing import assert_never
-from foundation.persistence.ports.base_unit_of_work import BaseUnitOfWork
+from typing import Protocol, assert_never
 from foundation.building_blocks.command import Command
 from foundation.building_blocks.event import Event
+from foundation.persistence.ports.session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
 
 class CommandHandler[T_Command: Command](Protocol):
-    def __call__(self, cmd: T_Command, uow: BaseUnitOfWork) -> None: ...
+    def __call__(self, cmd: T_Command, uow: SessionManager) -> None: ...
 
 
 class EventHanlder(Protocol):
     def __call__(
-        self, event: Event, uow: BaseUnitOfWork
+        self, event: Event, uow: SessionManager
     ) -> Iterable[Command] | None: ...
 
 
 @dataclass
 class BaseMessageBus:
-    uow: BaseUnitOfWork
+    uow: SessionManager
     command_handlers: dict[type[Command], CommandHandler[Command]]
     event_handlers: dict[type[Event], list[EventHanlder]]
 

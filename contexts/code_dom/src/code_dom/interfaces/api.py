@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from code_dom.application.commands.delete_code_documents import DeleteCodeDocumentsCommand
+from code_dom.application.commands.delete_code_documents import (
+    DeleteCodeDocumentsCommand,
+)
 from foundation.message_bus.message_bus import BaseMessageBus
 
 from code_dom.application.commands.generate_code import GenerateCodeCommand

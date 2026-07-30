@@ -1,4 +1,7 @@
-from code_dom.application.commands.delete_code_documents import DeleteCodeDocumentsCommand, DeleteCodeDocumentsCommandHandler
+from code_dom.application.commands.delete_code_documents import (
+    DeleteCodeDocumentsCommand,
+    DeleteCodeDocumentsCommandHandler,
+)
 from code_dom.interfaces.api import CodeDomApi
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
@@ -21,7 +24,10 @@ from foundation.message_bus.message_bus import BaseMessageBus
 from foundation.system.file_system_port import FileSystemPort
 from redis.asyncio import Redis
 
-from code_dom.application.commands.generate_code import GenerateCodeCommand, GenerateCodeHandler
+from code_dom.application.commands.generate_code import (
+    GenerateCodeCommand,
+    GenerateCodeHandler,
+)
 from code_dom.application.event_handlers.on_class_moved import OnClassMoved
 from code_dom.application.event_handlers.on_module_created import OnModuleCreated
 from code_dom.application.event_handlers.on_module_deleted import OnModuleDeleted

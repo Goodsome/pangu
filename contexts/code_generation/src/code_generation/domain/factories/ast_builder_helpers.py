@@ -16,7 +16,9 @@ from code_dom.infrastructure.mappers.ast_to_stmt import AstToStmt
 from foundation.common_types.snake_string import SnakeString
 
 
-def make_generic_base(base_name: str, generic_args: list[str] | None = None) -> AstExprBase:
+def make_generic_base(
+    base_name: str, generic_args: list[str] | None = None
+) -> AstExprBase:
     if not generic_args:
         return AstName(id=base_name)
     if len(generic_args) == 1:

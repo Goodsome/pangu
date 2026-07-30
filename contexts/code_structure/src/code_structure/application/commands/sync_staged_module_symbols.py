@@ -7,7 +7,7 @@ from foundation.building_blocks.command import Command
 from foundation.system.context_registry import ContextRegistry
 from foundation.common_types.fqns.fqn import ModuleFqn
 
-from code_structure.application.ports.unit_of_work import UnitOfWork
+from code_structure.application.ports.repo_provider import RepoProvider
 from code_structure.domain.ports.symbol_scanner import SymbolScanner
 from code_structure.domain.serivces.sync_module_symbols_service import (
     SyncModuleSymbolsService,
@@ -34,7 +34,7 @@ class SyncStagedModuleSymbolsCommandHandler:
     symbol_scanner: SymbolScanner
     sync_service: SyncModuleSymbolsService
 
-    def execute(self, cmd: SyncStagedModuleSymbolsCommand, uow: UnitOfWork) -> None:
+    def execute(self, cmd: SyncStagedModuleSymbolsCommand, uow: RepoProvider) -> None:
         # 1. 过滤并转换 staged 文件的路径到 module_fqns
         module_fqns = [
             FqnService.build_module_fqn(path)
@@ -61,7 +61,7 @@ class SyncStagedModuleSymbolsCommandHandler:
         self,
         module_fqn: ModuleFqn,
         parsed_file_module: ParsedFileModule,
-        uow: UnitOfWork,
+        uow: RepoProvider,
     ) -> None:
         """对单个模块及其关联的 Symbol 聚合执行增量比对、同步与持久化编排"""
         # 直接获取已有的 file_module
@@ -110,7 +110,7 @@ class SyncStagedModuleSymbolsCommandHandler:
         uow.file_modules.save(file_module)
 
     def _get_existing_external_fqns(
-        self, parsed_file_module: ParsedFileModule, uow: UnitOfWork
+        self, parsed_file_module: ParsedFileModule, uow: RepoProvider
     ) -> set[str]:
         fqns: set[str] = set()
         for imp in parsed_file_module.imports:

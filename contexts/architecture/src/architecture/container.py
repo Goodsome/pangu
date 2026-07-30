@@ -56,6 +56,7 @@ from architecture.infrastructure.repositories.neo4j_module_query_service import 
     Neo4jModuleQueryService,
 )
 from architecture.infrastructure.adapters.neo4j_unit_of_work import Neo4jUnitOfWork
+from foundation.persistence.sessions.neo4j_session import Neo4jSession
 
 
 class Container(DeclarativeContainer):
@@ -67,7 +68,9 @@ class Container(DeclarativeContainer):
     db_driver: Dependency[Driver] = Dependency(instance_of=Driver)
     unit_of_work: Factory[Neo4jUnitOfWork] = Factory(
         Neo4jUnitOfWork,
-        driver=db_driver,
+        session_factory=Factory(
+            lambda driver: lambda: Neo4jSession(driver=driver), driver=db_driver
+        ),
     )
     graph_admin: Singleton[Neo4jGraphAdmin] = Singleton(
         Neo4jGraphAdmin, driver=db_driver

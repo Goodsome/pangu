@@ -9,7 +9,6 @@ from d4_client import create_d4_client_by_index
 
 @dataclass
 class RunBlueGate:
-
     async def execute(self, window_index: int, cancel_event: asyncio.Event):
         d4_client = create_d4_client_by_index(window_index)
 

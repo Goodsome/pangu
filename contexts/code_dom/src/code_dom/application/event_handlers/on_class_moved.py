@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from code_dom.application.ports.unit_of_work import UnitOfWork
+from code_dom.application.ports.repo_provider import RepoProvider
 from foundation.integration_events.class_moved import ClassMovedIntegrationEvent
 
 logger = logging.getLogger(__name__)
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class OnClassMoved:
-    def execute_class_move(self, event: ClassMovedIntegrationEvent, uow: UnitOfWork):
+    def execute_class_move(self, event: ClassMovedIntegrationEvent, uow: RepoProvider):
         source_doc = uow.documents.get(event.current_module_path)
         target_doc = uow.documents.get(event.target_module_path)
 

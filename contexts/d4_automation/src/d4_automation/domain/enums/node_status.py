@@ -5,4 +5,3 @@ class NodeStatus(StrEnum):
     SUCCESS = "success"
     FAILURE = "failure"
     RUNNING = "running"
-    

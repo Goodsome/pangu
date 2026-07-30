@@ -29,9 +29,7 @@ class GenerateAggregateCommandHandler:
         all_agg_names = {agg.name for agg in existing_aggs}
         all_agg_names.add(str(PascalString(cmd.name)))
 
-        uow_module = self.factory.create_unit_of_work(
-            cmd.context, list(all_agg_names)
-        )
+        uow_module = self.factory.create_unit_of_work(cmd.context, list(all_agg_names))
 
         all_modules = [*agg_modules, uow_module]
         name_module_map = self._build_name_module_map(all_modules)

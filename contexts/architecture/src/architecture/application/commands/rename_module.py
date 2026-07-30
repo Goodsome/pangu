@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from architecture.application.ports.unit_of_work import UnitOfWork
+from architecture.application.ports.repo_provider import RepoProvider
 from architecture.domain.aggregates.package_module import PackageModule
 from foundation.common_types.fqns.fqn import ModuleFqn
 from foundation.building_blocks.command import Command
@@ -12,7 +12,7 @@ class RenameModuleCommand(Command):
 
 @dataclass
 class RenameModuleHandler:
-    def execute(self, cmd: RenameModuleCommand, uow: UnitOfWork):
+    def execute(self, cmd: RenameModuleCommand, uow: RepoProvider):
         module = uow.find_module_by_fqn(cmd.module_fqn)
         if module is None:
             raise ValueError(f"Module not found: {cmd.module_fqn}")

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from architecture.domain.services.fqn_service import FqnService
-from code_structure.application.ports.unit_of_work import UnitOfWork
+from code_structure.application.ports.repo_provider import RepoProvider
 from code_structure.domain.events.class_moved import ClassMoved
 from foundation.integration_events.class_moved import (
     ClassMovedIntegrationEvent,
@@ -11,7 +11,7 @@ from foundation.integration_events.class_moved import (
 
 @dataclass
 class OnClassMoved:
-    def to_integration(self, event: ClassMoved, uow: UnitOfWork) -> None:
+    def to_integration(self, event: ClassMoved, uow: RepoProvider) -> None:
         class_name = event.new_fqn.symbol
         current_module_path = FqnService.build_path(
             event.old_fqn.module_fqn, is_package=False
@@ -56,9 +56,9 @@ class OnClassMoved:
             current_module_deps=current_module_deps,
             target_module_deps=target_module_deps,
         )
-        uow.save_outbox_message(ie)
+        uow.outbox.save(ie)
 
-    def update_module_imports(self, event: ClassMoved, uow: UnitOfWork) -> None:
+    def update_module_imports(self, event: ClassMoved, uow: RepoProvider) -> None:
         source_module = uow.file_modules.get_by_fqn(event.old_fqn.module_fqn)
         target_module = uow.file_modules.get_by_fqn(event.new_fqn.module_fqn)
 

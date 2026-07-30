@@ -13,11 +13,13 @@ from foundation.persistence.orm.neo4j_base import (
     EdgeItem,
 )
 
+from foundation.persistence.ports.base_session import BaseSession
+
 TNode = TypeVar("TNode", bound=NodeModel)
 
 
 @dataclass
-class Neo4jSession:
+class Neo4jSession(BaseSession):
     """
     轻量级的 Neo4j Unit of Work / Session。
     负责对象状态收集、Cypher 批处理转换、事务管理以及基于元数据的动态查询。
