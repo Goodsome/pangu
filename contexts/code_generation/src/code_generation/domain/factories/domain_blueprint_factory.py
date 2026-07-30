@@ -13,12 +13,12 @@ from code_generation.domain.factories.module_blueprint_builder import (
 
 class DomainBlueprintFactory:
     def create_domain_modules(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> list[ModuleBlueprint]:
         return [
             self.create_identity(context, aggregate_name),
             self.create_aggregate(context, aggregate_name),
-            self.create_repository_port(context, aggregate_name),
+            self.create_repository_port(context, aggregate_name, is_async=is_async),
         ]
 
     def create_aggregate(
@@ -55,19 +55,21 @@ class DomainBlueprintFactory:
         )
 
     def create_repository_port(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> ModuleBlueprint:
         pascal_name = PascalString(aggregate_name)
         repo_name = f"{pascal_name}Repository"
         id_name = f"{pascal_name}Id"
-        repo_base = make_generic_base("Repository", [str(pascal_name), id_name])
+
+        base_class_name = "AsyncRepository" if is_async else "Repository"
+        repo_base = make_generic_base(base_class_name, [str(pascal_name), id_name])
         abc_base = make_generic_base("ABC")
         cls_node = make_class(name=repo_name, bases=[repo_base, abc_base])
         return (
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_repository_fqn(context, aggregate_name)
             )
-            .with_symbols(["Repository", "ABC", str(pascal_name), id_name])
+            .with_symbols([base_class_name, "ABC", str(pascal_name), id_name])
             .with_stmt(cls_node)
             .build()
         )

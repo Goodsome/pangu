@@ -14,6 +14,7 @@ from code_generation.domain.factories.module_blueprint_factory import (
 class GenerateAggregateCommand(Command):
     context: str
     name: str
+    is_async: bool = True
 
 
 @dataclass
@@ -23,14 +24,16 @@ class GenerateAggregateCommandHandler:
     code_structure_api: CodeStructureApi
 
     def execute(self, cmd: GenerateAggregateCommand) -> None:
-        agg_modules = self.factory.create_aggregate_modules(cmd.context, cmd.name)
+        agg_modules = self.factory.create_aggregate_modules(
+            cmd.context, cmd.name, is_async=cmd.is_async
+        )
 
         existing_aggs = self.code_structure_api.get_aggregates(cmd.context)
         all_agg_names = {agg.name for agg in existing_aggs}
         all_agg_names.add(str(PascalString(cmd.name)))
 
         uow_modules = self.factory.create_unit_of_work(
-            cmd.context, list(all_agg_names)
+            cmd.context, list(all_agg_names), is_async=cmd.is_async
         )
 
         all_modules = [*agg_modules, *uow_modules]

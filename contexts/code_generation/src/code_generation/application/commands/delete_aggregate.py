@@ -14,6 +14,7 @@ from code_generation.domain.factories.module_blueprint_factory import (
 class DeleteAggregateCommand(Command):
     context: str
     name: str
+    is_async: bool = True
 
 
 @dataclass
@@ -23,7 +24,9 @@ class DeleteAggregateCommandHandler:
     code_structure_api: CodeStructureApi
 
     def execute(self, cmd: DeleteAggregateCommand) -> None:
-        agg_modules = self.factory.create_aggregate_modules(cmd.context, cmd.name)
+        agg_modules = self.factory.create_aggregate_modules(
+            cmd.context, cmd.name, is_async=cmd.is_async
+        )
         paths_to_delete = [m.to_physical_path() for m in agg_modules]
         self.code_dom_api.delete_documents(paths_to_delete)
 
@@ -35,13 +38,19 @@ class DeleteAggregateCommandHandler:
 
         if remaining_agg_names:
             uow_modules = self.factory.create_unit_of_work(
-                cmd.context, remaining_agg_names
+                cmd.context, remaining_agg_names, is_async=cmd.is_async
             )
             name_module_map = self._build_name_module_map(uow_modules)
-            self.code_dom_api.save_documents([m.to_code_document(name_module_map) for m in uow_modules])
+            self.code_dom_api.save_documents(
+                [m.to_code_document(name_module_map) for m in uow_modules]
+            )
         else:
-            uow_modules = self.factory.create_unit_of_work(cmd.context, [])
-            self.code_dom_api.delete_documents([m.to_physical_path() for m in uow_modules])
+            uow_modules = self.factory.create_unit_of_work(
+                cmd.context, [], is_async=cmd.is_async
+            )
+            self.code_dom_api.delete_documents(
+                [m.to_physical_path() for m in uow_modules]
+            )
 
     def _build_name_module_map(self, modules: list[ModuleBlueprint]) -> dict[str, str]:
         name_module_map: dict[str, str] = {}

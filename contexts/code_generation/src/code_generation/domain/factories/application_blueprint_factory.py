@@ -20,16 +20,16 @@ from code_generation.domain.factories.module_blueprint_builder import (
 
 class ApplicationBlueprintFactory:
     def create_application_modules(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> list[ModuleBlueprint]:
         return [
             self.create_dto(context, aggregate_name),
             self.create_dto_to_entity_mapper(context, aggregate_name),
             self.create_update_entity_from_dto_mapper(context, aggregate_name),
             self.create_entity_to_dto_mapper(context, aggregate_name),
-            self.create_create_command(context, aggregate_name),
-            self.create_update_command(context, aggregate_name),
-            self.create_delete_command(context, aggregate_name),
+            self.create_create_command(context, aggregate_name, is_async=is_async),
+            self.create_update_command(context, aggregate_name, is_async=is_async),
+            self.create_delete_command(context, aggregate_name, is_async=is_async),
         ]
 
     def create_dto(self, context: str, aggregate_name: str) -> ModuleBlueprint:
@@ -37,7 +37,9 @@ class ApplicationBlueprintFactory:
         dto_name = f"{pascal_name}Dto"
         cls_node = make_class(name=dto_name, bases=[make_generic_base("BaseModel")])
         return (
-            ModuleBlueprintBuilder(path=FqnFactory.create_dto_fqn(context, aggregate_name))
+            ModuleBlueprintBuilder(
+                path=FqnFactory.create_dto_fqn(context, aggregate_name)
+            )
             .with_symbols(["BaseModel"])
             .with_stmt(cls_node)
             .build()
@@ -81,7 +83,9 @@ class ApplicationBlueprintFactory:
         )
         return (
             ModuleBlueprintBuilder(
-                path=FqnFactory.create_update_entity_from_dto_mapper_fqn(context, aggregate_name)
+                path=FqnFactory.create_update_entity_from_dto_mapper_fqn(
+                    context, aggregate_name
+                )
             )
             .with_symbols([f"{pascal}Dto", str(pascal)])
             .with_stmt(func_node)
@@ -112,7 +116,7 @@ class ApplicationBlueprintFactory:
         )
 
     def create_create_command(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> ModuleBlueprint:
         pascal = PascalString(aggregate_name)
         snake = SnakeString(aggregate_name)
@@ -135,14 +139,20 @@ class ApplicationBlueprintFactory:
             ],
         )
 
+        add_call = (
+            f"await uow.{plural}.add({snake})"
+            if is_async
+            else f"uow.{plural}.add({snake})"
+        )
         handler_code = f"""
 {snake} = {mapper_func}(cmd.dto)
-uow.{plural}.add({snake})
+{add_call}
 """
         exec_func = make_func(
             name="execute",
             params=[("self", None), ("cmd", cmd_name), ("uow", "RepoProvider")],
             returns="None",
+            is_async=is_async,
             body=parse_body(handler_code),
         )
         handler_cls = make_class(
@@ -154,14 +164,16 @@ uow.{plural}.add({snake})
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_create_command_fqn(context, aggregate_name)
             )
-            .with_symbols(["Command", "dataclass", "RepoProvider", dto_name, mapper_func])
+            .with_symbols(
+                ["Command", "dataclass", "RepoProvider", dto_name, mapper_func]
+            )
             .with_stmt(cmd_cls)
             .with_stmt(handler_cls)
             .build()
         )
 
     def create_update_command(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> ModuleBlueprint:
         pascal = PascalString(aggregate_name)
         snake = SnakeString(aggregate_name)
@@ -190,15 +202,26 @@ uow.{plural}.add({snake})
             ],
         )
 
+        get_call = (
+            f"await uow.{plural}.get(cmd.id)"
+            if is_async
+            else f"uow.{plural}.get(cmd.id)"
+        )
+        save_call = (
+            f"await uow.{plural}.save({snake})"
+            if is_async
+            else f"uow.{plural}.save({snake})"
+        )
         handler_code = f"""
-{snake} = uow.{plural}.get(cmd.id)
+{snake} = {get_call}
 {update_mapper_func}({snake}, cmd.dto)
-uow.{plural}.save({snake})
+{save_call}
 """
         exec_func = make_func(
             name="execute",
             params=[("self", None), ("cmd", cmd_name), ("uow", "RepoProvider")],
             returns="None",
+            is_async=is_async,
             body=parse_body(handler_code),
         )
         handler_cls = make_class(
@@ -210,14 +233,23 @@ uow.{plural}.save({snake})
             ModuleBlueprintBuilder(
                 path=FqnFactory.create_update_command_fqn(context, aggregate_name)
             )
-            .with_symbols(["Command", "dataclass", "RepoProvider", id_type_name, dto_name, update_mapper_func])
+            .with_symbols(
+                [
+                    "Command",
+                    "dataclass",
+                    "RepoProvider",
+                    id_type_name,
+                    dto_name,
+                    update_mapper_func,
+                ]
+            )
             .with_stmt(cmd_cls)
             .with_stmt(handler_cls)
             .build()
         )
 
     def create_delete_command(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> ModuleBlueprint:
         pascal = PascalString(aggregate_name)
         snake = SnakeString(aggregate_name)
@@ -239,14 +271,25 @@ uow.{plural}.save({snake})
             ],
         )
 
+        get_call = (
+            f"await uow.{plural}.get(cmd.id)"
+            if is_async
+            else f"uow.{plural}.get(cmd.id)"
+        )
+        delete_call = (
+            f"await uow.{plural}.delete({snake})"
+            if is_async
+            else f"uow.{plural}.delete({snake})"
+        )
         handler_code = f"""
-{snake} = uow.{plural}.get(cmd.id)
-uow.{plural}.delete({snake})
+{snake} = {get_call}
+{delete_call}
 """
         exec_func = make_func(
             name="execute",
             params=[("self", None), ("cmd", cmd_name), ("uow", "RepoProvider")],
             returns="None",
+            is_async=is_async,
             body=parse_body(handler_code),
         )
         handler_cls = make_class(
@@ -265,13 +308,15 @@ uow.{plural}.delete({snake})
         )
 
     def create_repo_provider(
-        self, context: str, aggregate_names: list[str]
+        self, context: str, aggregate_names: list[str], is_async: bool = True
     ) -> ModuleBlueprint:
         context_name = str(SnakeString(context))
         if not ContextRegistry.check_is_internal(context_name):
             raise ValueError(f"Context {context_name} is not an internal context")
 
-        builder = ModuleBlueprintBuilder(path=FqnFactory.create_repo_provider_fqn(context_name))
+        builder = ModuleBlueprintBuilder(
+            path=FqnFactory.create_repo_provider_fqn(context_name)
+        )
         builder.with_symbols(["ABC", "abstractmethod"])
 
         methods: list[AstStmtBase] = []
@@ -295,6 +340,6 @@ uow.{plural}.delete({snake})
         return builder.with_stmt(provider_cls).build()
 
     def create_unit_of_work(
-        self, context: str, aggregate_names: list[str]
+        self, context: str, aggregate_names: list[str], is_async: bool = True
     ) -> ModuleBlueprint:
-        return self.create_repo_provider(context, aggregate_names)
+        return self.create_repo_provider(context, aggregate_names, is_async=is_async)

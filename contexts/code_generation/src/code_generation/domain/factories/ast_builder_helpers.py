@@ -49,6 +49,7 @@ def make_func(
     returns: str | None = None,
     body: list[AstStmtBase] | None = None,
     decorators: list[str] | None = None,
+    is_async: bool = False,
 ) -> AstFunctionDef:
     arguments: list[AstAssign | AstAnnAssign] = []
     for param_name, annotation in params or []:
@@ -69,6 +70,7 @@ def make_func(
             )
     return AstFunctionDef(
         lineno=0,
+        is_async=is_async,
         name=name,
         arguments=arguments,
         decorator_list=[AstName(id=d) for d in (decorators or [])],

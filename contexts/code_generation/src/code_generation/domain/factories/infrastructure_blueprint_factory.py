@@ -18,12 +18,14 @@ from code_generation.domain.factories.module_blueprint_builder import (
 
 class InfrastructureBlueprintFactory:
     def create_infrastructure_modules(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> list[ModuleBlueprint]:
         return [
             self.create_orm_model(context, aggregate_name),
             self.create_orm_mapper(context, aggregate_name),
-            self.create_sqlalchemy_repository(context, aggregate_name),
+            self.create_sqlalchemy_repository(
+                context, aggregate_name, is_async=is_async
+            ),
         ]
 
     def create_orm_model(self, context: str, aggregate_name: str) -> ModuleBlueprint:
@@ -84,7 +86,7 @@ class InfrastructureBlueprintFactory:
         )
 
     def create_sqlalchemy_repository(
-        self, context: str, aggregate_name: str
+        self, context: str, aggregate_name: str, is_async: bool = True
     ) -> ModuleBlueprint:
         pascal = PascalString(aggregate_name)
         snake = SnakeString(aggregate_name)
@@ -96,7 +98,8 @@ class InfrastructureBlueprintFactory:
         m2e_func = f"{snake}_model_to_entity"
         e2m_func = f"{snake}_entity_to_model"
 
-        session_field = parse_body("session: SqlAlchemySession")[0]
+        session_type = "AsyncSqlAlchemySession" if is_async else "SqlAlchemySession"
+        session_field = parse_body(f"session: {session_type}")[0]
 
         add_code = f"""
 model = {e2m_func}(aggregate)
@@ -107,6 +110,7 @@ self.session.add(model)
             params=[("self", None), ("aggregate", str(pascal))],
             returns="None",
             decorators=["override"],
+            is_async=is_async,
             body=parse_body(add_code),
         )
 
@@ -119,11 +123,17 @@ self.session.add_all(models)
             params=[("self", None), ("aggregates", f"list[{pascal}]")],
             returns="None",
             decorators=["override"],
+            is_async=is_async,
             body=parse_body(add_all_code),
         )
 
+        get_call = (
+            f"await self.session.get({model_name}, id.value)"
+            if is_async
+            else f"self.session.get({model_name}, id.value)"
+        )
         get_code = f"""
-model = self.session.get({model_name}, id.value)
+model = {get_call}
 if not model:
     raise ValueError(f"{pascal} {{id}} not found")
 return {m2e_func}(model)
@@ -133,43 +143,65 @@ return {m2e_func}(model)
             params=[("self", None), ("id", id_name)],
             returns=str(pascal),
             decorators=["override"],
+            is_async=is_async,
             body=parse_body(get_code),
         )
 
+        merge_call = (
+            "await self.session.merge(model)"
+            if is_async
+            else "self.session.merge(model)"
+        )
         save_code = f"""
 model = {e2m_func}(aggregate)
-self.session.merge(model)
+{merge_call}
 """
         save_func = make_func(
             name="_save",
             params=[("self", None), ("aggregate", str(pascal))],
             returns="None",
             decorators=["override"],
+            is_async=is_async,
             body=parse_body(save_code),
         )
 
+        save_all_call = (
+            "await self._save(aggregate)" if is_async else "self._save(aggregate)"
+        )
         save_all_code = f"""
 for aggregate in aggregates:
-    self._save(aggregate)
+    {save_all_call}
 """
         save_all_func = make_func(
             name="_save_all",
             params=[("self", None), ("aggregates", f"list[{pascal}]")],
             returns="None",
             decorators=["override"],
+            is_async=is_async,
             body=parse_body(save_all_code),
         )
 
+        delete_get_call = (
+            f"await self.session.get({model_name}, aggregate.id.value)"
+            if is_async
+            else f"self.session.get({model_name}, aggregate.id.value)"
+        )
+        delete_exec_call = (
+            "await self.session.delete(model)"
+            if is_async
+            else "self.session.delete(model)"
+        )
         delete_code = f"""
-model = self.session.get({model_name}, aggregate.id.value)
+model = {delete_get_call}
 if model:
-    self.session.delete(model)
+    {delete_exec_call}
 """
         delete_func = make_func(
             name="_delete",
             params=[("self", None), ("aggregate", str(pascal))],
             returns="None",
             decorators=["override"],
+            is_async=is_async,
             body=parse_body(delete_code),
         )
 
@@ -192,13 +224,15 @@ if model:
 
         return (
             ModuleBlueprintBuilder(
-                path=FqnFactory.create_sqlalchemy_repository_fqn(context, aggregate_name)
+                path=FqnFactory.create_sqlalchemy_repository_fqn(
+                    context, aggregate_name
+                )
             )
             .with_symbols(
                 [
                     "dataclass",
                     "override",
-                    "SqlAlchemySession",
+                    session_type,
                     repo_interface_name,
                     model_name,
                     str(pascal),
@@ -212,14 +246,17 @@ if model:
         )
 
     def create_sql_alchemy_unit_of_work(
-        self, context: str, aggregate_names: list[str]
+        self, context: str, aggregate_names: list[str], is_async: bool = True
     ) -> ModuleBlueprint:
         context_name = str(SnakeString(context))
         builder = ModuleBlueprintBuilder(
             path=FqnFactory.create_sql_alchemy_unit_of_work_fqn(context_name)
         )
+        mgr_class = "AsyncSessionManager" if is_async else "SessionManager"
+        session_type = "AsyncSqlAlchemySession" if is_async else "SqlAlchemySession"
+
         builder.with_symbols(
-            ["dataclass", "override", "SessionManager", "SqlAlchemySession", "RepoProvider"]
+            ["dataclass", "override", mgr_class, session_type, "RepoProvider"]
         )
 
         methods: list[AstStmtBase] = []
@@ -241,7 +278,7 @@ if model:
             builder.with_symbol(repo_interface)
             builder.with_symbol(sql_repo_class)
 
-        base_session_mgr = make_generic_base("SessionManager", ["SqlAlchemySession"])
+        base_session_mgr = make_generic_base(mgr_class, [session_type])
         base_repo_provider = make_generic_base("RepoProvider")
 
         uow_cls = make_class(

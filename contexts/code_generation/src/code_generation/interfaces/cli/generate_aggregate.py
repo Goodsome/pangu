@@ -43,11 +43,22 @@ def generate_aggregate(
             help="Remove/delete aggregate code files instead of generating (删除生成的聚合代码文件)",
         ),
     ] = False,
+    is_async: Annotated[
+        bool,
+        Option(
+            "--async/--sync",
+            help="Generate async or sync code (生成异步或同步代码，默认为异步)",
+        ),
+    ] = True,
 ) -> None:
     """Generate or remove aggregate and identity classes (生成或删除聚合和标识类)"""
     if rm:
-        delete_cmd = DeleteAggregateCommand(context=context, name=name)
+        delete_cmd = DeleteAggregateCommand(
+            context=context, name=name, is_async=is_async
+        )
         _delete_aggregate(delete_cmd)
     else:
-        gen_cmd = GenerateAggregateCommand(context=context, name=name)
+        gen_cmd = GenerateAggregateCommand(
+            context=context, name=name, is_async=is_async
+        )
         _generate_aggregate(gen_cmd)
