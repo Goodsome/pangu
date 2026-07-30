@@ -1,15 +1,16 @@
-from dataclasses import dataclass
-from typing import override
-
+from foundation.persistence.sessions.sqlalchemy_session import AsyncSqlAlchemySession
 from d4_leaderboard.domain.aggregates.entry import Entry
 from d4_leaderboard.domain.identities.entry_id import EntryId
+from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.domain.repositories.entry_repository import EntryRepository
+from dataclasses import dataclass
 from d4_leaderboard.infrastructure.persistence.mappers.entry_mapper import (
     entry_entity_to_model,
+)
+from d4_leaderboard.infrastructure.persistence.mappers.entry_mapper import (
     entry_model_to_entity,
 )
-from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
-from foundation.persistence.sessions.sqlalchemy_session import AsyncSqlAlchemySession
+from typing import override
 
 
 @dataclass
@@ -36,7 +37,7 @@ class SqlAlchemyEntryRepository(EntryRepository):
     @override
     async def _save(self, aggregate: Entry) -> None:
         model = entry_entity_to_model(aggregate)
-        _ = await self.session.merge(model)
+        await self.session.merge(model)
 
     @override
     async def _save_all(self, aggregates: list[Entry]) -> None:
