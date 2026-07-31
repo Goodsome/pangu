@@ -350,6 +350,12 @@ requires-dist = [
 name = "d4-leaderboard"
 version = "0.1.0"
 source = { editable = "contexts/d4_leaderboard" }
+dependencies = [
+    { name = "alembic" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "alembic", specifier = ">=1.18.4" }]
 
 [[package]]
 name = "d4-robot"

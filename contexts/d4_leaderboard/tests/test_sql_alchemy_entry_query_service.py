@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 async def test_get_entry_success() -> None:
     test_uuid = uuid.uuid4()
     entry_id = EntryId.reconstitute(test_uuid)
-    mock_model = EntryModel(id=test_uuid)
+    mock_model = EntryModel(id=test_uuid, name="test")
 
     mock_session = AsyncMock(spec=AsyncSession)
     get_mock = cast(AsyncMock, mock_session.get)
@@ -67,8 +67,8 @@ async def test_find_by_query() -> None:
 
     test_uuid_1 = uuid.uuid4()
     test_uuid_2 = uuid.uuid4()
-    mock_model1 = EntryModel(id=test_uuid_1)
-    mock_model2 = EntryModel(id=test_uuid_2)
+    mock_model1 = EntryModel(id=test_uuid_1, name="test1")
+    mock_model2 = EntryModel(id=test_uuid_2, name="test2")
 
     mock_items_result = MagicMock()
     mock_items_result.scalars.return_value.all.return_value = [

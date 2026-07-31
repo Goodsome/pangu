@@ -13,11 +13,11 @@ class D4LeaderboardApi:
     message_bus: AsyncBaseMessageBus
 
     async def create_entry(self, dto: EntryDto) -> None:
-        cmd = CreateEntryCommand(dto=dto)
+        cmd = CreateEntryCommand(name=dto.name)
         await self.message_bus.handle(cmd)
 
     async def update_entry(self, entry_id: EntryId, dto: EntryDto) -> None:
-        cmd = UpdateEntryCommand(id=entry_id, dto=dto)
+        cmd = UpdateEntryCommand(id=entry_id, name=dto.name)
         await self.message_bus.handle(cmd)
 
     async def delete_entry(self, entry_id: EntryId) -> None:

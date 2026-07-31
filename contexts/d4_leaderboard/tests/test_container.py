@@ -60,11 +60,11 @@ async def test_async_api_execution(monkeypatch: pytest.MonkeyPatch) -> None:
     container = Container(session_factory=mock_session_factory)
     api = container.api()
 
-    entry_dto = EntryDto()
+    entry_dto = EntryDto(id=uuid.uuid4(), name="test")
     await api.create_entry(entry_dto)
 
     entry_id = EntryId.create()
-    mock_model = EntryModel(id=uuid.uuid4())
+    mock_model = EntryModel(id=uuid.uuid4(), name="test")
     get_mock = cast(AsyncMock, mock_session.get)
     get_mock.return_value = mock_model
 
