@@ -31,6 +31,9 @@ from d4_leaderboard.application.commands.update_entry import (
     UpdateEntryCommandHandler,
 )
 from d4_leaderboard.config import Settings
+from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_entry_query_service import (
+    SqlAlchemyEntryQueryService,
+)
 from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_unit_of_work import (
     SqlAlchemyUnitOfWork,
 )
@@ -68,6 +71,11 @@ class Container(DeclarativeContainer):
     unit_of_work: Factory[SqlAlchemyUnitOfWork] = Factory(
         SqlAlchemyUnitOfWork,
         session_factory=session_factory,
+    )
+
+    entry_query_service: Factory[SqlAlchemyEntryQueryService] = Factory(
+        SqlAlchemyEntryQueryService,
+        session_factory=session_maker,
     )
 
     create_entry_handler: Factory[CreateEntryCommandHandler] = Factory(

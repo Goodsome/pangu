@@ -7,3 +7,4 @@ from sqlalchemy.orm import mapped_column
 class EntryModel(BaseORM):
     __tablename__: str = "entries"
     id: Mapped[UUID] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column()

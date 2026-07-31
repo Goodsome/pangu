@@ -1,21 +1,18 @@
 from foundation.building_blocks.command import Command
-from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.application.ports.repo_provider import RepoProvider
 from dataclasses import dataclass
-from d4_leaderboard.application.mappers.update_entry_from_dto import (
-    update_entry_from_dto,
-)
 
 
 class UpdateEntryCommand(Command):
     id: EntryId
-    dto: EntryDto
+    name: str | None = None
 
 
 @dataclass
 class UpdateEntryCommandHandler:
     async def execute(self, cmd: UpdateEntryCommand, uow: RepoProvider) -> None:
         entry = await uow.entries.get(cmd.id)
-        update_entry_from_dto(entry, cmd.dto)
+        if cmd.name is not None:
+            entry.name = cmd.name
         await uow.entries.save(entry)

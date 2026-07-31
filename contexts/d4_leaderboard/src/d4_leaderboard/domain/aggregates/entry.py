@@ -3,4 +3,4 @@ from d4_leaderboard.domain.identities.entry_id import EntryId
 
 
 class Entry(AggregateRoot[EntryId]):
-    pass
+    name: str
