@@ -46,7 +46,9 @@ def test_container_settings_missing_env_raises_validation_error(
 ) -> None:
     monkeypatch.delenv("D4_LEADERBOARD_DB_URL", raising=False)
     with pytest.raises(ValidationError):
-        _ = Settings()  # pyright: ignore[reportCallIssue]
+        _ = Settings(_env_file=())  # pyright: ignore[reportCallIssue]
+
+
 
 
 @pytest.mark.anyio
