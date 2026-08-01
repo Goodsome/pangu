@@ -1,21 +1,24 @@
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 
-from d4_leaderboard.domain.aggregates.entry import Entry
 from d4_leaderboard.domain.enums.equipment_base_type import EquipmentBaseType
 from d4_leaderboard.domain.enums.equipment_rarity import EquipmentRarity
 from d4_leaderboard.domain.enums.equipment_slot import EquipmentSlot
-from d4_leaderboard.domain.enums.player_class import PlayerClass
 from d4_leaderboard.domain.enums.socket_kind import SocketKind
-from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.domain.value_objects.affix import Affix
 from d4_leaderboard.domain.value_objects.aspect_power import AspectPower
 from d4_leaderboard.domain.value_objects.equipment import Equipment
+from d4_leaderboard.domain.value_objects.paragon import (
+    ParagonBoard,
+    ParagonGlyph,
+)
+from d4_leaderboard.domain.value_objects.skill import Skill, SkillModifier
 from d4_leaderboard.domain.value_objects.socket import Socket
-from d4_leaderboard.infrastructure.persistence.mappers.entry_mapper import (
-    entry_entity_to_model,
-    entry_model_to_entity,
+from d4_leaderboard.domain.value_objects.talisman import (
+    TalismanAffix,
+    TalismanCharm,
+    TalismanSeal,
+    TalismanSnapshot,
 )
 from foundation.building_blocks.value_object import ValueObject
 
@@ -26,6 +29,13 @@ def test_value_object_inheritance():
     assert issubclass(Affix, ValueObject)
     assert issubclass(Socket, ValueObject)
     assert issubclass(AspectPower, ValueObject)
+    assert issubclass(Skill, ValueObject)
+    assert issubclass(SkillModifier, ValueObject)
+    assert issubclass(ParagonBoard, ValueObject)
+    assert issubclass(ParagonGlyph, ValueObject)
+    assert issubclass(TalismanSnapshot, ValueObject)
+    assert issubclass(TalismanSeal, ValueObject)
+    assert issubclass(TalismanCharm, ValueObject)
 
 
 def test_equipment_and_affix_instantiation():
@@ -62,76 +72,103 @@ def test_equipment_and_affix_instantiation():
     assert eq.display_type == "Ancestral Mythic Unique Helm"
 
 
-def test_parse_one_run_json_equipments():
-    """从 one_run.json 实际数据解析装备快照"""
+def test_parse_one_run_json_simplified_snapshots():
+    """验证从 one_run.json 解析最新精简后的 Skills(含3个选项), ParagonBoards 及 Talismans 快照"""
     json_path = Path(__file__).parent.parent / "data" / "one_run.json"
     with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    raw_equipments = data.get("equipment", [])
-    equipments = []
-    for item in raw_equipments:
-        eq = Equipment(
-            item_id=item["item_id"],
-            codename=item["codename"],
-            slot=item["slot"],
-            base_type=item["base_type"],
-            rarity=item["rarity"],
-            item_power=item["item_power"],
-            is_ancestral=item.get("is_ancestral", False),
-            statlines=[
-                Affix(
-                    affix_id=s.get("affix_id"),
-                    codename=s.get("codename", ""),
-                    stat_type=s.get("stat_type", ""),
-                    is_greater=s.get("is_greater", False),
-                    is_temper=s.get("is_temper", False),
-                    is_rerolled=s.get("is_rerolled", False),
-                    is_transfigured=s.get("is_transfigured", False),
-                    is_masterwork_crit=s.get("is_masterwork_crit", False),
+    # 1. 解析带选项分支的技能 skillsSNO
+    raw_skills_sno = data.get("skillsSNO", [])
+    skills = [
+        Skill(
+            sno=item["sno"],
+            codename=item["id"],
+            name=item["name"],
+            modifiers=[
+                SkillModifier(
+                    name=mod["name"],
+                    is_main=mod.get("is_main", False),
+                    bit=mod.get("bit"),
                 )
-                for s in item.get("statlines", [])
+                for mod in item.get("modifiers", [])
             ],
-            sockets=[
-                Socket(
-                    id=sk["id"],
-                    kind=sk["kind"],
-                    codename=sk["codename"],
+        )
+        for item in raw_skills_sno
+    ]
+
+    # 2. 解析精简后的巅峰盘 ParagonBoard (包含嵌入的雕文)
+    raw_paragon = data.get("paragon", {})
+    paragon_boards = [
+        ParagonBoard(
+            sno=b["sno"],
+            codename=b["codename"],
+            legendary_node=b.get("legendary_node"),
+            glyph=(
+                ParagonGlyph(
+                    sno=b["glyph"]["sno"],
+                    name=b["glyph"]["name"],
                 )
-                for sk in item.get("sockets", [])
-            ],
-            aspect_power=(
-                AspectPower(
-                    id=item["aspect_power"]["id"],
-                    codename=item["aspect_power"]["codename"],
-                    category=item["aspect_power"].get("category", 0),
-                    is_transfigured=item["aspect_power"].get("is_transfigured", False),
-                )
-                if item.get("aspect_power")
+                if b.get("glyph")
                 else None
             ),
         )
-        equipments.append(eq)
+        for b in raw_paragon.get("boards", [])
+    ]
 
-    entry = Entry(
-        id=EntryId.create(),
-        player_name="rob#2628",
-        player_class=PlayerClass.BARBARIAN,
-        tier=148,
-        duration_ms=547000,
-        occurred_at=datetime.now(timezone.utc),
-        equipment=equipments,
+    # 3. 解析精简后的护符系统
+    raw_talismans = data.get("talismans", {})
+    raw_seal = raw_talismans.get("seal")
+    talisman_snapshot = TalismanSnapshot(
+        seal=(
+            TalismanSeal(
+                codename=raw_seal["codename"],
+                name=raw_seal["name"],
+                rarity=raw_seal["rarity"],
+                statlines=[
+                    TalismanAffix(
+                        codename=s["codename"],
+                        stat_type=s["stat_type"],
+                        is_greater=s.get("is_greater", False),
+                        is_mythic=s.get("is_mythic", False),
+                        is_set_bonus=s.get("is_set_bonus", False),
+                    )
+                    for s in raw_seal.get("statlines", [])
+                ],
+            )
+            if raw_seal
+            else None
+        ),
+        charms=[
+            TalismanCharm(
+                codename=c["codename"],
+                name=c["name"],
+                rarity=c["rarity"],
+                set_name=c["set"]["name"] if c.get("set") else None,
+                statlines=[
+                    TalismanAffix(
+                        codename=s["codename"],
+                        stat_type=s["stat_type"],
+                        is_greater=s.get("is_greater", False),
+                    )
+                    for s in c.get("statlines", [])
+                ],
+            )
+            for c in raw_talismans.get("charms", [])
+        ],
+        sets=raw_talismans.get("sets", []),
     )
 
-    assert len(entry.equipment) == len(raw_equipments)
-    assert entry.equipment[0].slot == EquipmentSlot.HELM
+    # 断言结构
+    assert len(skills) == 6
+    assert skills[0].codename == "wrathoftheberserker"
+    assert len(skills[0].modifiers) == 3  # 包含了3个强化选项分支！
+    assert skills[0].modifiers[0].name == "Full Throttle"
 
-    # 测试 ORM 模型映射转换
-    model = entry_entity_to_model(entry)
-    assert len(model.equipments) == len(raw_equipments)
-    assert model.equipments[0].slot == EquipmentSlot.HELM
+    assert len(paragon_boards) == 5
+    assert paragon_boards[0].glyph.name == "Brawl"
+    assert paragon_boards[1].legendary_node == "Carnage"
 
-    # 还原为实体
-    reconstituted = entry_model_to_entity(model)
-    assert len(reconstituted.equipment) == len(raw_equipments)
-    assert reconstituted.equipment[0].slot == EquipmentSlot.HELM
+    assert talisman_snapshot.seal.name == "Seal of the Diamond Mind"
+    assert len(talisman_snapshot.charms) == 6
+    assert talisman_snapshot.charms[0].set_name == "Berserker's Crucible"

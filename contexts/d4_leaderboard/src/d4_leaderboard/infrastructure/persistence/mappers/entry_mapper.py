@@ -10,7 +10,10 @@ from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.domain.value_objects.affix import Affix
 from d4_leaderboard.domain.value_objects.aspect_power import AspectPower
 from d4_leaderboard.domain.value_objects.equipment import Equipment
+from d4_leaderboard.domain.value_objects.paragon import ParagonBoard
+from d4_leaderboard.domain.value_objects.skill import Skill
 from d4_leaderboard.domain.value_objects.socket import Socket
+from d4_leaderboard.domain.value_objects.talisman import TalismanSnapshot
 from d4_leaderboard.infrastructure.persistence.models.entry_equipment_model import (
     EntryEquipmentModel,
 )
@@ -69,6 +72,15 @@ def entry_model_to_entity(model: EntryModel) -> Entry:
         duration_ms=model.duration_ms,
         occurred_at=model.occurred_at,
         equipment=[equipment_model_to_vo(eq) for eq in (model.equipments or [])],
+        skills=[Skill.model_validate(s) for s in (model.skills or [])],
+        paragon_boards=[
+            ParagonBoard.model_validate(b) for b in (model.paragon_boards or [])
+        ],
+        talismans=(
+            TalismanSnapshot.model_validate(model.talismans)
+            if model.talismans
+            else None
+        ),
     )
 
 
@@ -82,6 +94,9 @@ def entry_entity_to_model(entity: Entry) -> EntryModel:
         duration_ms=entity.duration_ms,
         occurred_at=entity.occurred_at,
         equipments=[equipment_vo_to_model(eq, entry_id) for eq in entity.equipment],
+        skills=[s.model_dump() for s in entity.skills],
+        paragon_boards=[b.model_dump() for b in entity.paragon_boards],
+        talismans=entity.talismans.model_dump() if entity.talismans else None,
     )
 
 
@@ -94,4 +109,13 @@ def entry_model_to_entry_dto(model: EntryModel) -> EntryDto:
         duration_ms=model.duration_ms,
         occurred_at=model.occurred_at,
         equipment=[equipment_model_to_vo(eq) for eq in (model.equipments or [])],
+        skills=[Skill.model_validate(s) for s in (model.skills or [])],
+        paragon_boards=[
+            ParagonBoard.model_validate(b) for b in (model.paragon_boards or [])
+        ],
+        talismans=(
+            TalismanSnapshot.model_validate(model.talismans)
+            if model.talismans
+            else None
+        ),
     )
