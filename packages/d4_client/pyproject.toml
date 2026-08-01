@@ -11,8 +11,14 @@ dependencies = [
     "sys-input",
     "vision-stream",
     "cv-engine",
+    "pyyaml>=6.0.2",
 ]
 
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.basedpyright]
+# LeaderboardScreen ↔ PlayerConfigScreen 互相返回对方类型（TYPE_CHECKING + 延迟导入规避），
+# 属于 POM 双向引用的结构性误报，运行时无循环问题。
+reportImportCycles = "none"

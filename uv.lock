@@ -329,6 +329,12 @@ wheels = [
 name = "d4-automation"
 version = "0.1.0"
 source = { editable = "contexts/d4_automation" }
+dependencies = [
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyyaml", specifier = ">=6.0.2" }]
 
 [[package]]
 name = "d4-backend"
@@ -353,6 +359,7 @@ version = "0.1.0"
 source = { editable = "packages/d4_client" }
 dependencies = [
     { name = "cv-engine" },
+    { name = "pyyaml" },
     { name = "sys-input" },
     { name = "vision-stream" },
 ]
@@ -360,6 +367,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "cv-engine", editable = "packages/cv_engine" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "sys-input", editable = "packages/sys_input" },
     { name = "vision-stream", editable = "packages/vision_stream" },
 ]

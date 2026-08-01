@@ -53,6 +53,7 @@ venvPath = "."
 venv = ".venv"
 pythonVersion = "3.14"
 reportUnusedCallResult = "none"
+reportImportCycles = "none"
 
 [tool.uv.workspace]
 members = ["contexts/*", "apps/*", "foundation", "packages/*"]
