@@ -1,5 +1,5 @@
-from enum import StrEnum, auto
+from enum import StrEnum
 
 
 class PlayerClass(StrEnum):
-    BARBARIAN = auto()
+    BARBARIAN = "BARBARIAN"

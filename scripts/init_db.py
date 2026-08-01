@@ -10,7 +10,7 @@ from d4_leaderboard.config import Settings
 
 def init_database() -> None:
     """自动创建数据库并运行 Alembic 迁移"""
-    settings = Settings()
+    settings = Settings() # pyright: ignore[reportCallIssue]
     target_url = make_url(settings.db_url)
     db_name = target_url.database
 

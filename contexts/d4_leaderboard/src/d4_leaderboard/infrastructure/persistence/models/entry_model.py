@@ -12,7 +12,11 @@ class EntryModel(BaseORM):
     id: Mapped[UUID] = mapped_column(primary_key=True)
     player_name: Mapped[str] = mapped_column()
     player_class: Mapped[PlayerClass] = mapped_column(
-        SQLEnum(PlayerClass, native_enum=False),
+        SQLEnum(
+            PlayerClass,
+            native_enum=False,
+            values_callable=lambda obj: [e.value for e in obj],
+        )
     )
     tier: Mapped[int] = mapped_column()
     duration_ms: Mapped[int] = mapped_column()

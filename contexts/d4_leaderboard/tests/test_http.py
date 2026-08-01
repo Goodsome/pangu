@@ -67,7 +67,7 @@ async def test_create_entry_endpoint(app: FastAPI) -> None:
             "/entries/",
             json={
                 "player_name": "Test Player",
-                "player_class": "barbarian",
+                "player_class": "BARBARIAN",
                 "tier": 100,
                 "duration_ms": 120000,
                 "occurred_at": datetime.now(timezone.utc).isoformat(),
@@ -102,7 +102,7 @@ async def test_get_entry_endpoint_success(
     data = response.json()
     assert data["id"] == str(test_id)
     assert data["player_name"] == "Found Entry"
-    assert data["player_class"] == "barbarian"
+    assert data["player_class"] == "BARBARIAN"
     assert data["tier"] == 100
 
 
@@ -130,7 +130,7 @@ async def test_list_entries_endpoint(app: FastAPI, container: Container) -> None
             {
                 "id": str(uuid.uuid4()),
                 "player_name": "Item 1",
-                "player_class": "barbarian",
+                "player_class": "BARBARIAN",
                 "tier": 50,
                 "duration_ms": 60000,
                 "occurred_at": now_str,

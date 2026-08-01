@@ -32,8 +32,8 @@ if not db_url:
 
         settings = Settings()  # pyright: ignore[reportCallIssue]
         db_url = settings.db_url
-    except Exception:
-        pass
+    except Exception as e:
+        raise RuntimeError(f"Failed to load configuration: {e}") from e
 
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)

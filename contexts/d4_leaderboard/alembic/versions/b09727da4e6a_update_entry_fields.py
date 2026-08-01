@@ -39,7 +39,7 @@ def upgrade() -> None:
             "player_class",
             sa.String(),
             nullable=False,
-            server_default="barbarian",
+            server_default="BARBARIAN",
         ),
     )
     op.add_column(
