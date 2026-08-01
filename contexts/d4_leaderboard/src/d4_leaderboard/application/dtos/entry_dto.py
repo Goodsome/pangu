@@ -1,7 +1,14 @@
+from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel
+
+from d4_leaderboard.domain.enums.player_class import PlayerClass
 
 
 class EntryDto(BaseModel):
     id: UUID
-    name: str
+    player_name: str
+    player_class: PlayerClass
+    tier: int
+    duration_ms: int
+    occurred_at: datetime

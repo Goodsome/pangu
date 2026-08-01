@@ -1,12 +1,13 @@
 import uuid
+from datetime import datetime, timezone
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pydantic import ValidationError
 
-from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.config import Settings
 from d4_leaderboard.container import Container
+from d4_leaderboard.domain.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.interfaces.api import D4LeaderboardApi
@@ -49,8 +50,6 @@ def test_container_settings_missing_env_raises_validation_error(
         _ = Settings(_env_file=())  # pyright: ignore[reportCallIssue]
 
 
-
-
 @pytest.mark.anyio
 async def test_async_api_execution(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(
@@ -62,13 +61,26 @@ async def test_async_api_execution(monkeypatch: pytest.MonkeyPatch) -> None:
     container = Container(session_factory=mock_session_factory)
     api = container.api()
 
-    entry_dto = EntryDto(id=uuid.uuid4(), name="test")
-    await api.create_entry(entry_dto)
+    now = datetime.now(timezone.utc)
+    await api.create_entry(
+        player_name="test_player",
+        player_class=PlayerClass.BARBARIAN,
+        tier=100,
+        duration_ms=120000,
+        occurred_at=now,
+    )
 
     entry_id = EntryId.create()
-    mock_model = EntryModel(id=uuid.uuid4(), name="test")
+    mock_model = EntryModel(
+        id=uuid.uuid4(),
+        player_name="test_player",
+        player_class=PlayerClass.BARBARIAN,
+        tier=100,
+        duration_ms=120000,
+        occurred_at=now,
+    )
     get_mock = cast(AsyncMock, mock_session.get)
     get_mock.return_value = mock_model
 
-    await api.update_entry(entry_id, entry_dto)
+    await api.update_entry(entry_id, player_name="updated_player")
     await api.delete_entry(entry_id)

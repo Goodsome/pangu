@@ -1,5 +1,6 @@
 import contextlib
 import typing
+from datetime import datetime, timezone
 from typing import cast
 import uuid
 from unittest.mock import AsyncMock, MagicMock
@@ -10,6 +11,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from d4_leaderboard.container import Container
+from d4_leaderboard.domain.enums.player_class import PlayerClass
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_entry_query_service import (
     SqlAlchemyEntryQueryService,
@@ -63,7 +65,13 @@ async def test_create_entry_endpoint(app: FastAPI) -> None:
     ) as client:
         response = await client.post(
             "/entries/",
-            json={"name": "Test Entry"},
+            json={
+                "player_name": "Test Player",
+                "player_class": "barbarian",
+                "tier": 100,
+                "duration_ms": 120000,
+                "occurred_at": datetime.now(timezone.utc).isoformat(),
+            },
         )
 
     assert response.status_code == 201
@@ -74,7 +82,15 @@ async def test_get_entry_endpoint_success(
     app: FastAPI, mock_session: AsyncMock
 ) -> None:
     test_id = uuid.uuid4()
-    mock_model = EntryModel(id=test_id, name="Found Entry")
+    now = datetime.now(timezone.utc)
+    mock_model = EntryModel(
+        id=test_id,
+        player_name="Found Entry",
+        player_class=PlayerClass.BARBARIAN,
+        tier=100,
+        duration_ms=120000,
+        occurred_at=now,
+    )
     mock_session.get.return_value = mock_model
 
     async with AsyncClient(
@@ -85,7 +101,9 @@ async def test_get_entry_endpoint_success(
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == str(test_id)
-    assert data["name"] == "Found Entry"
+    assert data["player_name"] == "Found Entry"
+    assert data["player_class"] == "barbarian"
+    assert data["tier"] == 100
 
 
 @pytest.mark.anyio
@@ -106,8 +124,18 @@ async def test_get_entry_endpoint_not_found(
 @pytest.mark.anyio
 async def test_list_entries_endpoint(app: FastAPI, container: Container) -> None:
     mock_query_service = AsyncMock()
+    now_str = datetime.now(timezone.utc).isoformat()
     mock_query_service.find_by_query.return_value = {
-        "items": [{"id": str(uuid.uuid4()), "name": "Item 1"}],
+        "items": [
+            {
+                "id": str(uuid.uuid4()),
+                "player_name": "Item 1",
+                "player_class": "barbarian",
+                "tier": 50,
+                "duration_ms": 60000,
+                "occurred_at": now_str,
+            }
+        ],
         "total": 1,
         "current": 1,
         "size": 10,
@@ -128,7 +156,15 @@ async def test_list_entries_endpoint(app: FastAPI, container: Container) -> None
 @pytest.mark.anyio
 async def test_update_entry_endpoint(app: FastAPI, mock_session: AsyncMock) -> None:
     test_id = uuid.uuid4()
-    mock_model = EntryModel(id=test_id, name="Updated Entry")
+    now = datetime.now(timezone.utc)
+    mock_model = EntryModel(
+        id=test_id,
+        player_name="Updated Entry",
+        player_class=PlayerClass.BARBARIAN,
+        tier=100,
+        duration_ms=120000,
+        occurred_at=now,
+    )
     mock_session.get.return_value = mock_model
 
     async with AsyncClient(
@@ -136,7 +172,7 @@ async def test_update_entry_endpoint(app: FastAPI, mock_session: AsyncMock) -> N
     ) as client:
         response = await client.put(
             f"/entries/{test_id}",
-            json={"name": "Updated Entry"},
+            json={"player_name": "Updated Entry"},
         )
 
     assert response.status_code == 200
@@ -154,7 +190,7 @@ async def test_update_entry_endpoint_not_found(
     ) as client:
         response = await client.put(
             f"/entries/{test_id}",
-            json={"name": "Nonexistent Entry"},
+            json={"player_name": "Nonexistent Entry"},
         )
 
     assert response.status_code == 404
@@ -163,7 +199,15 @@ async def test_update_entry_endpoint_not_found(
 @pytest.mark.anyio
 async def test_delete_entry_endpoint(app: FastAPI, mock_session: AsyncMock) -> None:
     test_id = uuid.uuid4()
-    mock_model = EntryModel(id=test_id, name="To Delete")
+    now = datetime.now(timezone.utc)
+    mock_model = EntryModel(
+        id=test_id,
+        player_name="To Delete",
+        player_class=PlayerClass.BARBARIAN,
+        tier=100,
+        duration_ms=120000,
+        occurred_at=now,
+    )
     mock_session.get.return_value = mock_model
 
     async with AsyncClient(

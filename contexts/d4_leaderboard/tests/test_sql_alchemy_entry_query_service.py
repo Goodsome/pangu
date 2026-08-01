@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import contextlib
 import typing
 import uuid
@@ -6,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
+from d4_leaderboard.domain.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_entry_query_service import (
@@ -19,7 +21,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 async def test_get_entry_success() -> None:
     test_uuid = uuid.uuid4()
     entry_id = EntryId.reconstitute(test_uuid)
-    mock_model = EntryModel(id=test_uuid, name="test")
+    now = datetime.now(timezone.utc)
+    mock_model = EntryModel(
+        id=test_uuid,
+        player_name="test",
+        player_class=PlayerClass.BARBARIAN,
+        tier=50,
+        duration_ms=60000,
+        occurred_at=now,
+    )
 
     mock_session = AsyncMock(spec=AsyncSession)
     get_mock = cast(AsyncMock, mock_session.get)
@@ -35,6 +45,11 @@ async def test_get_entry_success() -> None:
 
     dto = await service.get(entry_id)
     assert dto.id == test_uuid
+    assert dto.player_name == "test"
+    assert dto.player_class == PlayerClass.BARBARIAN
+    assert dto.tier == 50
+    assert dto.duration_ms == 60000
+    assert dto.occurred_at == now
     get_mock.assert_called_once_with(EntryModel, test_uuid)
 
 
@@ -67,8 +82,23 @@ async def test_find_by_query() -> None:
 
     test_uuid_1 = uuid.uuid4()
     test_uuid_2 = uuid.uuid4()
-    mock_model1 = EntryModel(id=test_uuid_1, name="test1")
-    mock_model2 = EntryModel(id=test_uuid_2, name="test2")
+    now = datetime.now(timezone.utc)
+    mock_model1 = EntryModel(
+        id=test_uuid_1,
+        player_name="test1",
+        player_class=PlayerClass.BARBARIAN,
+        tier=50,
+        duration_ms=60000,
+        occurred_at=now,
+    )
+    mock_model2 = EntryModel(
+        id=test_uuid_2,
+        player_name="test2",
+        player_class=PlayerClass.BARBARIAN,
+        tier=60,
+        duration_ms=70000,
+        occurred_at=now,
+    )
 
     mock_items_result = MagicMock()
     mock_items_result.scalars.return_value.all.return_value = [

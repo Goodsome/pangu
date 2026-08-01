@@ -1,8 +1,9 @@
+from datetime import datetime
 from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from d4_leaderboard.application.commands.create_entry import CreateEntryCommand
 from d4_leaderboard.application.commands.delete_entry import DeleteEntryCommand
@@ -11,17 +12,26 @@ from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
 from d4_leaderboard.application.ports.entry_query_service import EntryQueryService
 from d4_leaderboard.container import Container
+from d4_leaderboard.domain.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from foundation.common_types.page import Page, PageQuery
 from foundation.message_bus.message_bus import AsyncBaseMessageBus
 
 
 class CreateEntryRequest(BaseModel):
-    name: str
+    player_name: str
+    player_class: PlayerClass
+    tier: int = Field(..., ge=1, le=150)
+    duration_ms: int = Field(..., ge=0, le=600000)
+    occurred_at: datetime
 
 
 class UpdateEntryRequest(BaseModel):
-    name: str
+    player_name: str | None = None
+    player_class: PlayerClass | None = None
+    tier: int | None = Field(None, ge=1, le=150)
+    duration_ms: int | None = Field(None, ge=0, le=600000)
+    occurred_at: datetime | None = None
 
 
 router = APIRouter(prefix="/entries", tags=["entries"])
@@ -33,7 +43,13 @@ async def create_entry(
     req: CreateEntryRequest,
     message_bus: AsyncBaseMessageBus = Depends(Provide[Container.message_bus]),
 ) -> None:
-    cmd = CreateEntryCommand(name=req.name)
+    cmd = CreateEntryCommand(
+        player_name=req.player_name,
+        player_class=req.player_class,
+        tier=req.tier,
+        duration_ms=req.duration_ms,
+        occurred_at=req.occurred_at,
+    )
     await message_bus.handle(cmd)
 
 
@@ -72,7 +88,14 @@ async def update_entry(
     message_bus: AsyncBaseMessageBus = Depends(Provide[Container.message_bus]),
 ) -> None:
     eid = EntryId.reconstitute(entry_id)
-    cmd = UpdateEntryCommand(id=eid, name=req.name)
+    cmd = UpdateEntryCommand(
+        id=eid,
+        player_name=req.player_name,
+        player_class=req.player_class,
+        tier=req.tier,
+        duration_ms=req.duration_ms,
+        occurred_at=req.occurred_at,
+    )
     try:
         await message_bus.handle(cmd)
     except ValueError as e:
