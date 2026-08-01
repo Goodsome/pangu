@@ -38,3 +38,4 @@ contexts/*/src/*.egg-info/
 .agents
 
 output/
+data/

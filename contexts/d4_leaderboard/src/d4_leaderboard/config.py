@@ -16,4 +16,3 @@ class Settings(BaseSettings):
         ...,
         description="PostgreSQL 数据库连接字符串",
     )
-
