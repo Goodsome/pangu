@@ -164,6 +164,7 @@ def create_d4_client_for_rect(
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
+    use_screen_dc: bool = False,
 ) -> D4Client:
     """基于 WindowRectInfo 构建独立的 D4Client 实例。"""
     input_backend = Win32MessageBackend(hwnd=rect.hwnd)
@@ -172,6 +173,7 @@ def create_d4_client_for_rect(
         vision_backend: Win32DXGIBackend | Win32PrintWindowBackend = Win32DXGIBackend(
             hwnd=rect.hwnd,
             client_only=client_only,
+            use_screen_dc=use_screen_dc,
         )
     else:
         vision_backend = Win32PrintWindowBackend(
@@ -203,6 +205,7 @@ def create_d4_client_by_index(
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
+    use_screen_dc: bool = False,
 ) -> D4Client:
     """根据屏幕按网格位置排序后的 WindowRectInfo 列表，按索引创建单个 D4Client 实例。
 
@@ -224,6 +227,7 @@ def create_d4_client_by_index(
         ocr_lang=ocr_lang,
         use_gpu=use_gpu,
         use_dxgi=use_dxgi,
+        use_screen_dc=use_screen_dc,
     )
 
 

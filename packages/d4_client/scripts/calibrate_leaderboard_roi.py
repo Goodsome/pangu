@@ -60,6 +60,7 @@ async def main() -> None:
         ("title_roi", "标题区域 (如 '天梯榜')"),
         ("class_selector_roi", "职业选择图标栏区域"),
         ("records_roi", "榜单记录整体10行区域"),
+        ("view_config_roi", "'查看配置'按钮/弹出菜单区域"),
     ]
 
     final_rois: dict[str, RelativeRegion | None] = {}
@@ -78,7 +79,7 @@ async def main() -> None:
 
     # 2. 对未配置的字段进行交互式拖拽标定
     if need_calibrate:
-        d4_client = create_d4_client_by_index(index=0)
+        d4_client = create_d4_client_by_index(index=0, use_screen_dc=True)
         async with d4_client:
             print("\n📸 正在捕获游戏窗口画面...")
             await d4_client.begin_frame()

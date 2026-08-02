@@ -49,10 +49,11 @@ def test_backends_dataclass_and_interfaces() -> None:
     assert is_dataclass(Win32DXGIBackend)
 
     printwindow_backend = Win32PrintWindowBackend(hwnd=1001)
-    dxgi_backend = Win32DXGIBackend(hwnd=1001)
+    dxgi_backend = Win32DXGIBackend(hwnd=1001, use_screen_dc=True)
 
     assert printwindow_backend.hwnd == 1001
     assert dxgi_backend.hwnd == 1001
+    assert dxgi_backend.use_screen_dc is True
 
     assert isinstance(printwindow_backend, IWindowVisionBackend)
     assert isinstance(dxgi_backend, IWindowVisionBackend)
