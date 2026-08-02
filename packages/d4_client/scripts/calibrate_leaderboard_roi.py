@@ -79,7 +79,7 @@ async def main() -> None:
 
     # 2. 对未配置的字段进行交互式拖拽标定
     if need_calibrate:
-        d4_client = create_d4_client_by_index(index=0, use_screen_dc=True)
+        d4_client = create_d4_client_by_index(index=0)
         async with d4_client:
             print("\n📸 正在捕获游戏窗口画面...")
             await d4_client.begin_frame()
