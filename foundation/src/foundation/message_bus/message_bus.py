@@ -73,7 +73,7 @@ class BaseMessageBus:
     def _handle_event(self, event: Event) -> Iterable[Command]:
         for handler in self.event_handlers.get(type(event), []):
             try:
-                logger.info(f"Handling handler={handler!r}")
+                logger.info(f"Handling {handler.__class__=} {event=}")
                 yield from (handler(event, self.uow) or [])
             except Exception:
                 logger.exception(f"Exception handling sync event {event}")
