@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import Any
 
 
 class PlayerClass(StrEnum):
@@ -11,12 +10,3 @@ class PlayerClass(StrEnum):
     SPIRITBORN = "SPIRITBORN"
     PALADIN = "PALADIN"
     WARLOCK = "WARLOCK"
-
-    @classmethod
-    def _missing_(cls, value: Any) -> Any:
-        if isinstance(value, str):
-            upper_val = value.upper()
-            for member in cls:
-                if member.value == upper_val:
-                    return member
-        return None

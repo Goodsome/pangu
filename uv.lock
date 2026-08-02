@@ -23,6 +23,7 @@ members = [
     "d4-client",
     "d4-leaderboard",
     "d4-robot",
+    "d4-types",
     "foundation",
     "mhxy-client",
     "pangu",
@@ -418,6 +419,11 @@ requires-dist = [
     { name = "d4-automation", editable = "contexts/d4_automation" },
     { name = "typer", specifier = ">=0.26.7" },
 ]
+
+[[package]]
+name = "d4-types"
+version = "0.1.0"
+source = { editable = "packages/d4_types" }
 
 [[package]]
 name = "dependency-injector"
@@ -1126,6 +1132,7 @@ dependencies = [
     { name = "d4-client" },
     { name = "d4-leaderboard" },
     { name = "d4-robot" },
+    { name = "d4-types" },
     { name = "dependency-injector" },
     { name = "foundation" },
     { name = "mhxy-client" },
@@ -1165,6 +1172,7 @@ requires-dist = [
     { name = "d4-client", editable = "packages/d4_client" },
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "d4-robot", editable = "apps/d4_robot" },
+    { name = "d4-types", editable = "packages/d4_types" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
     { name = "mhxy-client", editable = "packages/mhxy_client" },

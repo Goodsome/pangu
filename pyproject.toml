@@ -34,6 +34,7 @@ dependencies = [
     "d4-robot",
     "d4-backend",
     "mhxy-client",
+    "d4-types",
 ]
 
 [project.scripts]
@@ -80,6 +81,7 @@ d4-automation = { workspace = true }
 d4-robot = { workspace = true }
 d4-backend = { workspace = true }
 mhxy-client = { workspace = true }
+d4-types = { workspace = true }
 
 
 [dependency-groups]
