@@ -176,38 +176,29 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # ------------------------------------------------------------------
 
     async def open_player_config(self) -> PlayerConfigScreen:
-        """定位弹出菜单中的"查看配置"按钮并点击，等待配置页加载完成。
+        """点击弹出菜单中的"查看配置" ROI 区域，返回 PlayerConfigScreen 实例。
+
+        使用新版 RelativeRegion view_config_roi 根据当前窗口物理分辨率解算点击中心点。
 
         Returns:
-            加载就绪的 PlayerConfigScreen 实例。
-
-        Raises:
-            RuntimeError: 无法定位"查看配置"按钮。
+            PlayerConfigScreen 页面对象实例。
         """
         from d4_client.screens.player_config import PlayerConfigScreen
 
-        cfg = self._legacy_layout.view_config_button
-        clicked = False
+        abs_roi = self.layout.view_config_roi.to_absolute(
+            window_width=self.window.width,
+            window_height=self.window.height,
+        )
 
-        if cfg.strategy == "template" and cfg.template.exists():
-            clicked = await self.window.match_and_click(template=cfg.template)
-            if not clicked:
-                logger.warning(
-                    "[LeaderboardScreen] 模板匹配'查看配置'按钮失败，降级至文字识别"
-                )
-
-        if not clicked:
-            # 降级：OCR 文字识别点击
-            clicked = await self.window.find_text_and_click(
-                target_text="查看配置",
-                exact_match=True,
-            )
-
-        if not clicked:
-            raise RuntimeError("[LeaderboardScreen] 无法定位'查看配置'按钮")
+        click_point = abs_roi.center
+        logger.info(
+            "[LeaderboardScreen] 点击'查看配置'按钮 (ROI=%s, 点击绝对点: %s)",
+            abs_roi,
+            click_point,
+        )
+        await self.window.mouse_click(point=click_point)
 
         screen = PlayerConfigScreen(window=self.window)
-        await screen.wait_until_visible()
         return screen
 
     # ------------------------------------------------------------------

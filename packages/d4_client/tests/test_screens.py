@@ -132,3 +132,19 @@ async def test_leaderboard_click_row(mock_window: AsyncMock) -> None:
 
     with pytest.raises(IndexError):
         await board.click_row(10)
+
+
+@pytest.mark.anyio
+async def test_leaderboard_open_player_config(mock_window: AsyncMock) -> None:
+    """测试 LeaderboardScreen.open_player_config 使用 view_config_roi 点击并返回 PlayerConfigScreen。"""
+    from d4_client.screens.leaderboard import LeaderboardScreen
+    from d4_client.screens.player_config import PlayerConfigScreen
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+
+    board = LeaderboardScreen(window=mock_window)
+    player_config_screen = await board.open_player_config()
+
+    assert isinstance(player_config_screen, PlayerConfigScreen)
+    assert mock_window.mouse_click.called
