@@ -20,6 +20,7 @@ from d4_client.models import (
     OcrResult,
     Point,
     Region,
+    RelativePoint,
     RelativeRegion,
 )
 from sys_input import (
@@ -56,6 +57,20 @@ class D4Window:
                 window_width=self.width, window_height=self.height
             )
         return region
+
+    def _resolve_point(self, point: Point | RelativePoint | None) -> Point | None:
+        """解析并统一 Point。
+
+        若传入的点坐标为 RelativePoint (0.0 ~ 1.0 的相对比例)，
+        则结合当前窗口物理尺寸 (width, height) 自动转换为绝对像素坐标 Point。
+        """
+        if point is None:
+            return None
+        if isinstance(point, RelativePoint):
+            return point.to_absolute(
+                window_width=self.width, window_height=self.height
+            )
+        return point
 
     # ---------------------------------------------------------------------------
     # 画面捕获与帧缓存控制
@@ -219,19 +234,23 @@ class D4Window:
     # ---------------------------------------------------------------------------
     # 输入模拟异步代理
     # ---------------------------------------------------------------------------
-    async def mouse_move(self, point: Point) -> None:
-        """异步移动光标到相对窗口的指定像素位置。"""
-        await self.input_backend.mouse_move(point.to_sys_input())
+    async def mouse_move(self, point: Point | RelativePoint) -> None:
+        """异步移动光标到相对窗口的指定像素或相对比例位置。"""
+        abs_point = self._resolve_point(point)
+        if abs_point is None:
+            return
+        await self.input_backend.mouse_move(abs_point.to_sys_input())
 
     async def mouse_click(
         self,
-        point: Point | None = None,
+        point: Point | RelativePoint | None = None,
         button: MouseButton = MouseButton.LEFT,
         clicks: int = 1,
         interval_ms: int = 0,
     ) -> None:
         """异步在窗口指定位置点击鼠标。"""
-        ipt = point.to_sys_input() if point else None
+        abs_point = self._resolve_point(point)
+        ipt = abs_point.to_sys_input() if abs_point else None
         await self.input_backend.mouse_click(
             point=ipt,
             button=button,
@@ -241,20 +260,22 @@ class D4Window:
 
     async def mouse_down(
         self,
-        point: Point | None = None,
+        point: Point | RelativePoint | None = None,
         button: MouseButton = MouseButton.LEFT,
     ) -> None:
         """异步在窗口指定位置按下鼠标按键。"""
-        ipt = point.to_sys_input() if point else None
+        abs_point = self._resolve_point(point)
+        ipt = abs_point.to_sys_input() if abs_point else None
         await self.input_backend.mouse_down(point=ipt, button=button)
 
     async def mouse_up(
         self,
-        point: Point | None = None,
+        point: Point | RelativePoint | None = None,
         button: MouseButton = MouseButton.LEFT,
     ) -> None:
         """异步在窗口指定位置抬起鼠标按键。"""
-        ipt = point.to_sys_input() if point else None
+        abs_point = self._resolve_point(point)
+        ipt = abs_point.to_sys_input() if abs_point else None
         await self.input_backend.mouse_up(point=ipt, button=button)
 
     async def key_press(
@@ -266,9 +287,12 @@ class D4Window:
             await asyncio.sleep(duration_sec)
         await self.input_backend.key_up(vk_code)
 
-    async def scroll(self, amount: int, point: Point | None = None) -> None:
+    async def scroll(
+        self, amount: int, point: Point | RelativePoint | None = None
+    ) -> None:
         """异步模拟滚轮滚动。"""
-        ipt = point.to_sys_input() if point else None
+        abs_point = self._resolve_point(point)
+        ipt = abs_point.to_sys_input() if abs_point else None
         await self.input_backend.scroll(amount=amount, point=ipt)
 
     # ---------------------------------------------------------------------------

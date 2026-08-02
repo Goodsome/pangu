@@ -15,6 +15,7 @@ from d4_client.factory import (
     sort_window_rects,
 )
 from d4_client.models import (
+    BaseRegion,
     ImageFrame,
     MatchResult,
     OcrResult,
@@ -22,6 +23,7 @@ from d4_client.models import (
     Region,
     RelativePoint,
     RelativeRegion,
+    SplitMode,
 )
 from d4_client.screens import (
     AutoCalibratingScreen,
@@ -51,10 +53,12 @@ __all__ = [
     "SocialPanel",
     "LeaderboardScreen",
     "PlayerConfigScreen",
+    "BaseRegion",
     "Point",
     "Region",
     "RelativePoint",
     "RelativeRegion",
+    "SplitMode",
     "MatchResult",
     "OcrResult",
     "ImageFrame",

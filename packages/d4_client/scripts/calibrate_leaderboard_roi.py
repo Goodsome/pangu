@@ -62,7 +62,8 @@ async def main() -> None:
         ("records_roi", "榜单记录整体10行区域"),
         ("view_config_roi", "'查看配置'按钮/弹出菜单区域"),
         ("next_page_roi", "'下一页' 按钮/翻页区域"),
-        ("last_page_roi", "'上一页' 按钮/翻页区域"),
+        ("previous_page_roi", "'上一页' 按钮/翻页区域"),
+        ("page_number_roi", "页码区域"),
     ]
 
     final_rois: dict[str, RelativeRegion | None] = {}

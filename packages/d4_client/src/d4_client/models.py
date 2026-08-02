@@ -4,8 +4,10 @@
 """
 
 from dataclasses import dataclass, field
+from enum import StrEnum
 from functools import cached_property
 from pathlib import Path
+from typing import Self
 import numpy as np
 
 from cv_engine import MatLike
@@ -20,6 +22,109 @@ from vision_stream.models import (
     ImageResult as VisionImageResult,
     Region as VisionRegion,
 )
+
+
+class SplitMode(StrEnum):
+    """矩形区域切分方向模式。"""
+
+    VERTICAL = "vertical"
+    HORIZONTAL = "horizontal"
+
+
+@dataclass(frozen=True)
+class BaseRegion:
+    """矩形感知区域 (ROI) 基础抽象模型。"""
+
+    x: int | float = 0
+    y: int | float = 0
+    width: int | float = 0
+    height: int | float = 0
+
+    @property
+    def right(self) -> int | float:
+        """获取右边界 X 坐标。"""
+        return self.x + self.width
+
+    @property
+    def bottom(self) -> int | float:
+        """获取下边界 Y 坐标。"""
+        return self.y + self.height
+
+    def split(
+        self,
+        n: int,
+        mode: SplitMode = SplitMode.VERTICAL,
+    ) -> list[Self]:
+        """按指定方向模式将矩形区域等分为 n 个同类型子矩形区域。
+
+        Args:
+            n: 等分的份数，必须大于等于 1。
+            mode: 切分模式 Enum (SplitMode.VERTICAL 或 SplitMode.HORIZONTAL)。
+
+        Returns:
+            list[Self]: 切分后的子矩形区域列表。
+
+        Raises:
+            ValueError: 当 n < 1 或 mode 不在 SplitMode 枚举中时抛出异常。
+        """
+        if n < 1:
+            raise ValueError("等分份数 n 必须大于等于 1")
+
+        is_int = (
+            isinstance(self.x, int)
+            and isinstance(self.y, int)
+            and isinstance(self.width, int)
+            and isinstance(self.height, int)
+        )
+
+        if mode == SplitMode.VERTICAL:
+            if is_int:
+                return [
+                    self.__class__(
+                        x=self.x,
+                        y=self.y + int(round(i * self.height / n)),
+                        width=self.width,
+                        height=int(round((i + 1) * self.height / n))
+                        - int(round(i * self.height / n)),
+                    )
+                    for i in range(n)
+                ]
+            else:
+                sub_height = self.height / n
+                return [
+                    self.__class__(
+                        x=self.x,
+                        y=self.y + i * sub_height,
+                        width=self.width,
+                        height=sub_height,
+                    )
+                    for i in range(n)
+                ]
+        elif mode == SplitMode.HORIZONTAL:
+            if is_int:
+                return [
+                    self.__class__(
+                        x=self.x + int(round(i * self.width / n)),
+                        y=self.y,
+                        width=int(round((i + 1) * self.width / n))
+                        - int(round(i * self.width / n)),
+                        height=self.height,
+                    )
+                    for i in range(n)
+                ]
+            else:
+                sub_width = self.width / n
+                return [
+                    self.__class__(
+                        x=self.x + i * sub_width,
+                        y=self.y,
+                        width=sub_width,
+                        height=self.height,
+                    )
+                    for i in range(n)
+                ]
+        else:
+            raise ValueError(f"不支持的切分模式: {mode}")
 
 
 @dataclass(frozen=True)
@@ -70,9 +175,8 @@ class RelativePoint:
         )
 
 
-
 @dataclass(frozen=True)
-class Region:
+class Region(BaseRegion):
     """d4_client 领域矩形检索/感知区域 (ROI)。"""
 
     x: int = 0
@@ -84,16 +188,6 @@ class Region:
     def center(self) -> Point:
         """获取矩形中心坐标点。"""
         return Point(x=self.x + self.width // 2, y=self.y + self.height // 2)
-
-    @property
-    def right(self) -> int:
-        """获取右边界 X 坐标。"""
-        return self.x + self.width
-
-    @property
-    def bottom(self) -> int:
-        """获取下边界 Y 坐标。"""
-        return self.y + self.height
 
     def to_vision_stream(self) -> VisionRegion:
         """转换为 vision_stream 库的 Region 实例。"""
@@ -119,13 +213,18 @@ class Region:
 
 
 @dataclass(frozen=True)
-class RelativeRegion:
+class RelativeRegion(BaseRegion):
     """d4_client 领域相对比例检索/感知区域 (数值表示 0.0 ~ 1.0 相对关系)。"""
 
     x: float = 0.0
     y: float = 0.0
     width: float = 0.0
     height: float = 0.0
+
+    @property
+    def center(self) -> RelativePoint:
+        """获取矩形中心坐标点。"""
+        return RelativePoint(x=self.x + self.width / 2.0, y=self.y + self.height / 2.0)
 
     def to_absolute(self, window_width: int, window_height: int) -> Region:
         """根据给定的窗口物理像素分辨率，转换为绝对像素 Region。"""

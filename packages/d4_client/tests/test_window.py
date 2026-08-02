@@ -1,5 +1,6 @@
 """D4Window 防腐层与数据映射单元测试套件。"""
 
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
@@ -11,7 +12,16 @@ from cv_engine import (
     Point as CVPoint,
     Region as CVRegion,
 )
-from d4_client import D4Window, MatchResult, Point, Region, RelativeRegion
+from d4_client import (
+    BaseRegion,
+    D4Window,
+    MatchResult,
+    Point,
+    Region,
+    RelativePoint,
+    RelativeRegion,
+    SplitMode,
+)
 from sys_input import MouseButton
 from vision_stream import ImageResult as VisionImageResult
 
@@ -91,6 +101,59 @@ def test_relative_region() -> None:
 
     full_rel = RelativeRegion(x=0.0, y=0.0, width=1.0, height=1.0)
     assert full_rel.to_absolute(1920, 1080) == Region(x=0, y=0, width=1920, height=1080)
+
+
+def test_region_split() -> None:
+    """测试 Region.split (继承自 BaseRegion) 按 SplitMode 枚举方向切分能力。"""
+    region = Region(x=10, y=20, width=100, height=30)
+    assert isinstance(region, BaseRegion)
+
+    # 1. 垂直切分 (3 行)
+    rows = region.split(n=3, mode=SplitMode.VERTICAL)
+    assert len(rows) == 3
+    assert rows[0] == Region(x=10, y=20, width=100, height=10)
+    assert rows[1] == Region(x=10, y=30, width=100, height=10)
+    assert rows[2] == Region(x=10, y=40, width=100, height=10)
+    assert rows[0].y == 20
+    assert rows[-1].bottom == 50
+
+    # 2. 水平切分 (4 列)
+    cols = region.split(n=4, mode=SplitMode.HORIZONTAL)
+    assert len(cols) == 4
+    assert cols[0] == Region(x=10, y=20, width=25, height=30)
+    assert cols[1] == Region(x=35, y=20, width=25, height=30)
+    assert cols[2] == Region(x=60, y=20, width=25, height=30)
+    assert cols[3] == Region(x=85, y=20, width=25, height=30)
+    assert cols[-1].right == 110
+
+    # 字符串兼容 "vertical" 与 "horizontal"
+    assert region.split(n=3, mode="vertical") == rows
+    assert region.split(n=4, mode="horizontal") == cols
+
+    # 3. 异常边界防护
+    with pytest.raises(ValueError, match="n 必须大于等于 1"):
+        region.split(n=0)
+
+    with pytest.raises(ValueError, match="不支持的切分模式"):
+        region.split(n=2, mode="invalid_mode")
+
+
+def test_relative_region_split() -> None:
+    """测试 RelativeRegion.split 按 SplitMode 枚举方向切分能力。"""
+    rel_region = RelativeRegion(x=0.0, y=0.0, width=1.0, height=1.0)
+    assert isinstance(rel_region, BaseRegion)
+
+    # 垂直切分 2 行
+    v_splits = rel_region.split(n=2, mode=SplitMode.VERTICAL)
+    assert len(v_splits) == 2
+    assert v_splits[0] == RelativeRegion(x=0.0, y=0.0, width=1.0, height=0.5)
+    assert v_splits[1] == RelativeRegion(x=0.0, y=0.5, width=1.0, height=0.5)
+
+    # 水平切分 5 列
+    h_splits = rel_region.split(n=5, mode=SplitMode.HORIZONTAL)
+    assert len(h_splits) == 5
+    assert h_splits[0] == RelativeRegion(x=0.0, y=0.0, width=0.2, height=1.0)
+    assert h_splits[4] == RelativeRegion(x=0.8, y=0.0, width=0.2, height=1.0)
 
 
 def test_relative_point() -> None:
@@ -195,6 +258,40 @@ async def test_async_input_methods(
 
     await d4_window.mouse_up(Point(10, 20))
     assert mock_input.mouse_up.called
+
+
+@pytest.mark.anyio
+async def test_mouse_operations_with_relative_point(
+    d4_window: D4Window, mock_deps: tuple[MagicMock, ...]
+) -> None:
+    """测试 D4Window 鼠标操作方法传入 RelativePoint 时自动转换为绝对 Point 坐标。"""
+    mock_input = mock_deps[0]
+    rel_pt = RelativePoint(x=0.5, y=0.5)  # 1920x1080 -> 960, 540
+
+    # mouse_move
+    await d4_window.mouse_move(rel_pt)
+    call_pt = mock_input.mouse_move.call_args[0][0]
+    assert call_pt.x == 960 and call_pt.y == 540
+
+    # mouse_click
+    await d4_window.mouse_click(rel_pt, button=MouseButton.LEFT)
+    call_pt = mock_input.mouse_click.call_args.kwargs["point"]
+    assert call_pt.x == 960 and call_pt.y == 540
+
+    # mouse_down
+    await d4_window.mouse_down(rel_pt, button=MouseButton.LEFT)
+    call_pt = mock_input.mouse_down.call_args.kwargs["point"]
+    assert call_pt.x == 960 and call_pt.y == 540
+
+    # mouse_up
+    await d4_window.mouse_up(rel_pt, button=MouseButton.LEFT)
+    call_pt = mock_input.mouse_up.call_args.kwargs["point"]
+    assert call_pt.x == 960 and call_pt.y == 540
+
+    # scroll
+    await d4_window.scroll(120, point=rel_pt)
+    call_pt = mock_input.scroll.call_args.kwargs["point"]
+    assert call_pt.x == 960 and call_pt.y == 540
 
 
 def test_window_dimensions(mock_deps: tuple[MagicMock, ...]) -> None:

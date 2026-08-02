@@ -1,5 +1,6 @@
 """MainHUD 与 AutoCalibratingScreen POM 单元测试套件。"""
 
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
@@ -67,13 +68,12 @@ async def test_leaderboard_select_class(mock_window: AsyncMock) -> None:
     board = LeaderboardScreen(window=mock_window)
 
     # 1. 成功使用 PlayerClass 枚举计算第 1 个职业 (BARBARIAN 野蛮人)
-    pt1 = await board.select_class(PlayerClass.BARBARIAN)
-    assert pt1.x > 0 and pt1.y > 0
+    await board.select_class(PlayerClass.BARBARIAN)
     assert mock_window.mouse_click.called
 
     # 2. 成功使用 PlayerClass 枚举计算第 2 个职业 (NECROMANCER 死灵法师)
-    pt2 = await board.select_class(PlayerClass.NECROMANCER)
-    assert pt2.x > pt1.x  # 死灵法师在野蛮人右侧，X 坐标递增
+    await board.select_class(PlayerClass.NECROMANCER)
+    assert mock_window.mouse_click.called
 
     # 3. 未知职业抛出 KeyError
     with pytest.raises(KeyError):
@@ -123,7 +123,7 @@ async def test_leaderboard_click_row(mock_window: AsyncMock) -> None:
 
     # 2. 成功计算第 10 行 (row_index=9)
     pt9 = await board.click_row(9)
-    assert pt9.x == pt0.x  # 同一列，X 坐标垂直对齐
+    assert pt9.x == pt0.x  # 同一列，X 相对坐标对齐
     assert pt9.y > pt0.y    # 第 10 行的 Y 坐标显著大于第 1 行
 
     # 3. 越界 row_index 抛出 IndexError
@@ -148,3 +148,27 @@ async def test_leaderboard_open_player_config(mock_window: AsyncMock) -> None:
 
     assert isinstance(player_config_screen, PlayerConfigScreen)
     assert mock_window.mouse_click.called
+
+
+@pytest.mark.anyio
+async def test_leaderboard_current_page_number(mock_window: AsyncMock) -> None:
+    """测试 LeaderboardScreen.current_page_number OCR 识别与正则提取。"""
+    from d4_client.models import OcrResult, Point, Region
+    from d4_client.screens.leaderboard import LeaderboardScreen
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+    mock_window.ocr.return_value = [
+        OcrResult(
+            text="23 / 100",
+            confidence=0.95,
+            rect=Region(x=0, y=0, width=50, height=20),
+            box_points=(Point(0, 0), Point(50, 0), Point(50, 20), Point(0, 20)),
+        )
+    ]
+
+    board = LeaderboardScreen(window=mock_window)
+    page_num = await board.current_page_number()
+
+    assert page_num == 23
+    mock_window.ocr.assert_called_once_with(roi=board.layout.page_number_roi)

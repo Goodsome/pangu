@@ -13,7 +13,7 @@ from d4_client.config.leaderboard import (
     LeaderboardLayoutConfigLegacy,
     load_leaderboard_config,
 )
-from d4_client.models import ImageFrame, Point
+from d4_client.models import RelativePoint, SplitMode
 from d4_client.screens.base import AutoCalibratingScreen
 from d4_types.enums.player_class import PlayerClass
 
@@ -80,16 +80,13 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # 职业选择
     # ------------------------------------------------------------------
 
-    async def select_class(self, player_class: PlayerClass) -> Point:
+    async def select_class(self, player_class: PlayerClass) -> None:
         """点击顶部职业图标按钮切换榜单职业。
 
         通过 class_selector_roi (8等分区域) 结合 PlayerClass 枚举，计算得绝对点击像素点。
 
         Args:
             player_class: 职业枚举 (PlayerClass)。
-
-        Returns:
-            Point: 计算出的最终鼠标点击物理坐标。
 
         Raises:
             KeyError: 职业未包含在 8 等分选择器中。
@@ -99,20 +96,11 @@ class LeaderboardScreen(AutoCalibratingScreen):
 
         index = ORDERED_PLAYER_CLASSES.index(player_class)
 
-        # 解算 0.0 ~ 1.0 的 class_selector_roi 到绝对像素 Region
-        abs_roi = self.layout.class_selector_roi.to_absolute(
-            window_width=self.window.width,
-            window_height=self.window.height,
-        )
-
-        # 8 等分宽度计算中心点
-        cell_width = abs_roi.width / len(ORDERED_PLAYER_CLASSES)
-        center_x = int(round(abs_roi.x + cell_width * index + cell_width / 2.0))
-        center_y = int(round(abs_roi.y + abs_roi.height / 2.0))
-        btn_point = Point(x=center_x, y=center_y)
-
-        await self.window.mouse_click(point=btn_point)
-        return btn_point
+        relative_roi = self.layout.class_selector_roi.split(
+            n=len(ORDERED_PLAYER_CLASSES),
+            mode=SplitMode.HORIZONTAL,
+        )[index]
+        await self.window.mouse_click(point=relative_roi.center)
 
     # ------------------------------------------------------------------
     # 榜单区域截图
@@ -138,14 +126,14 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # 行交互
     # ------------------------------------------------------------------
 
-    async def click_row(self, row_index: int) -> Point:
+    async def click_row(self, row_index: int) -> RelativePoint:
         """按 records_roi (垂直 10 等分) 动态计算中心像素点，点击指定行触发上下文菜单。
 
         Args:
             row_index: 行索引，范围 0-9（对应榜单第 1-10 名）。
 
         Returns:
-            Point: 计算得出的最终点击物理像素点。
+            RelativePoint: 计算得出的最终点击相对比例坐标点。
 
         Raises:
             IndexError: row_index 超出有效范围 [0, 9]。
@@ -153,21 +141,9 @@ class LeaderboardScreen(AutoCalibratingScreen):
         if row_index < 0 or row_index >= 10:
             raise IndexError(f"row_index={row_index} 超出有效范围 [0, 9]")
 
-        abs_roi = self.layout.records_roi.to_absolute(
-            window_width=self.window.width,
-            window_height=self.window.height,
-        )
+        row_roi = self.layout.records_roi.split(n=10, mode=SplitMode.VERTICAL)[row_index]
+        click_point = row_roi.center
 
-        cell_height = abs_roi.height / 10.0
-        center_x = int(round(abs_roi.x + abs_roi.width / 2.0))
-        center_y = int(round(abs_roi.y + cell_height * row_index + cell_height / 2.0))
-        click_point = Point(x=center_x, y=center_y)
-
-        logger.info(
-            "[LeaderboardScreen] 点击第 %d 行 (10等分, 算得绝对坐标: %s)",
-            row_index + 1,
-            click_point,
-        )
         await self.window.mouse_click(point=click_point)
         return click_point
 
@@ -185,19 +161,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
         """
         from d4_client.screens.player_config import PlayerConfigScreen
 
-        abs_roi = self.layout.view_config_roi.to_absolute(
-            window_width=self.window.width,
-            window_height=self.window.height,
-        )
-
-        click_point = abs_roi.center
-        logger.info(
-            "[LeaderboardScreen] 点击'查看配置'按钮 (ROI=%s, 点击绝对点: %s)",
-            abs_roi,
-            click_point,
-        )
-        await self.window.mouse_click(point=click_point)
-
+        await self.window.mouse_click(point=self.layout.view_config_roi.center)
         screen = PlayerConfigScreen(window=self.window)
         return screen
 
@@ -207,9 +171,11 @@ class LeaderboardScreen(AutoCalibratingScreen):
 
     async def next_page(self) -> None:
         """点击"下一页"按钮翻页。"""
-        point = self._legacy_layout.next_page_btn
-        logger.info("[LeaderboardScreen] 翻到下一页 → %s", point)
-        await self.window.mouse_click(point=point)
+        await self.window.mouse_click(point=self.layout.next_page_roi.center)
+
+    async def previous_page(self) -> None:
+        """点击"上一页"按钮翻页。"""
+        await self.window.mouse_click(point=self.layout.previous_page_roi.center)
 
     async def current_page_number(self) -> int | None:
         """通过 OCR 识别页码区域，返回当前页码整数。
@@ -220,7 +186,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
         Returns:
             当前页码（从 1 开始），识别失败返回 None。
         """
-        roi = self._legacy_layout.page_number_roi
+        roi = self.layout.page_number_roi
         results = await self.window.ocr(roi=roi)
 
         for ocr in results:
@@ -238,4 +204,4 @@ class LeaderboardScreen(AutoCalibratingScreen):
     @property
     def row_count(self) -> int:
         """每页的固定行数（由配置决定，通常为 10）。"""
-        return self._legacy_layout.row_count
+        return 10
