@@ -3,10 +3,10 @@
 定义 d4_client 自有的纯数据模型，隔离底层 sys_input, vision_stream, cv_engine 库的数据类型细节。
 """
 
-from functools import cached_property
-import numpy as np
-
 from dataclasses import dataclass, field
+from functools import cached_property
+from pathlib import Path
+import numpy as np
 
 from cv_engine import MatLike
 from cv_engine.models import (
@@ -185,6 +185,34 @@ class ImageFrame:
         matrix = nparr.reshape((self.height, stride_width, self.channels))
 
         return matrix[:, : self.width, :]
+
+    async def save(self, path: Path | str) -> None:
+        """将 ImageFrame 异步保存为磁盘图片文件 (如 .png, .jpg)，自动创建父级目录。
+
+        Args:
+            path: 目标保存路径 (Path 对象或路径字符串)。
+
+        Raises:
+            RuntimeError: 图像保存写入失败。
+        """
+        import asyncio
+        import cv2
+
+        dest_path = Path(path)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+
+        mat = self.mat
+        if self.channels == 4:
+            bgr = cv2.cvtColor(mat, cv2.COLOR_BGRA2BGR)
+        else:
+            bgr = mat
+
+        loop = asyncio.get_running_loop()
+        ok: bool = await loop.run_in_executor(
+            None, cv2.imwrite, str(dest_path), bgr
+        )
+        if not ok:
+            raise RuntimeError(f"[ImageFrame.save] 写入图片文件失败: {dest_path}")
 
 
 @dataclass(frozen=True)

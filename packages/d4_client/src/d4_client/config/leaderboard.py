@@ -28,6 +28,7 @@ class LeaderboardLayoutConfig:
     class_selector_roi: RelativeRegion = RelativeRegion(
         x=0.1362, y=0.0762, width=0.2751, height=0.0592
     )
+    records_roi: RelativeRegion = RelativeRegion(x=0.3377, y=0.3882, width=0.4248, height=0.3992)
     title_text: str = "天梯榜"
 
 

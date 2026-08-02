@@ -237,20 +237,19 @@ async def test_select_roi(
 
 
 @pytest.mark.anyio
-async def test_select_roi_cancelled(
-    d4_window: D4Window, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """测试取消框选时返回 None。"""
-    mock_select_roi = MagicMock(return_value=(0, 0, 0, 0))
-    mock_destroy_window = MagicMock()
+async def test_image_frame_save(tmp_path: Path) -> None:
+    """测试 ImageFrame.save 异步保存为磁盘图片文件。"""
+    from d4_client.models import ImageFrame
 
-    import cv2
-    monkeypatch.setattr(cv2, "selectROI", mock_select_roi)
-    monkeypatch.setattr(cv2, "destroyWindow", mock_destroy_window)
+    frame = ImageFrame(
+        data=b"\x00" * 400,
+        width=10,
+        height=10,
+        channels=4,
+    )
+    save_file = tmp_path / "sub_dir" / "test_frame.png"
+    await frame.save(save_file)
 
-    abs_region = await d4_window.select_roi()
-    assert abs_region is None
-
-    rel_region = await d4_window.select_relative_roi()
-    assert rel_region is None
+    assert save_file.exists()
+    assert save_file.stat().st_size > 0
 

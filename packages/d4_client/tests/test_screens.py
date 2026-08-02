@@ -78,3 +78,29 @@ async def test_leaderboard_select_class(mock_window: AsyncMock) -> None:
     # 3. 未知职业抛出 KeyError
     with pytest.raises(KeyError):
         await board.select_class("INVALID_CLASS")
+
+
+@pytest.mark.anyio
+async def test_leaderboard_capture_records_region(
+    mock_window: AsyncMock, tmp_path: Path
+) -> None:
+    """测试 LeaderboardScreen.capture_records_region 截取记录区域并保存磁盘图片。"""
+    from d4_client.models import ImageFrame
+    from d4_client.screens.leaderboard import LeaderboardScreen
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+    mock_window.capture.return_value = ImageFrame(
+        data=b"\x00" * 400,
+        width=10,
+        height=10,
+        channels=4,
+    )
+
+    board = LeaderboardScreen(window=mock_window)
+    out_file = tmp_path / "records_test.png"
+    saved_path = await board.capture_records_region(out_file)
+
+    assert saved_path == out_file
+    assert out_file.exists()
+    mock_window.capture.assert_called_once_with(region=board.layout.records_roi)
