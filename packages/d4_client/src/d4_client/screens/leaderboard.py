@@ -13,7 +13,7 @@ from d4_client.config.leaderboard import (
     LeaderboardLayoutConfigLegacy,
     load_leaderboard_config,
 )
-from d4_client.models import RelativePoint, SplitMode
+from client_core import RelativePoint, SplitMode
 from d4_client.screens.base import AutoCalibratingScreen
 from d4_types.enums.player_class import PlayerClass
 

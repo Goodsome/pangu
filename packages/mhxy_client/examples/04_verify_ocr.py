@@ -70,8 +70,8 @@ async def async_main() -> None:
     logger.info(f"  * 检测目标区域  : {target_roi} -> {abs_roi}")
 
     # 3. 保存全图与局部切片图供对比校验
-    full_path = log_dir / "ocr_debug_full.png"
-    region_path = log_dir / "ocr_debug_region.png"
+    full_path = Path("screenshots/ocr_debug_full.png").resolve()
+    region_path = Path("screenshots/ocr_debug_region.png").resolve()
 
     logger.info("\n[Vision] 正在捕获窗口全图与目标 ROI 区域画面...")
 

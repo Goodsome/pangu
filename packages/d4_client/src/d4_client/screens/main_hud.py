@@ -7,7 +7,7 @@ from d4_client.screens.base import AutoCalibratingScreen
 from d4_client.screens.inventory import InventoryPanel
 from d4_client.screens.social import SocialPanel
 from sys_input import VirtualKeyCode
-from d4_client.models import RelativeRegion
+from client_core import RelativeRegion
 
 _MAP_NAME_ROI = RelativeRegion(x=0.9, y=0.0, width=0.1, height=0.05)
 

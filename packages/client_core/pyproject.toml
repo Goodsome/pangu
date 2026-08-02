@@ -1,7 +1,7 @@
 [project]
-name = "d4-client"
+name = "client-core"
 version = "0.1.0"
-description = "Diablo IV Automation Client (POM & Game Interaction Engine)"
+description = "Core Client Infrastructure & Window Automation Base (Anti-Corruption Layer)"
 readme = "README.md"
 authors = [
     { name = "Goodsome", email = "xlxmesh@gmail.com" }
@@ -12,8 +12,8 @@ dependencies = [
     "vision-stream",
     "cv-engine",
     "foundation",
-    "pyyaml>=6.0.2",
-    "client-core",
+    "numpy",
+    "opencv-python",
 ]
 
 [build-system]
@@ -21,6 +21,4 @@ requires = ["uv_build>=0.9.22,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.basedpyright]
-# LeaderboardScreen ↔ PlayerConfigScreen 互相返回对方类型（TYPE_CHECKING + 延迟导入规避），
-# 属于 POM 双向引用的结构性误报，运行时无循环问题。
 reportImportCycles = "none"

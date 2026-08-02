@@ -14,7 +14,7 @@ from d4_client.config.leaderboard import (
     SlotConfig,
     load_leaderboard_config,
 )
-from d4_client.models import ImageFrame, Region
+from client_core import ImageFrame, Region
 from d4_client.screens.base import AutoCalibratingScreen
 
 if TYPE_CHECKING:

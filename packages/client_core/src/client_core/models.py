@@ -1,6 +1,6 @@
-"""d4_client 领域数据模型层与防腐转换器 (Anti-Corruption Layer)。
+"""client_core 通用领域数据模型层与防腐转换器 (Anti-Corruption Layer)。
 
-定义 d4_client 自有的纯数据模型，隔离底层 sys_input, vision_stream, cv_engine 库的数据类型细节。
+定义 client_core 共享的纯数据模型，隔离底层 sys_input, vision_stream, cv_engine 库的数据类型细节。
 """
 
 from dataclasses import dataclass, field
@@ -8,6 +8,7 @@ from enum import StrEnum
 from functools import cached_property
 from pathlib import Path
 from typing import Self
+import cv2
 import numpy as np
 
 from cv_engine import MatLike
@@ -17,6 +18,7 @@ from cv_engine.models import (
     Point as CVPoint,
     Region as CVRegion,
 )
+from sys_input import HWND
 from sys_input.models import Point as SysInputPoint
 from vision_stream.models import (
     ImageResult as VisionImageResult,
@@ -65,7 +67,7 @@ class BaseRegion:
             list[Self]: 切分后的子矩形区域列表。
 
         Raises:
-            ValueError: 当 n < 1 或 mode 不在 SplitMode 枚举中时抛出异常。
+            ValueError: 当 n < 1 或 mode 不在 SplitMode 枚举中抛出异常。
         """
         if n < 1:
             raise ValueError("等分份数 n 必须大于等于 1")
@@ -129,7 +131,7 @@ class BaseRegion:
 
 @dataclass(frozen=True)
 class Point:
-    """d4_client 领域二维像素坐标点。"""
+    """二维像素坐标点。"""
 
     x: int = 0
     y: int = 0
@@ -144,13 +146,13 @@ class Point:
 
     @classmethod
     def from_cv_engine(cls, pt: CVPoint) -> "Point":
-        """从 cv_engine 库的 Point 转换为 d4_client Point。"""
+        """从 cv_engine 库的 Point 转换。"""
         return cls(x=pt.x, y=pt.y)
 
 
 @dataclass(frozen=True)
 class RelativePoint:
-    """d4_client 领域相对比例坐标点 (0.0 ~ 1.0)。"""
+    """相对比例坐标点 (0.0 ~ 1.0)。"""
 
     x: float = 0.0
     y: float = 0.0
@@ -177,7 +179,7 @@ class RelativePoint:
 
 @dataclass(frozen=True)
 class Region(BaseRegion):
-    """d4_client 领域矩形检索/感知区域 (ROI)。"""
+    """矩形检索/感知区域 (ROI)。"""
 
     x: int = 0
     y: int = 0
@@ -199,7 +201,7 @@ class Region(BaseRegion):
 
     @classmethod
     def from_cv_engine(cls, rect: CVRegion) -> "Region":
-        """从 cv_engine 库的 Region 转换为 d4_client Region。"""
+        """从 cv_engine 库的 Region 转换。"""
         return cls(x=rect.x, y=rect.y, width=rect.width, height=rect.height)
 
     @classmethod
@@ -214,7 +216,7 @@ class Region(BaseRegion):
 
 @dataclass(frozen=True)
 class RelativeRegion(BaseRegion):
-    """d4_client 领域相对比例检索/感知区域 (数值表示 0.0 ~ 1.0 相对关系)。"""
+    """相对比例检索/感知区域 (0.0 ~ 1.0)。"""
 
     x: float = 0.0
     y: float = 0.0
@@ -252,7 +254,7 @@ class RelativeRegion(BaseRegion):
 
 @dataclass(frozen=True)
 class ImageFrame:
-    """d4_client 领域图像单帧画面模型。"""
+    """图像单帧画面模型。"""
 
     data: bytes
     width: int
@@ -263,7 +265,7 @@ class ImageFrame:
 
     @classmethod
     def from_vision_stream(cls, res: VisionImageResult) -> "ImageFrame":
-        """从 vision_stream 的 ImageResult 转换为 d4_client ImageFrame。"""
+        """从 vision_stream 的 ImageResult 转换。"""
         return cls(
             data=res.data,
             width=res.width,
@@ -286,7 +288,7 @@ class ImageFrame:
         return matrix[:, : self.width, :]
 
     async def save(self, path: Path | str) -> None:
-        """将 ImageFrame 异步保存为磁盘图片文件 (如 .png, .jpg)，自动创建父级目录。
+        """将 ImageFrame 异步保存为磁盘图片文件，自动创建父级目录。
 
         Args:
             path: 目标保存路径 (Path 对象或路径字符串)。
@@ -295,7 +297,6 @@ class ImageFrame:
             RuntimeError: 图像保存写入失败。
         """
         import asyncio
-        import cv2
 
         dest_path = Path(path)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -316,7 +317,7 @@ class ImageFrame:
 
 @dataclass(frozen=True)
 class MatchResult:
-    """d4_client 领域模板匹配命中结果。"""
+    """模板匹配命中结果。"""
 
     score: float
     rect: Region
@@ -349,7 +350,7 @@ class MatchResult:
 
 @dataclass(frozen=True)
 class OcrResult:
-    """d4_client 领域 OCR 文本识别与定位结果。"""
+    """OCR 文本识别与定位结果。"""
 
     text: str
     confidence: float
@@ -389,6 +390,42 @@ class OcrResult:
 
 @dataclass(frozen=True)
 class Element:
+    """与图形 UI 相关的元素。"""
+
     name: str
     region: Region
     image: ImageFrame
+
+
+@dataclass(frozen=True)
+class WindowRectInfo:
+    """窗口绝对位置与句柄结构。"""
+
+    hwnd: HWND
+    left: int
+    top: int
+    right: int
+    bottom: int
+    client_width: int = 0
+    client_height: int = 0
+    title: str = ""
+
+    @property
+    def window_height(self) -> int:
+        """整个窗口外框高度 (含标题栏和边框)。"""
+        return self.bottom - self.top
+
+    @property
+    def window_width(self) -> int:
+        """整个窗口外框宽度 (含标题栏和边框)。"""
+        return self.right - self.left
+
+    @property
+    def height(self) -> int:
+        """客户区高度 (优先使用实际 GetClientRect 高度)。"""
+        return self.client_height if self.client_height > 0 else self.window_height
+
+    @property
+    def width(self) -> int:
+        """客户区宽度 (优先使用实际 GetClientRect 宽度)。"""
+        return self.client_width if self.client_width > 0 else self.window_width

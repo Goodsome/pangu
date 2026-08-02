@@ -14,7 +14,7 @@ from d4_client.factory import (
     find_d4_window_rects,
     sort_window_rects,
 )
-from d4_client.models import (
+from client_core import (
     BaseRegion,
     ImageFrame,
     MatchResult,
@@ -34,7 +34,7 @@ from d4_client.screens import (
     PlayerConfigScreen,
     SocialPanel,
 )
-from d4_client.window import D4Window
+from d4_client.window import Window
 
 __all__ = [
     "D4Client",
@@ -46,7 +46,7 @@ __all__ = [
     "find_d4_hwnds",
     "find_d4_window_rects",
     "sort_window_rects",
-    "D4Window",
+    "Window",
     "AutoCalibratingScreen",
     "MainHUD",
     "InventoryPanel",

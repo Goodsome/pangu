@@ -8,9 +8,9 @@ from dataclasses import dataclass
 from types import TracebackType
 from typing import Self
 
-from d4_client.models import ImageFrame, Region, RelativeRegion
+from client_core import ImageFrame, Region, RelativeRegion
 from d4_client.screens.main_hud import MainHUD
-from d4_client.window import D4Window
+from d4_client.window import Window
 from sys_input import HWND
 
 
@@ -33,7 +33,7 @@ class D4Client:
     """
 
     hwnd: HWND
-    window: D4Window
+    window: Window
 
     @property
     def main_hud(self) -> MainHUD:

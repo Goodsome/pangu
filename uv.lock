@@ -12,6 +12,7 @@ resolution-markers = [
 [manifest]
 members = [
     "architecture",
+    "client-core",
     "code-dom",
     "code-evolution",
     "code-generation",
@@ -224,6 +225,29 @@ wheels = [
 ]
 
 [[package]]
+name = "client-core"
+version = "0.1.0"
+source = { editable = "packages/client_core" }
+dependencies = [
+    { name = "cv-engine" },
+    { name = "foundation" },
+    { name = "numpy" },
+    { name = "opencv-python" },
+    { name = "sys-input" },
+    { name = "vision-stream" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cv-engine", editable = "packages/cv_engine" },
+    { name = "foundation", editable = "foundation" },
+    { name = "numpy" },
+    { name = "opencv-python" },
+    { name = "sys-input", editable = "packages/sys_input" },
+    { name = "vision-stream", editable = "packages/vision_stream" },
+]
+
+[[package]]
 name = "code-dom"
 version = "0.1.0"
 source = { editable = "contexts/code_dom" }
@@ -372,6 +396,7 @@ name = "d4-client"
 version = "0.1.0"
 source = { editable = "packages/d4_client" }
 dependencies = [
+    { name = "client-core" },
     { name = "cv-engine" },
     { name = "foundation" },
     { name = "pyyaml" },
@@ -381,6 +406,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "client-core", editable = "packages/client_core" },
     { name = "cv-engine", editable = "packages/cv_engine" },
     { name = "foundation", editable = "foundation" },
     { name = "pyyaml", specifier = ">=6.0.2" },
@@ -1107,6 +1133,7 @@ dependencies = [
     { name = "alembic" },
     { name = "architecture" },
     { name = "case-converter" },
+    { name = "client-core" },
     { name = "code-dom" },
     { name = "code-evolution" },
     { name = "code-generation" },
@@ -1147,6 +1174,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.18.4" },
     { name = "architecture", editable = "contexts/architecture" },
     { name = "case-converter", specifier = ">=1.2.0" },
+    { name = "client-core", editable = "packages/client_core" },
     { name = "code-dom", editable = "contexts/code_dom" },
     { name = "code-evolution", editable = "contexts/code_evolution" },
     { name = "code-generation", editable = "contexts/code_generation" },

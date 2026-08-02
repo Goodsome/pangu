@@ -5,16 +5,16 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from d4_client import D4Window, InventoryPanel, MainHUD, SocialPanel
+from d4_client import InventoryPanel, MainHUD, SocialPanel, Window
 from sys_input.constants import VirtualKeyCode
 
 
 @pytest.fixture
 def mock_window() -> AsyncMock:
-    """构造 Mock D4Window 实例。"""
-    from d4_client.models import OcrResult, Point, Region
+    """构造 Mock Window 实例。"""
+    from client_core import OcrResult, Point, Region
 
-    window = AsyncMock(spec=D4Window)
+    window = AsyncMock(spec=Window)
     window.ocr.return_value = [
         OcrResult(
             text="基奥瓦沙",
@@ -85,7 +85,7 @@ async def test_leaderboard_capture_records_region(
     mock_window: AsyncMock, tmp_path: Path
 ) -> None:
     """测试 LeaderboardScreen.capture_records_region 截取记录区域并保存磁盘图片。"""
-    from d4_client.models import ImageFrame
+    from client_core import ImageFrame
     from d4_client.screens.leaderboard import LeaderboardScreen
 
     mock_window.width = 1920
@@ -153,7 +153,7 @@ async def test_leaderboard_open_player_config(mock_window: AsyncMock) -> None:
 @pytest.mark.anyio
 async def test_leaderboard_current_page_number(mock_window: AsyncMock) -> None:
     """测试 LeaderboardScreen.current_page_number OCR 识别与正则提取。"""
-    from d4_client.models import OcrResult, Point, Region
+    from client_core import OcrResult, Point, Region
     from d4_client.screens.leaderboard import LeaderboardScreen
 
     mock_window.width = 1920

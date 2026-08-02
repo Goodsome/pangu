@@ -151,7 +151,7 @@ def run_verification(title_keyword: str, logger: logging.Logger) -> None:
             logger.info(f" 客户区物理尺寸: {rect.width} x {rect.height}")
             logger.info(f" D4Client 实例 : {client}")
             logger.info(
-                f" D4Window 绑定 : HWND=0x{client.hwnd:X}, Width={client.window.width}, Height={client.window.height}"
+                f" Window 规格 : HWND=0x{client.hwnd:X}, Width={client.window.width}, Height={client.window.height}"
             )
 
             # 演示按索引创建单个 Client

@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import override, TYPE_CHECKING
 
-from d4_client.models import RelativeRegion
+from client_core import RelativeRegion
 from d4_client.screens.base import AutoCalibratingScreen
 from sys_input import VirtualKeyCode
 

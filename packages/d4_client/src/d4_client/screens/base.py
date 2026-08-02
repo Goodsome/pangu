@@ -8,8 +8,8 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar
 
-from d4_client.models import Element, Region, RelativeRegion
-from d4_client.window import D4Window
+from client_core import Element, Region, RelativeRegion
+from d4_client.window import Window
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class AutoCalibratingScreen:
     """所有游戏 UI 屏幕与面板的自动校准基类。"""
 
-    window: D4Window
+    window: Window
     screen_name: str = "BaseScreen"
 
     _element_cache: ClassVar[dict[str, Element]] = {}

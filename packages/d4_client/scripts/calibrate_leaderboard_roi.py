@@ -18,7 +18,7 @@ from d4_client import (
     sort_window_rects,
 )
 from d4_client.config.leaderboard import LeaderboardLayoutConfig
-from d4_client.models import RelativeRegion
+from client_core import RelativeRegion
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ async def main() -> None:
     print("🎉 标定/汇总完成！生成的 LeaderboardLayoutConfig 代码如下：")
     print("=" * 70)
     print("from dataclasses import dataclass")
-    print("from d4_client.models import RelativeRegion\n")
+    print("from client_core import RelativeRegion\n")
     print("@dataclass(frozen=True)")
     print("class LeaderboardLayoutConfig:")
 

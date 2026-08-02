@@ -9,7 +9,7 @@ import sys
 
 from cv_engine import OcrEngine, TemplateMatcher
 from d4_client.client import D4Client
-from d4_client.window import D4Window
+from d4_client.window import Window
 from sys_input import HWND, Win32MessageBackend
 from vision_stream import Win32DXGIBackend, Win32PrintWindowBackend
 
@@ -184,7 +184,7 @@ def create_d4_client_for_rect(
     template_matcher = TemplateMatcher()
     ocr_engine = OcrEngine(lang=ocr_lang, use_gpu=use_gpu)
 
-    window = D4Window(
+    window = Window(
         input_backend=input_backend,
         vision_backend=vision_backend,
         template_matcher=template_matcher,

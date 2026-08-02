@@ -13,7 +13,7 @@ from typing import Any
 
 import yaml
 
-from d4_client.models import Point, Region, RelativeRegion
+from client_core import Point, Region, RelativeRegion
 
 # 配置文件路径（与本模块同目录）
 _CONFIG_PATH = Path(__file__).parent / "leaderboard.yaml"
