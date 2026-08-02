@@ -1,6 +1,6 @@
 """d4_client POM (Page Object Model) 屏幕对象层。"""
 
-from d4_client.screens.base import AutoCalibratingScreen
+from client_core import AutoCalibratingScreen
 from d4_client.screens.inventory import InventoryPanel
 from d4_client.screens.leaderboard import LeaderboardScreen
 from d4_client.screens.main_hud import MainHUD

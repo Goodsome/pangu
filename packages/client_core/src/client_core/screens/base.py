@@ -1,4 +1,4 @@
-"""POM (Page Object Model) 模型层基础屏幕与面板抽象。
+"""client_core POM (Page Object Model) 模型层基础屏幕与面板抽象。
 
 提供 AutoCalibratingScreen 自动校准基类，封装 UI 元素自动寻址与位置缓存能力。
 """
@@ -8,14 +8,15 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar
 
-from client_core import Element, Region, RelativeRegion, Window
+from client_core.models import Element, Region, RelativeRegion
+from client_core.window import Window
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class AutoCalibratingScreen:
-    """所有游戏 UI 屏幕与面板的自动校准基类。"""
+    """所有应用/游戏 UI 屏幕与面板的自动校准基类。"""
 
     window: Window
     screen_name: str = "BaseScreen"
@@ -64,6 +65,11 @@ class AutoCalibratingScreen:
         target_text: str,
         roi: Region | RelativeRegion | None = None,
     ) -> Element | None:
+        """定位特定 UI 元素。
+
+        优先基于内存缓存的特征图片执行极速模板匹配；
+        未命中缓存时回退至基于 OCR 文本的精确定位，并自动截取该元素特征存入缓存。
+        """
         cached = self._element_cache.get(element_key)
         if cached:
             roi = cached.region

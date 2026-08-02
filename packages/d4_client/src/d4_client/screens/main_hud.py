@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import override
 
-from d4_client.screens.base import AutoCalibratingScreen
+from client_core import AutoCalibratingScreen
 from d4_client.screens.inventory import InventoryPanel
 from d4_client.screens.social import SocialPanel
 from sys_input import VirtualKeyCode

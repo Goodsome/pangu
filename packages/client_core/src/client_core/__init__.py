@@ -13,9 +13,11 @@ from client_core.models import (
     SplitMode,
     WindowRectInfo,
 )
+from client_core.screens.base import AutoCalibratingScreen
 from client_core.window import BaseWindow, Window, activate_window, client_to_screen
 
 __all__ = [
+    "AutoCalibratingScreen",
     "BaseRegion",
     "BaseWindow",
     "Element",

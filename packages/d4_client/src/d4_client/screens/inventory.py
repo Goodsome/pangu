@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import override
 
-from d4_client.screens.base import AutoCalibratingScreen
+from client_core import AutoCalibratingScreen
 
 
 @dataclass
