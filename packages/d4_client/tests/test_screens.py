@@ -104,3 +104,31 @@ async def test_leaderboard_capture_records_region(
     assert saved_path == out_file
     assert out_file.exists()
     mock_window.capture.assert_called_once_with(region=board.layout.records_roi)
+
+
+@pytest.mark.anyio
+async def test_leaderboard_click_row(mock_window: AsyncMock) -> None:
+    """测试 LeaderboardScreen.click_row 依据 records_roi 垂直 10 等分定位计算。"""
+    from d4_client.screens.leaderboard import LeaderboardScreen
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+
+    board = LeaderboardScreen(window=mock_window)
+
+    # 1. 成功计算第 1 行 (row_index=0)
+    pt0 = await board.click_row(0)
+    assert pt0.x > 0 and pt0.y > 0
+    assert mock_window.mouse_click.called
+
+    # 2. 成功计算第 10 行 (row_index=9)
+    pt9 = await board.click_row(9)
+    assert pt9.x == pt0.x  # 同一列，X 坐标垂直对齐
+    assert pt9.y > pt0.y    # 第 10 行的 Y 坐标显著大于第 1 行
+
+    # 3. 越界 row_index 抛出 IndexError
+    with pytest.raises(IndexError):
+        await board.click_row(-1)
+
+    with pytest.raises(IndexError):
+        await board.click_row(10)

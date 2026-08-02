@@ -138,21 +138,38 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # 行交互
     # ------------------------------------------------------------------
 
-    async def click_row(self, row_index: int) -> None:
-        """点击指定行，触发弹出上下文菜单。
+    async def click_row(self, row_index: int) -> Point:
+        """按 records_roi (垂直 10 等分) 动态计算中心像素点，点击指定行触发上下文菜单。
 
         Args:
             row_index: 行索引，范围 0-9（对应榜单第 1-10 名）。
 
+        Returns:
+            Point: 计算得出的最终点击物理像素点。
+
         Raises:
-            IndexError: row_index 超出有效范围。
+            IndexError: row_index 超出有效范围 [0, 9]。
         """
-        points = self._legacy_layout.row_click_points
-        if row_index < 0 or row_index >= len(points):
-            raise IndexError(f"row_index={row_index} 超出范围 [0, {len(points) - 1}]")
-        point = points[row_index]
-        logger.info("[LeaderboardScreen] 点击第 %d 行 → %s", row_index + 1, point)
-        await self.window.mouse_click(point=point)
+        if row_index < 0 or row_index >= 10:
+            raise IndexError(f"row_index={row_index} 超出有效范围 [0, 9]")
+
+        abs_roi = self.layout.records_roi.to_absolute(
+            window_width=self.window.width,
+            window_height=self.window.height,
+        )
+
+        cell_height = abs_roi.height / 10.0
+        center_x = int(round(abs_roi.x + abs_roi.width / 2.0))
+        center_y = int(round(abs_roi.y + cell_height * row_index + cell_height / 2.0))
+        click_point = Point(x=center_x, y=center_y)
+
+        logger.info(
+            "[LeaderboardScreen] 点击第 %d 行 (10等分, 算得绝对坐标: %s)",
+            row_index + 1,
+            click_point,
+        )
+        await self.window.mouse_click(point=click_point)
+        return click_point
 
     # ------------------------------------------------------------------
     # 打开玩家配置页
