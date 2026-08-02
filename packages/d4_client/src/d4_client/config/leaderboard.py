@@ -33,6 +33,9 @@ class LeaderboardLayoutConfig:
     next_page_roi: RelativeRegion = RelativeRegion(x=0.4870, y=0.8716, width=0.0167, height=0.0381)
     previous_page_roi: RelativeRegion = RelativeRegion(x=0.4588, y=0.8716, width=0.0209, height=0.0411)
     page_number_roi: RelativeRegion = RelativeRegion(x=0.5104, y=0.8766, width=0.0381, height=0.0301)
+    
+    config_viewer_title_roi: RelativeRegion = RelativeRegion(x=0.7923, y=0.0772, width=0.0736, height=0.0331)
+    
     title_text: str = "天梯榜"
 
 

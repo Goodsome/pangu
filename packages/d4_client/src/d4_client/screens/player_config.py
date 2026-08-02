@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, override
 
 from d4_client.config.leaderboard import (
+    LeaderboardConfig,
+    LeaderboardLayoutConfig,
     PlayerConfigLayoutConfig,
     SlotConfig,
     load_leaderboard_config,
@@ -34,6 +36,10 @@ class PlayerConfigScreen(AutoCalibratingScreen):
     screen_name: str = "PlayerConfigScreen"
 
     @property
+    def config(self) -> LeaderboardLayoutConfig:
+        return LeaderboardLayoutConfig()
+
+    @property
     def _layout(self) -> PlayerConfigLayoutConfig:
         return load_leaderboard_config().player_config
 
@@ -45,8 +51,8 @@ class PlayerConfigScreen(AutoCalibratingScreen):
     async def is_visible(self) -> bool:
         """通过检测"配置查看器"标题文字判断当前是否处于配置查看页。"""
         result = await self.window.find_text(
-            target_text=self._layout.title_text,
-            roi=self._layout.title_roi,
+            target_text="配置查看器",
+            roi=self.config.config_viewer_title_roi,
         )
         return result is not None
 
