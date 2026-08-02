@@ -13,10 +13,12 @@ from sys_input.constants import (
     INPUT_KEYBOARD,
     INPUT_MOUSE,
     KEYEVENTF_KEYUP,
+    MOUSEEVENTF_ABSOLUTE,
     MOUSEEVENTF_LEFTDOWN,
     MOUSEEVENTF_LEFTUP,
     MOUSEEVENTF_MIDDLEDOWN,
     MOUSEEVENTF_MIDDLEUP,
+    MOUSEEVENTF_MOVE,
     MOUSEEVENTF_RIGHTDOWN,
     MOUSEEVENTF_RIGHTUP,
     MOUSEEVENTF_WHEEL,
@@ -138,17 +140,37 @@ class Win32HardwareBackend:
 
     async def mouse_move(self, point: Point) -> None:
         """全局移动鼠标光标位置。"""
-        if sys.platform != "win32" or _SetCursorPos is None:
+        if (
+            sys.platform != "win32"
+            or _SetCursorPos is None
+            or _SendInput is None
+        ):
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
 
         res = bool(_SetCursorPos(point.x, point.y))
         if not res:
+            # 当 SetCursorPos 被 Win32 UIPI 限制拦截时，回退至基于 SendInput MOUSEEVENTF_ABSOLUTE 模式合成物理光标移动
             import ctypes
 
-            err = ctypes.GetLastError()
-            raise InputSimulationError(
-                f"SetCursorPos 失败 pos=({point.x}, {point.y})", code=err
-            )
+            user32 = ctypes.windll.user32
+            sw = int(user32.GetSystemMetrics(0)) or 1920
+            sh = int(user32.GetSystemMetrics(1)) or 1080
+            dx = int((point.x * 65535) / sw)
+            dy = int((point.y * 65535) / sh)
+
+            inp = INPUT()  # type: ignore
+            inp.type = INPUT_MOUSE  # type: ignore
+            inp.union.mi.dx = dx  # type: ignore
+            inp.union.mi.dy = dy  # type: ignore
+            inp.union.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE  # type: ignore
+
+            send_res = int(_SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT)))
+            if send_res == 0:
+                err = ctypes.GetLastError()
+                raise InputSimulationError(
+                    f"SetCursorPos 与 SendInput mouse_move 均失败 pos=({point.x}, {point.y})",
+                    code=err,
+                )
 
     async def mouse_down(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
@@ -230,7 +252,7 @@ class Win32HardwareBackend:
                 await asyncio.sleep(interval_ms / 1000.0)
 
     async def scroll(self, amount: int, point: Point | None = None) -> None:
-        """全局模拟鼠标滚轮滚动。"""
+        """全局模拟滚轮滚动。"""
         if sys.platform != "win32" or _SendInput is None:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
 
@@ -242,7 +264,7 @@ class Win32HardwareBackend:
         inp = INPUT()  # type: ignore
         inp.type = INPUT_MOUSE  # type: ignore
         inp.union.mi.dwFlags = MOUSEEVENTF_WHEEL  # type: ignore
-        inp.union.mi.mouseData = amount * 120  # type: ignore
+        inp.union.mi.mouseData = amount  # type: ignore
 
         res = int(_SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT)))
         if res == 0:

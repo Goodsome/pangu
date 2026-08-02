@@ -33,6 +33,7 @@ dependencies = [
     "d4-automation",
     "d4-robot",
     "d4-backend",
+    "mhxy-client",
 ]
 
 [project.scripts]
@@ -78,9 +79,11 @@ cv-engine = { workspace = true }
 d4-automation = { workspace = true }
 d4-robot = { workspace = true }
 d4-backend = { workspace = true }
+mhxy-client = { workspace = true }
 
 
 [dependency-groups]
 dev = [
+    "basedpyright>=1.39.9",
     "pytest>=9.1.1",
 ]
