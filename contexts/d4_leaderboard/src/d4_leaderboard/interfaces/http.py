@@ -1,10 +1,8 @@
 from datetime import datetime
 from uuid import UUID
-
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-
 from d4_leaderboard.application.commands.create_entry import CreateEntryCommand
 from d4_leaderboard.application.commands.delete_entry import DeleteEntryCommand
 from d4_leaderboard.application.commands.update_entry import UpdateEntryCommand
@@ -12,7 +10,7 @@ from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
 from d4_leaderboard.application.ports.entry_query_service import EntryQueryService
 from d4_leaderboard.container import Container
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from foundation.common_types.page import Page, PageQuery
 from foundation.message_bus.message_bus import AsyncBaseMessageBus
@@ -73,9 +71,7 @@ async def list_entries(
     query_service: EntryQueryService = Depends(Provide[Container.entry_query_service]),
 ) -> Page[EntryDto]:
     page_query = PageQuery[EntryFilter](
-        current=current,
-        size=size,
-        condition=EntryFilter(),
+        current=current, size=size, condition=EntryFilter()
     )
     return await query_service.find_by_query(page_query)
 

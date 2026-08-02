@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-
 from d4_leaderboard.application.ports.repo_provider import RepoProvider
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from foundation.building_blocks.command import Command
 

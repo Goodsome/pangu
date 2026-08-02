@@ -1,8 +1,6 @@
 from datetime import datetime
-
 from pydantic import Field
-
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.domain.value_objects.equipment import Equipment
 from d4_leaderboard.domain.value_objects.paragon import ParagonBoard
@@ -17,8 +15,6 @@ class Entry(AggregateRoot[EntryId]):
     tier: int = Field(..., ge=1, le=150)
     duration_ms: int = Field(..., ge=0, le=600000)
     occurred_at: datetime
-
-    # 配装与构筑快照
     equipment: list[Equipment] = Field(default_factory=list)
     skills: list[Skill] = Field(default_factory=list)
     paragon_boards: list[ParagonBoard] = Field(default_factory=list)

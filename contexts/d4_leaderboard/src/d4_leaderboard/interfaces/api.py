@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
-
 from foundation.message_bus.message_bus import AsyncBaseMessageBus
-
 from d4_leaderboard.application.commands.create_entry import CreateEntryCommand
 from d4_leaderboard.application.commands.delete_entry import DeleteEntryCommand
 from d4_leaderboard.application.commands.update_entry import UpdateEntryCommand
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 
 

@@ -1,9 +1,7 @@
 from datetime import datetime
 from uuid import UUID
-
 from pydantic import BaseModel, Field
-
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.value_objects.equipment import Equipment
 from d4_leaderboard.domain.value_objects.paragon import ParagonBoard
 from d4_leaderboard.domain.value_objects.skill import Skill

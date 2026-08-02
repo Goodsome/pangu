@@ -392,6 +392,7 @@ version = "0.1.0"
 source = { editable = "contexts/d4_leaderboard" }
 dependencies = [
     { name = "alembic" },
+    { name = "d4-types" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "uvicorn" },
@@ -400,6 +401,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.18.4" },
+    { name = "d4-types", editable = "packages/d4_types" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "uvicorn", specifier = ">=0.50.0" },
