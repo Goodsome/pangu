@@ -44,6 +44,34 @@ class Point:
 
 
 @dataclass(frozen=True)
+class RelativePoint:
+    """d4_client 领域相对比例坐标点 (0.0 ~ 1.0)。"""
+
+    x: float = 0.0
+    y: float = 0.0
+
+    def to_absolute(self, window_width: int, window_height: int) -> Point:
+        """根据给定的窗口物理像素分辨率，转换为绝对像素 Point。"""
+        return Point(
+            x=int(round(self.x * window_width)),
+            y=int(round(self.y * window_height)),
+        )
+
+    @classmethod
+    def from_absolute(
+        cls, point: Point, window_width: int, window_height: int
+    ) -> "RelativePoint":
+        """从绝对像素 Point 转换为 0.0 ~ 1.0 的 RelativePoint。"""
+        if window_width <= 0 or window_height <= 0:
+            raise ValueError("window_width 和 window_height 必须大于 0")
+        return cls(
+            x=point.x / window_width,
+            y=point.y / window_height,
+        )
+
+
+
+@dataclass(frozen=True)
 class Region:
     """d4_client 领域矩形检索/感知区域 (ROI)。"""
 
@@ -80,6 +108,15 @@ class Region:
         """从 cv_engine 库的 Region 转换为 d4_client Region。"""
         return cls(x=rect.x, y=rect.y, width=rect.width, height=rect.height)
 
+    @classmethod
+    def from_points(cls, p1: Point, p2: Point) -> "Region":
+        """从两个坐标点计算包围矩形 Region。"""
+        x = min(p1.x, p2.x)
+        y = min(p1.y, p2.y)
+        width = abs(p1.x - p2.x)
+        height = abs(p1.y - p2.y)
+        return cls(x=x, y=y, width=width, height=height)
+
 
 @dataclass(frozen=True)
 class RelativeRegion:
@@ -97,6 +134,20 @@ class RelativeRegion:
             y=int(round(self.y * window_height)),
             width=int(round(self.width * window_width)),
             height=int(round(self.height * window_height)),
+        )
+
+    @classmethod
+    def from_absolute(
+        cls, region: Region, window_width: int, window_height: int
+    ) -> "RelativeRegion":
+        """从绝对像素 Region 转换为 0.0 ~ 1.0 的 RelativeRegion。"""
+        if window_width <= 0 or window_height <= 0:
+            raise ValueError("window_width 和 window_height 必须大于 0")
+        return cls(
+            x=region.x / window_width,
+            y=region.y / window_height,
+            width=region.width / window_width,
+            height=region.height / window_height,
         )
 
 
@@ -127,7 +178,10 @@ class ImageFrame:
     def mat(self) -> MatLike:
         nparr = np.frombuffer(self.data, dtype=np.uint8)
         bytes_per_pixel = self.channels
-        stride_width = self.stride // bytes_per_pixel
+        effective_stride = (
+            self.stride if self.stride > 0 else self.width * bytes_per_pixel
+        )
+        stride_width = effective_stride // bytes_per_pixel
         matrix = nparr.reshape((self.height, stride_width, self.channels))
 
         return matrix[:, : self.width, :]

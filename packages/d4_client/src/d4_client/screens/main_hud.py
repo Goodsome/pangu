@@ -9,12 +9,7 @@ from d4_client.screens.social import SocialPanel
 from sys_input import VirtualKeyCode
 from d4_client.models import RelativeRegion
 
-_MAP_NAME_ROI = RelativeRegion(
-    x=0.9,
-    y=0.0,
-    width=0.1,
-    height=0.05
-)
+_MAP_NAME_ROI = RelativeRegion(x=0.9, y=0.0, width=0.1, height=0.05)
 
 
 @dataclass
@@ -27,9 +22,7 @@ class MainHUD(AutoCalibratingScreen):
     async def is_visible(self) -> bool:
         """检查当前界面是否为主 HUD 视角。"""
 
-        results = await self.window.ocr(
-            roi=_MAP_NAME_ROI
-        )
+        results = await self.window.ocr(roi=_MAP_NAME_ROI)
         for result in results:
             if result.text:
                 return True

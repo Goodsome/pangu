@@ -20,6 +20,7 @@ from d4_client.models import (
     OcrResult,
     Point,
     Region,
+    RelativePoint,
     RelativeRegion,
 )
 from d4_client.screens import (
@@ -52,8 +53,10 @@ __all__ = [
     "PlayerConfigScreen",
     "Point",
     "Region",
+    "RelativePoint",
     "RelativeRegion",
     "MatchResult",
     "OcrResult",
     "ImageFrame",
 ]
+

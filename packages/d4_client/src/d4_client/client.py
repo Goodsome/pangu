@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from types import TracebackType
 from typing import Self
 
-from d4_client.models import ImageFrame, Region
+from d4_client.models import ImageFrame, Region, RelativeRegion
 from d4_client.screens.main_hud import MainHUD
 from d4_client.window import D4Window
 from sys_input import HWND
@@ -47,6 +47,23 @@ class D4Client:
     async def capture(self, region: Region | None = None) -> ImageFrame:
         """快捷代理：捕获窗口画面。"""
         return await self.window.capture(region=region)
+
+    async def select_roi(
+        self,
+        window_name: str = "Select ROI (Press ENTER/SPACE to confirm, ESC/c to cancel)",
+        image: ImageFrame | None = None,
+    ) -> Region | None:
+        """快捷代理：弹出 OpenCV ROI 拖拽选区。"""
+        return await self.window.select_roi(window_name=window_name, image=image)
+
+    async def select_relative_roi(
+        self,
+        window_name: str = "Select Relative ROI (Press ENTER/SPACE to confirm, ESC/c to cancel)",
+        image: ImageFrame | None = None,
+    ) -> RelativeRegion | None:
+        """快捷代理：弹出 OpenCV 拖拽选区并获取相对 RelativeRegion。"""
+        return await self.window.select_relative_roi(window_name=window_name, image=image)
+
 
     async def close(self) -> None:
         """释放底层图形设备、句柄与视觉匹配引擎缓存。"""

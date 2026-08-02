@@ -11,6 +11,7 @@ dependencies = [
     "sys-input",
     "vision-stream",
     "cv-engine",
+    "foundation",
     "pyyaml>=6.0.2",
 ]
 

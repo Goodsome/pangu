@@ -17,6 +17,7 @@ _ADD_FRIEND_ROI = RelativeRegion(
     height=0.2,
 )
 
+
 @dataclass
 class SocialPanel(AutoCalibratingScreen):
     """暗黑破坏神 4 社交界面 POM。"""

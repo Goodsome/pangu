@@ -2,7 +2,7 @@
 
 from d4_client.config.leaderboard import (
     LeaderboardConfig,
-    LeaderboardLayoutConfig,
+    LeaderboardLayoutConfigLegacy,
     PlayerConfigLayoutConfig,
     SlotConfig,
     TooltipConfig,
@@ -12,7 +12,7 @@ from d4_client.config.leaderboard import (
 
 __all__ = [
     "LeaderboardConfig",
-    "LeaderboardLayoutConfig",
+    "LeaderboardLayoutConfigLegacy",
     "PlayerConfigLayoutConfig",
     "SlotConfig",
     "TooltipConfig",

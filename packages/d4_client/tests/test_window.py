@@ -70,6 +70,18 @@ def test_models_conversion() -> None:
     assert d4_res.score == 0.9
     assert isinstance(d4_res.rect, Region)
 
+    # 测试 ImageFrame 提取 mat 且 stride==0 时正确容错
+    from d4_client.models import ImageFrame
+
+    frame_zero_stride = ImageFrame(
+        data=b"\x00" * 400,
+        width=10,
+        height=10,
+        channels=4,
+        stride=0,
+    )
+    assert frame_zero_stride.mat.shape == (10, 10, 4)
+
 
 def test_relative_region() -> None:
     """测试 RelativeRegion 的 0~1 相对比例坐标转换。"""
@@ -79,6 +91,19 @@ def test_relative_region() -> None:
 
     full_rel = RelativeRegion(x=0.0, y=0.0, width=1.0, height=1.0)
     assert full_rel.to_absolute(1920, 1080) == Region(x=0, y=0, width=1920, height=1080)
+
+
+def test_relative_point() -> None:
+    """测试 RelativePoint 的 0~1 相对比例坐标转换。"""
+    from d4_client.models import RelativePoint
+
+    rel_pt = RelativePoint(x=0.5, y=0.5)
+    abs_pt = rel_pt.to_absolute(1920, 1080)
+    assert abs_pt == Point(x=960, y=540)
+
+    conv_rel = RelativePoint.from_absolute(Point(960, 540), 1920, 1080)
+    assert conv_rel.x == 0.5 and conv_rel.y == 0.5
+
 
 
 @pytest.mark.anyio
@@ -165,6 +190,12 @@ async def test_async_input_methods(
     await d4_window.scroll(120)
     assert mock_input.scroll.called
 
+    await d4_window.mouse_down(Point(10, 20))
+    assert mock_input.mouse_down.called
+
+    await d4_window.mouse_up(Point(10, 20))
+    assert mock_input.mouse_up.called
+
 
 def test_window_dimensions(mock_deps: tuple[MagicMock, ...]) -> None:
     """测试 D4Window 实例化时显式传入 width 和 height 字段。"""
@@ -180,3 +211,46 @@ def test_window_dimensions(mock_deps: tuple[MagicMock, ...]) -> None:
     )
     assert custom_window.width == 1280
     assert custom_window.height == 720
+
+
+@pytest.mark.anyio
+async def test_select_roi(
+    d4_window: D4Window, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """测试基于 OpenCV 交互框选获取绝对 Region 和相对 RelativeRegion。"""
+    mock_select_roi = MagicMock(return_value=(192, 216, 960, 432))
+    mock_destroy_window = MagicMock()
+
+    import cv2
+    monkeypatch.setattr(cv2, "selectROI", mock_select_roi)
+    monkeypatch.setattr(cv2, "destroyWindow", mock_destroy_window)
+
+    # 1. 测试 select_roi 获取绝对像素 Region
+    abs_region = await d4_window.select_roi(window_name="Test OpenCV ROI")
+    assert abs_region == Region(x=192, y=216, width=960, height=432)
+    assert mock_select_roi.called
+    assert mock_destroy_window.called
+
+    # 2. 测试 select_relative_roi 获取 RelativeRegion (1920x1080 屏幕)
+    rel_region = await d4_window.select_relative_roi(window_name="Test OpenCV Relative ROI")
+    assert rel_region == RelativeRegion(x=0.1, y=0.2, width=0.5, height=0.4)
+
+
+@pytest.mark.anyio
+async def test_select_roi_cancelled(
+    d4_window: D4Window, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """测试取消框选时返回 None。"""
+    mock_select_roi = MagicMock(return_value=(0, 0, 0, 0))
+    mock_destroy_window = MagicMock()
+
+    import cv2
+    monkeypatch.setattr(cv2, "selectROI", mock_select_roi)
+    monkeypatch.setattr(cv2, "destroyWindow", mock_destroy_window)
+
+    abs_region = await d4_window.select_roi()
+    assert abs_region is None
+
+    rel_region = await d4_window.select_relative_roi()
+    assert rel_region is None
+

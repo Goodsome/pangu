@@ -59,6 +59,16 @@ def find_d4_window_rects(title_keyword: str = "暗黑破坏神IV") -> list[Windo
     from ctypes import wintypes
 
     user32 = ctypes.windll.user32
+
+    # 声明 DPI 感知，确保获取真实物理像素 (Physical Pixels) 而非 DPI 缩放后的逻辑像素
+    try:
+        user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+    except Exception:
+        try:
+            user32.SetProcessDPIAware()
+        except Exception:
+            pass
+
     windows: list[WindowRectInfo] = []
 
     WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)

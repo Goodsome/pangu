@@ -31,5 +31,10 @@ async def test_d4client_async_context_manager() -> None:
     async with client as c:
         assert c.hwnd == 12345
         _ = await c.capture()
+        _ = await c.select_roi()
+        _ = await c.select_relative_roi()
 
     assert mock_window.close.called
+    assert mock_window.select_roi.called
+    assert mock_window.select_relative_roi.called
+

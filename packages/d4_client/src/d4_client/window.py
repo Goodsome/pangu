@@ -8,6 +8,7 @@ import asyncio
 from dataclasses import dataclass
 from pathlib import Path
 
+import cv2
 from cv_engine import (
     IOCREngine,
     ITemplateMatcher,
@@ -238,6 +239,24 @@ class D4Window:
             interval_ms=interval_ms,
         )
 
+    async def mouse_down(
+        self,
+        point: Point | None = None,
+        button: MouseButton = MouseButton.LEFT,
+    ) -> None:
+        """异步在窗口指定位置按下鼠标按键。"""
+        ipt = point.to_sys_input() if point else None
+        await self.input_backend.mouse_down(point=ipt, button=button)
+
+    async def mouse_up(
+        self,
+        point: Point | None = None,
+        button: MouseButton = MouseButton.LEFT,
+    ) -> None:
+        """异步在窗口指定位置抬起鼠标按键。"""
+        ipt = point.to_sys_input() if point else None
+        await self.input_backend.mouse_up(point=ipt, button=button)
+
     async def key_press(
         self, vk_code: VirtualKeyCode | int, duration_sec: float = 0.05
     ) -> None:
@@ -252,7 +271,65 @@ class D4Window:
         ipt = point.to_sys_input() if point else None
         await self.input_backend.scroll(amount=amount, point=ipt)
 
+    # ---------------------------------------------------------------------------
+    # 手动 ROI 选区与拖拽交互 (OpenCV 选区器)
+    # ---------------------------------------------------------------------------
+    async def select_roi(
+        self,
+        window_name: str = "Select ROI (Press ENTER/SPACE to confirm, ESC/c to cancel)",
+        image: ImageFrame | None = None,
+    ) -> Region | None:
+        """捕获/使用指定画面并弹出 OpenCV GUI 交互窗口，允许用户手动拖拽框选 ROI 区域。
+
+        Args:
+            window_name: 弹出交互窗口的标题栏名称。
+            image: 可选。显式传入要框选的图像帧，若未传入则自动捕获当前窗口画面。
+
+        Returns:
+            Region | None: 用户确定的绝对像素坐标 Region。若取消框选或无效选区则返回 None。
+        """
+        frame = image if image is not None else await self.capture()
+        img = frame.mat
+
+        def _do_select() -> tuple[int, int, int, int]:
+            rect = cv2.selectROI(window_name, img, showCrosshair=True, fromCenter=False)
+            cv2.destroyWindow(window_name)
+            return (int(rect[0]), int(rect[1]), int(rect[2]), int(rect[3]))
+
+
+        rect = await asyncio.to_thread(_do_select)
+        x, y, w, h = rect
+        if w <= 0 or h <= 0:
+            return None
+
+        return Region(x=int(x), y=int(y), width=int(w), height=int(h))
+
+    async def select_relative_roi(
+        self,
+        window_name: str = "Select Relative ROI (Press ENTER/SPACE to confirm, ESC/c to cancel)",
+        image: ImageFrame | None = None,
+    ) -> RelativeRegion | None:
+        """捕获/使用指定画面，弹窗供用户手动拖拽框选，并自动转换为 0.0~1.0 比例的相对 ROI。
+
+        Args:
+            window_name: 弹出交互窗口的标题栏名称。
+            image: 可选。显式传入要框选的图像帧，若未传入则自动捕获当前窗口画面。
+
+        Returns:
+            RelativeRegion | None: 计算获取的 RelativeRegion。若取消框选则返回 None。
+        """
+        abs_region = await self.select_roi(window_name=window_name, image=image)
+        if abs_region is None:
+            return None
+
+        return RelativeRegion.from_absolute(
+            region=abs_region,
+            window_width=self.width,
+            window_height=self.height,
+        )
+
     async def close(self) -> None:
         """异步关闭并清理画面捕获与底层句柄资源。"""
         if hasattr(self.vision_backend, "close"):
             await self.vision_backend.close()
+
