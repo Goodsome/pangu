@@ -8,8 +8,7 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar
 
-from client_core import Element, Region, RelativeRegion
-from d4_client.window import Window
+from client_core import Element, Region, RelativeRegion, Window
 
 logger = logging.getLogger(__name__)
 

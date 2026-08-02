@@ -8,10 +8,11 @@
 import sys
 from typing import Final
 
+from client_core import Window
+from cv_engine import OcrEngine, TemplateMatcher
 from mhxy_client.client import MhxyClient
 from mhxy_client.exceptions import WindowNotFoundError
 from mhxy_client.models import WindowRectInfo
-from mhxy_client.window import MhxyWindow
 from sys_input import HWND, InputBackend, Win32HardwareBackend, Win32MessageBackend
 from vision_stream import Win32DXGIBackend, Win32PrintWindowBackend
 
@@ -141,15 +142,12 @@ def sort_window_rects(
     if not windows:
         return []
 
-    # 先按 top 升序排序
     sorted_by_top = sorted(windows, key=lambda w: w.top)
 
-    # 进行分行分组
     rows: list[list[WindowRectInfo]] = []
     for win in sorted_by_top:
         placed = False
         for row in rows:
-            # 如果当前窗口的 top 与该行代表窗口 top 相差不超过 row_tolerance 像素
             if abs(win.top - row[0].top) <= row_tolerance:
                 row.append(win)
                 placed = True
@@ -157,7 +155,6 @@ def sort_window_rects(
         if not placed:
             rows.append([win])
 
-    # 对每一行内的窗口按照 left (X 轴) 从小到大排序
     sorted_result: list[WindowRectInfo] = []
     for row in rows:
         row_sorted = sorted(row, key=lambda w: w.left)
@@ -208,22 +205,17 @@ def create_mhxy_client_for_rect(
             client_only=client_only,
         )
 
-    template_matcher = None
-    ocr_engine = None
-    if init_cv_engines:
-        from cv_engine import OcrEngine, TemplateMatcher
+    template_matcher = TemplateMatcher()
+    ocr_engine = OcrEngine(lang=ocr_lang, use_gpu=use_gpu)
 
-        template_matcher = TemplateMatcher()
-        ocr_engine = OcrEngine(lang=ocr_lang, use_gpu=use_gpu)
-
-    window = MhxyWindow(
-        hwnd=rect.hwnd,
+    window = Window(
         input_backend=input_backend,
         vision_backend=vision_backend,
         template_matcher=template_matcher,
         ocr_engine=ocr_engine,
         width=rect.width,
         height=rect.height,
+        hwnd=rect.hwnd,
         title=rect.title,
     )
 
@@ -258,8 +250,9 @@ def create_mhxy_client_by_index(
             f"找不到索引为 {index} 的梦幻西游窗口 (找到窗口总数: {len(sorted_rects)})"
         )
 
+    target_rect = sorted_rects[index]
     return create_mhxy_client_for_rect(
-        rect=sorted_rects[index],
+        rect=target_rect,
         render_full_content=render_full_content,
         client_only=client_only,
         ocr_lang=ocr_lang,
@@ -282,7 +275,7 @@ def create_mhxy_clients(
     init_cv_engines: bool = False,
     use_hardware_input: bool = True,
 ) -> list[MhxyClient]:
-    """批量检索并智能排序创建所有梦幻西游窗口对应的 MhxyClient 实例列表。"""
+    """获取全量符合条件的梦幻西游游戏窗口并按几何布局顺序返回组装好的 MhxyClient 列表。"""
     rects = find_mhxy_window_rects(
         title_keyword=title_keyword, class_name_keyword=class_name_keyword
     )
@@ -290,7 +283,7 @@ def create_mhxy_clients(
 
     return [
         create_mhxy_client_for_rect(
-            rect=rect,
+            rect=r,
             render_full_content=render_full_content,
             client_only=client_only,
             ocr_lang=ocr_lang,
@@ -299,5 +292,5 @@ def create_mhxy_clients(
             init_cv_engines=init_cv_engines,
             use_hardware_input=use_hardware_input,
         )
-        for rect in sorted_rects
+        for r in sorted_rects
     ]

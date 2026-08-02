@@ -973,6 +973,7 @@ name = "mhxy-client"
 version = "0.1.0"
 source = { editable = "packages/mhxy_client" }
 dependencies = [
+    { name = "client-core" },
     { name = "cv-engine" },
     { name = "pydantic" },
     { name = "sys-input" },
@@ -981,6 +982,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "client-core", editable = "packages/client_core" },
     { name = "cv-engine", editable = "packages/cv_engine" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "sys-input", editable = "packages/sys_input" },

@@ -12,6 +12,7 @@ dependencies = [
     "vision-stream",
     "cv-engine",
     "pydantic>=2.13.4",
+    "client-core",
 ]
 
 [build-system]

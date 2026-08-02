@@ -34,7 +34,7 @@ from d4_client.screens import (
     PlayerConfigScreen,
     SocialPanel,
 )
-from d4_client.window import Window
+from client_core import Window
 
 __all__ = [
     "D4Client",

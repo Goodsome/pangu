@@ -19,7 +19,7 @@ from mhxy_client.models import (
     RelativeRegion,
     WindowRectInfo,
 )
-from mhxy_client.window import MhxyWindow
+from client_core import Window
 from sys_input import MouseButton, VirtualKeyCode
 
 __all__ = [
@@ -27,13 +27,13 @@ __all__ = [
     "MatchResult",
     "MhxyClient",
     "MhxyClientError",
-    "MhxyWindow",
     "MouseButton",
     "OcrResult",
     "Point",
     "Region",
     "RelativeRegion",
     "VirtualKeyCode",
+    "Window",
     "WindowNotFoundError",
     "WindowRectInfo",
     "create_mhxy_client_by_index",

@@ -9,7 +9,7 @@ import sys
 
 from cv_engine import OcrEngine, TemplateMatcher
 from d4_client.client import D4Client
-from d4_client.window import Window
+from client_core import Window
 from sys_input import HWND, Win32MessageBackend
 from vision_stream import Win32DXGIBackend, Win32PrintWindowBackend
 

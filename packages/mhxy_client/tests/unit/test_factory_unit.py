@@ -1,6 +1,8 @@
 """mhxy_client 工厂与窗口排序算法单元测试。"""
 
-from mhxy_client import WindowRectInfo, sort_window_rects
+from unittest.mock import MagicMock
+from client_core import Window
+from mhxy_client import MhxyClient, WindowRectInfo, sort_window_rects
 
 
 def test_window_rect_info_properties() -> None:
@@ -22,6 +24,17 @@ def test_window_rect_info_properties() -> None:
     assert rect.server_name == "畅玩服[天下无双]"
     assert rect.role_name == "游易幽寒"
     assert rect.role_id == "39200278"
+
+
+def test_mhxy_client_title_parsing() -> None:
+    """测试 MhxyClient 根据关联 Window 的标题动态解析大区和角色信息。"""
+    mock_window = MagicMock(spec=Window)
+    mock_window.title = "梦幻西游 ONLINE - (畅玩服[天下无双] - 游易幽寒[39200278])"
+
+    client = MhxyClient(hwnd=1001, window=mock_window)
+    assert client.server_name == "畅玩服[天下无双]"
+    assert client.role_name == "游易幽寒"
+    assert client.role_id == "39200278"
 
 
 def test_sort_window_rects_empty() -> None:

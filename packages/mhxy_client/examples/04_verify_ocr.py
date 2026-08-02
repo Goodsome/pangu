@@ -79,7 +79,7 @@ async def async_main() -> None:
         # A. 捕获完整客户区全图画面并保存
         full_frame = await client.capture(region=None)
         if full_frame.mat is not None:
-            full_frame.save(full_path)
+            await full_frame.save(full_path)
             logger.info(
                 f"[Save] 📷 窗口客户区【全图】截图已保存至: {full_path.as_uri()} ({full_frame.width}x{full_frame.height})"
             )
@@ -87,7 +87,7 @@ async def async_main() -> None:
         # B. 捕获指定 ROI 区域单帧并保存
         region_frame = await client.capture(region=target_roi)
         if region_frame.mat is not None:
-            region_frame.save(region_path)
+            await region_frame.save(region_path)
             logger.info(
                 f"[Save] 📷 目标 ROI 【切片】截图已保存至: {region_path.as_uri()} ({region_frame.width}x{region_frame.height})"
             )

@@ -8,9 +8,8 @@ from dataclasses import dataclass
 from types import TracebackType
 from typing import Self
 
-from client_core import ImageFrame, Region, RelativeRegion
+from client_core import ImageFrame, Region, RelativeRegion, Window
 from d4_client.screens.main_hud import MainHUD
-from d4_client.window import Window
 from sys_input import HWND
 
 

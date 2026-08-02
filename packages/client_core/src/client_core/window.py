@@ -19,6 +19,7 @@ from sys_input import (
     InputBackend,
     MouseButton,
     VirtualKeyCode,
+    Win32HardwareBackend,
 )
 from vision_stream import (
     IWindowVisionBackend,
@@ -275,7 +276,10 @@ class Window:
         abs_point = self._resolve_point(point)
         if abs_point is None:
             return
-        await self.input_backend.mouse_move(abs_point.to_sys_input())
+        target_pt = abs_point
+        if isinstance(self.input_backend, Win32HardwareBackend):
+            target_pt = client_to_screen(self.hwnd, abs_point)
+        await self.input_backend.mouse_move(target_pt.to_sys_input())
 
     async def mouse_click(
         self,
@@ -286,7 +290,13 @@ class Window:
     ) -> None:
         """异步在窗口指定位置点击鼠标。"""
         abs_point = self._resolve_point(point)
-        ipt = abs_point.to_sys_input() if abs_point else None
+        ipt = None
+        if abs_point is not None:
+            target_pt = abs_point
+            if isinstance(self.input_backend, Win32HardwareBackend):
+                target_pt = client_to_screen(self.hwnd, abs_point)
+            ipt = target_pt.to_sys_input()
+
         await self.input_backend.mouse_click(
             point=ipt,
             button=button,
@@ -301,7 +311,13 @@ class Window:
     ) -> None:
         """异步在窗口指定位置按下鼠标按键。"""
         abs_point = self._resolve_point(point)
-        ipt = abs_point.to_sys_input() if abs_point else None
+        ipt = None
+        if abs_point is not None:
+            target_pt = abs_point
+            if isinstance(self.input_backend, Win32HardwareBackend):
+                target_pt = client_to_screen(self.hwnd, abs_point)
+            ipt = target_pt.to_sys_input()
+
         await self.input_backend.mouse_down(point=ipt, button=button)
 
     async def mouse_up(
@@ -311,7 +327,13 @@ class Window:
     ) -> None:
         """异步在窗口指定位置抬起鼠标按键。"""
         abs_point = self._resolve_point(point)
-        ipt = abs_point.to_sys_input() if abs_point else None
+        ipt = None
+        if abs_point is not None:
+            target_pt = abs_point
+            if isinstance(self.input_backend, Win32HardwareBackend):
+                target_pt = client_to_screen(self.hwnd, abs_point)
+            ipt = target_pt.to_sys_input()
+
         await self.input_backend.mouse_up(point=ipt, button=button)
 
     async def key_press(
@@ -328,7 +350,13 @@ class Window:
     ) -> None:
         """异步模拟滚轮滚动。"""
         abs_point = self._resolve_point(point)
-        ipt = abs_point.to_sys_input() if abs_point else None
+        ipt = None
+        if abs_point is not None:
+            target_pt = abs_point
+            if isinstance(self.input_backend, Win32HardwareBackend):
+                target_pt = client_to_screen(self.hwnd, abs_point)
+            ipt = target_pt.to_sys_input()
+
         await self.input_backend.scroll(amount=amount, point=ipt)
 
     # ---------------------------------------------------------------------------

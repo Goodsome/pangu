@@ -140,3 +140,27 @@ async def test_mouse_and_key_actions(
     await base_window.key_press(0x0D, duration_sec=0.01)
     assert mock_input.key_down.called
     assert mock_input.key_up.called
+
+
+@pytest.mark.anyio
+async def test_window_explicit_activate_and_key_press() -> None:
+    """测试 Window 提供显式 activate() 方法，且 key_press 不进行隐式副作用。"""
+    from sys_input import Win32HardwareBackend
+
+    mock_input = MagicMock(spec=Win32HardwareBackend)
+    mock_input.key_down = AsyncMock()
+    mock_input.key_up = AsyncMock()
+
+    win = Window(
+        input_backend=mock_input,
+        vision_backend=AsyncMock(),
+        template_matcher=AsyncMock(),
+        ocr_engine=AsyncMock(),
+        width=800,
+        height=600,
+        hwnd=0x1234,
+    )
+
+    win.activate()
+    await win.key_press(0x78)  # VK_F9
+    assert mock_input.key_down.called

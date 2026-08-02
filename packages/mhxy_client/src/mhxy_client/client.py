@@ -9,21 +9,22 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
 
-from mhxy_client.models import (
+from client_core import (
     ImageFrame,
     MatchResult,
     OcrResult,
     Point,
     Region,
     RelativeRegion,
+    Window,
 )
-from mhxy_client.window import MhxyWindow
+from mhxy_client.models import MHXY_TITLE_PATTERN
 from sys_input import HWND, MouseButton, VirtualKeyCode
 
 
 @dataclass
 class MhxyClient:
-    """梦幻西游 SDK 聚合根与门面 Client 代码桩。
+    """梦幻西游 SDK 聚合根与门面 Client。
 
     示例:
         ```python
@@ -32,14 +33,13 @@ class MhxyClient:
         client = create_mhxy_client_by_index(0, init_cv_engines=True)
         print(f"服务器: {client.server_name}, 角色名: {client.role_name}, ID: {client.role_id}")
         async with client:
-            # 识别屏幕中心区域的文本
             center_roi = RelativeRegion(x=0.25, y=0.25, width=0.5, height=0.5)
             ocr_results = await client.ocr(roi=center_roi)
         ```
     """
 
     hwnd: HWND
-    window: MhxyWindow
+    window: Window
 
     @property
     def title(self) -> str:
@@ -49,17 +49,20 @@ class MhxyClient:
     @property
     def server_name(self) -> str:
         """获取关联游戏角色的大区/服务器名称 (如 '畅玩服[天下无双]')。"""
-        return self.window.server_name
+        m = MHXY_TITLE_PATTERN.search(self.title)
+        return m.group("server").strip() if m else ""
 
     @property
     def role_name(self) -> str:
         """获取关联游戏角色的名字 (如 '游易幽寒')。"""
-        return self.window.role_name
+        m = MHXY_TITLE_PATTERN.search(self.title)
+        return m.group("role_name").strip() if m else ""
 
     @property
     def role_id(self) -> str:
         """获取关联游戏角色的 ID (如 '39200278')。"""
-        return self.window.role_id
+        m = MHXY_TITLE_PATTERN.search(self.title)
+        return m.group("role_id").strip() if m else ""
 
     def activate(self) -> None:
         """置顶并将当前游戏窗口激活到前台。"""
