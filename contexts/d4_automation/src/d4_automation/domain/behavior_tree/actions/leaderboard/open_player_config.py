@@ -1,11 +1,9 @@
 """Action: 点击弹出菜单中的"查看配置"，进入玩家配置页。"""
 
-import asyncio
 import logging
 from dataclasses import dataclass
 from typing import override
 
-from d4_automation.config import load_capture_task_config
 from d4_automation.domain.aggregates.blackboard import Blackboard
 from d4_automation.domain.behavior_tree.core import BaseNode
 from d4_automation.domain.enums.node_status import NodeStatus

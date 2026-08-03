@@ -31,8 +31,7 @@ class CaptureLeaderboardPage(BaseNode):
                 )
                 save_path = output_dir / f"leaderboard_{screen.current_page:03d}.png"
 
-                frame = await screen.capture_records_region()
-                await frame.save(save_path)
+                await screen.capture_records_region(save_path)
                 return NodeStatus.SUCCESS
             case _:
                 logger.warning(

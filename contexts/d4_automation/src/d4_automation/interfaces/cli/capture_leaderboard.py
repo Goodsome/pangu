@@ -1,7 +1,6 @@
 """Interface CLI: 天梯榜数据采集命令。"""
 
 import asyncio
-import signal
 from typing import Annotated
 
 import typer
@@ -20,7 +19,6 @@ async def _async_main(window_index: int) -> None:
         )
     except KeyboardInterrupt:
         cancel_event.set()
-    
 
 
 def capture_leaderboard(

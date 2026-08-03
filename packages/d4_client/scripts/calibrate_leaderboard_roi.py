@@ -60,6 +60,7 @@ async def main() -> None:
         ("title_roi", "标题区域 (如 '天梯榜')"),
         ("class_selector_roi", "职业选择图标栏区域"),
         ("records_roi", "榜单记录整体10行区域"),
+        ("row_manu_roi", "'查看配置'按钮/弹出菜单区域"),
         ("view_config_roi", "'查看配置'按钮/弹出菜单区域"),
         ("next_page_roi", "'下一页' 按钮/翻页区域"),
         ("previous_page_roi", "'上一页' 按钮/翻页区域"),

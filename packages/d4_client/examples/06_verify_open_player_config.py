@@ -22,8 +22,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from d4_client.config.leaderboard import LeaderboardLayoutConfig
-from d4_client.factory import create_d4_clients, find_d4_window_rects
+from d4_client.factory import create_d4_clients
 from d4_client.screens.leaderboard import LeaderboardScreen
 from foundation.logging_setup import configure_logging
 
@@ -37,19 +36,6 @@ def run_open_player_config_verification(
     )
     logger.info("=" * 75)
 
-    layout = LeaderboardLayoutConfig()
-    logger.info(f"配置 view_config_roi 相对比例: {layout.view_config_roi}")
-
-    rects = find_d4_window_rects(title_keyword=title_keyword)
-    if not rects:
-        logger.warning(f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。")
-        logger.info(
-            '             请开启游戏或传入 --title "目标窗口" (如 "记事本") 后重新运行。'
-        )
-        logger.info("=" * 75)
-        return
-
-    logger.info(f"检索到 {len(rects)} 个目标窗口，正在建立 D4Client 连接...")
     clients = create_d4_clients(title_keyword=title_keyword)
     client = clients[0]
 
@@ -58,13 +44,7 @@ def run_open_player_config_verification(
         f"正在对窗口 HWND=0x{client.hwnd:X} ({client.window.width}x{client.window.height}) 执行 open_player_config()..."
     )
 
-    try:
-        player_config_screen = asyncio.run(board_screen.open_player_config())
-        logger.info(
-            f"[成功] 点击'查看配置'完毕！获取到页面实例: {player_config_screen.__class__.__name__}"
-        )
-    except Exception as e:
-        logger.error(f"[失败] 打开玩家配置页抛出异常: {e}")
+    asyncio.run(board_screen.open_player_config())
 
     logger.info("=" * 75)
     logger.info(

@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, override
 
 from client_core import AutoCalibratingScreen, ImageFrame, RelativeRegion
@@ -58,8 +57,9 @@ class PlayerConfigScreen(AutoCalibratingScreen):
     @override
     async def is_visible(self) -> bool:
         """通过检测"配置查看器"标题文字判断当前是否处于配置查看页。"""
-        result = await self.window.find_text(
-            target_text="配置查看器",
+        result = await self.locate_element(
+            element_key="title",
+            target_text="配",
             roi=self.config.config_viewer_title_roi,
         )
         return result is not None

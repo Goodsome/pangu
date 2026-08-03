@@ -83,7 +83,10 @@ def run_capture_verification(
                 frame = await player_config_screen.capture_equipment_slot(
                     slot_index=i,
                 )
-                save_path = output_dir / f"{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                save_path = (
+                    output_dir
+                    / f"{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                )
                 await frame.save(save_path)
                 logger.info(f"  [装备槽位 {i + 1}/{eq_count}] 截图已保存 → {save_path}")
 
@@ -97,7 +100,10 @@ def run_capture_verification(
                 frame = await player_config_screen.capture_skill_slot(
                     slot_index=i,
                 )
-                save_path = output_dir / f"skill_{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                save_path = (
+                    output_dir
+                    / f"skill_{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                )
                 await frame.save(save_path)
                 logger.info(f"  [技能槽位 {i + 1}/{sk_count}] 截图已保存 → {save_path}")
 
@@ -111,7 +117,10 @@ def run_capture_verification(
                 frame = await player_config_screen.capture_talisman_slot(
                     slot_index=i,
                 )
-                save_path = output_dir / f"talisman_{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                save_path = (
+                    output_dir
+                    / f"talisman_{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                )
                 await frame.save(save_path)
                 logger.info(
                     f"  [护身符槽位 {i + 1}/{tm_count}] 截图已保存 → {save_path}"

@@ -72,7 +72,8 @@ class AutoCalibratingScreen:
         """
         cached = self._element_cache.get(element_key)
         if cached:
-            roi = cached.region
+            if roi is None:
+                roi = cached.region
             res = await self.window.match_template(
                 template=cached.image.mat,
                 roi=roi,
@@ -99,6 +100,7 @@ class AutoCalibratingScreen:
         self,
         element_key: str,
         target_text: str,
+        roi: Region | RelativeRegion | None = None,
     ) -> bool:
         """定位特定 UI 元素并进行鼠标点击。"""
         element = self._element_cache.get(element_key)
@@ -107,6 +109,7 @@ class AutoCalibratingScreen:
             element = await self.locate_element(
                 element_key=element_key,
                 target_text=target_text,
+                roi=roi,
             )
 
         if element is None:

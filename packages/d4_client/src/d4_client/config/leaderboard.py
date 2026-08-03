@@ -20,6 +20,9 @@ class LeaderboardLayoutConfig:
     records_roi: RelativeRegion = RelativeRegion(
         x=0.3377, y=0.3882, width=0.4248, height=0.3992
     )
+    row_manu_roi: RelativeRegion = RelativeRegion(
+        x=0.3794, y=0.2832, width=0.2370, height=0.4325
+    )
     view_config_roi: RelativeRegion = RelativeRegion(
         x=0.3904, y=0.3811, width=0.2077, height=0.0421
     )

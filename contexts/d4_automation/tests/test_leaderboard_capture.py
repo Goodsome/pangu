@@ -1,6 +1,6 @@
-"""d4_automation 行为树与配置单元测试。"""
-
 from pathlib import Path
+
+import pytest
 
 from d4_automation.config import load_capture_task_config
 from d4_automation.domain.aggregates.blackboard import LeaderboardCaptureContext
@@ -35,14 +35,13 @@ def test_build_leaderboard_capture_tree():
     assert len(tree.children) == 2
 
 
-import pytest
-
-
 @pytest.mark.anyio
 async def test_select_class_node():
     from unittest.mock import AsyncMock, MagicMock
     from d4_automation.domain.aggregates.blackboard import Blackboard
-    from d4_automation.domain.behavior_tree.actions.leaderboard.select_class import SelectClass
+    from d4_automation.domain.behavior_tree.actions.leaderboard.select_class import (
+        SelectClass,
+    )
     from d4_automation.domain.enums.node_status import NodeStatus
     from d4_client import LeaderboardScreen
 
@@ -96,5 +95,3 @@ async def test_capture_leaderboard_page_node(tmp_path: Path):
     assert status == NodeStatus.SUCCESS
     expected_path = tmp_path / "BARBARIAN" / "page_002" / "leaderboard_002.png"
     mock_screen.capture_records_region.assert_awaited_once_with(expected_path)
-
-

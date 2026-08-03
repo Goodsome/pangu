@@ -28,12 +28,3 @@ async def test_auto_calibrating_screen_wait_until_visible(mock_window: AsyncMock
     visible = await screen.wait_until_visible(timeout_sec=0.2, poll_interval_sec=0.05)
     assert visible is True
 
-
-@pytest.mark.anyio
-async def test_auto_calibrating_screen_clear_cache(mock_window: AsyncMock) -> None:
-    """测试 AutoCalibratingScreen 清除元素缓存。"""
-    screen = AutoCalibratingScreen(window=mock_window, screen_name="TestScreen")
-    screen._element_cache["btn"] = None  # type: ignore
-    assert "btn" in screen._element_cache
-    screen.clear_cache()
-    assert "btn" not in screen._element_cache

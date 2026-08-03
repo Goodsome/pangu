@@ -1,6 +1,5 @@
 """Action: 关闭玩家配置页，返回天梯榜，并推进行索引。"""
 
-import asyncio
 import logging
 from dataclasses import dataclass
 from typing import override

@@ -102,15 +102,24 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # 榜单区域截图
     # ------------------------------------------------------------------
 
-    async def capture_records_region(self) -> ImageFrame:
-        """截取当页 10 条记录所在矩形区域并保存为磁盘图片文件。
+    async def capture_records_region(
+        self, output_path: Path | None = None
+    ) -> Path | ImageFrame:
+        """截取当页 10 条记录所在矩形区域。
 
         使用新版 RelativeRegion records_roi 传入 window.capture 自动完成分辨率解算与截取。
 
+        Args:
+            output_path: 可选保存的目标图片路径 (Path)。若传入则保存文件并返回 Path。
+
         Returns:
-            ImageFrame: 截取的图像单帧画面。
+            Path | ImageFrame: 传入 output_path 时保存并返回 Path，否则返回 ImageFrame。
         """
         frame = await self.window.capture(region=self.layout.records_roi)
+        if output_path is not None:
+            await frame.save(output_path)
+            logger.info("[LeaderboardScreen] 记录区域截图已保存 → %s", output_path)
+            return output_path
         return frame
 
     # ------------------------------------------------------------------
@@ -155,7 +164,11 @@ class LeaderboardScreen(AutoCalibratingScreen):
         """
         from d4_client.screens.player_config import PlayerConfigScreen
 
-        await self.window.mouse_click(point=self.layout.view_config_roi.center)
+        await self.click_element(
+            element_key="open_player_config",
+            target_text="查看配置",
+            roi=self.layout.row_manu_roi
+        )
 
         screen = PlayerConfigScreen(
             window=self.window,
