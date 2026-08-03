@@ -72,6 +72,7 @@ def run_capture_verification(
         output_dir = Path.cwd() / "screenshots"
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        class_str = player_config_screen.player_class.value
         # 装备槽位测试
         if target in ("all", "equipment"):
             eq_count = player_config_screen.get_equipment_slot_count()
@@ -79,10 +80,11 @@ def run_capture_verification(
                 f"野蛮人装备槽位总数量: {eq_count}，准备逐一点击截图保存至: {output_dir}"
             )
             for i in range(eq_count):
-                save_path = await player_config_screen.capture_equipment_slot(
-                    output_dir=output_dir,
+                frame = await player_config_screen.capture_equipment_slot(
                     slot_index=i,
                 )
+                save_path = output_dir / f"{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                await frame.save(save_path)
                 logger.info(f"  [装备槽位 {i + 1}/{eq_count}] 截图已保存 → {save_path}")
 
         # 技能槽位测试
@@ -92,10 +94,11 @@ def run_capture_verification(
                 f"技能槽位总数量: {sk_count}，准备逐一点击截图保存至: {output_dir}"
             )
             for i in range(sk_count):
-                save_path = await player_config_screen.capture_skill_slot(
-                    output_dir=output_dir,
+                frame = await player_config_screen.capture_skill_slot(
                     slot_index=i,
                 )
+                save_path = output_dir / f"skill_{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                await frame.save(save_path)
                 logger.info(f"  [技能槽位 {i + 1}/{sk_count}] 截图已保存 → {save_path}")
 
         # 护身符槽位测试
@@ -105,10 +108,11 @@ def run_capture_verification(
                 f"护身符槽位总数量: {tm_count}，准备逐一点击截图保存至: {output_dir}"
             )
             for i in range(tm_count):
-                save_path = await player_config_screen.capture_talisman_slot(
-                    output_dir=output_dir,
+                frame = await player_config_screen.capture_talisman_slot(
                     slot_index=i,
                 )
+                save_path = output_dir / f"talisman_{class_str}_{player_config_screen.page}_{player_config_screen.row}_{i}.png"
+                await frame.save(save_path)
                 logger.info(
                     f"  [护身符槽位 {i + 1}/{tm_count}] 截图已保存 → {save_path}"
                 )

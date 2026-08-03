@@ -31,12 +31,8 @@ class CaptureLeaderboardPage(BaseNode):
                 )
                 save_path = output_dir / f"leaderboard_{screen.current_page:03d}.png"
 
-                await screen.capture_records_region(save_path)
-                logger.info(
-                    "[CaptureLeaderboardPage] 第 %d 页榜单截图已保存 → %s",
-                    screen.current_page,
-                    save_path,
-                )
+                frame = await screen.capture_records_region()
+                await frame.save(save_path)
                 return NodeStatus.SUCCESS
             case _:
                 logger.warning(

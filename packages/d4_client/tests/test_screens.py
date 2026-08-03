@@ -220,22 +220,24 @@ async def test_player_config_get_equipment_slot_roi(mock_window: AsyncMock) -> N
 
 
 @pytest.mark.anyio
+@pytest.mark.anyio
 async def test_player_config_capture_equipment_slot(
-    mock_window: AsyncMock, tmp_path: Path
+    mock_window: AsyncMock,
 ) -> None:
-    """测试 PlayerConfigScreen.capture_equipment_slot 使用持有的状态保存截图。"""
+    """测试 PlayerConfigScreen.capture_equipment_slot 返回 ImageFrame 截图帧。"""
     from client_core import ImageFrame
     from d4_client.screens.player_config import PlayerConfigScreen
     from d4_types.enums.player_class import PlayerClass
 
     mock_window.width = 1920
     mock_window.height = 1080
-    mock_window.capture.return_value = ImageFrame(
+    fake_frame = ImageFrame(
         data=b"\x00" * 1600,
         width=20,
         height=20,
         channels=4,
     )
+    mock_window.capture.return_value = fake_frame
 
     screen = PlayerConfigScreen(
         window=mock_window,
@@ -243,16 +245,12 @@ async def test_player_config_capture_equipment_slot(
         page=1,
         row=2,
     )
-    output_dir = tmp_path / "equipment_captures"
 
-    saved_path = await screen.capture_equipment_slot(
-        output_dir=output_dir,
+    frame = await screen.capture_equipment_slot(
         slot_index=0,
     )
 
-    expected_path = output_dir / "BARBARIAN_1_2_0.png"
-    assert saved_path == expected_path
-    assert expected_path.exists()
+    assert frame == fake_frame
     assert mock_window.mouse_click.called or mock_window.smooth_mouse_move.called
     assert mock_window.capture.called
 
@@ -291,21 +289,22 @@ async def test_player_config_get_skill_slot_roi(mock_window: AsyncMock) -> None:
 
 @pytest.mark.anyio
 async def test_player_config_capture_skill_slot(
-    mock_window: AsyncMock, tmp_path: Path
+    mock_window: AsyncMock,
 ) -> None:
-    """测试 PlayerConfigScreen.capture_skill_slot 使用持有的状态截取并保存技能图片。"""
+    """测试 PlayerConfigScreen.capture_skill_slot 返回 ImageFrame 截图帧。"""
     from client_core import ImageFrame
     from d4_client.screens.player_config import PlayerConfigScreen
     from d4_types.enums.player_class import PlayerClass
 
     mock_window.width = 1920
     mock_window.height = 1080
-    mock_window.capture.return_value = ImageFrame(
+    fake_frame = ImageFrame(
         data=b"\x00" * 1600,
         width=20,
         height=20,
         channels=4,
     )
+    mock_window.capture.return_value = fake_frame
 
     screen = PlayerConfigScreen(
         window=mock_window,
@@ -313,16 +312,12 @@ async def test_player_config_capture_skill_slot(
         page=1,
         row=2,
     )
-    output_dir = tmp_path / "skill_captures"
 
-    saved_path = await screen.capture_skill_slot(
-        output_dir=output_dir,
+    frame = await screen.capture_skill_slot(
         slot_index=0,
     )
 
-    expected_path = output_dir / "skill_BARBARIAN_1_2_0.png"
-    assert saved_path == expected_path
-    assert expected_path.exists()
+    assert frame == fake_frame
     assert mock_window.mouse_click.called
     assert mock_window.capture.called
 
@@ -361,21 +356,22 @@ async def test_player_config_get_talisman_slot_roi(mock_window: AsyncMock) -> No
 
 @pytest.mark.anyio
 async def test_player_config_capture_talisman_slot(
-    mock_window: AsyncMock, tmp_path: Path
+    mock_window: AsyncMock,
 ) -> None:
-    """测试 PlayerConfigScreen.capture_talisman_slot 使用持有的状态截取并保存护身符图片。"""
+    """测试 PlayerConfigScreen.capture_talisman_slot 返回 ImageFrame 截图帧。"""
     from client_core import ImageFrame
     from d4_client.screens.player_config import PlayerConfigScreen
     from d4_types.enums.player_class import PlayerClass
 
     mock_window.width = 1920
     mock_window.height = 1080
-    mock_window.capture.return_value = ImageFrame(
+    fake_frame = ImageFrame(
         data=b"\x00" * 1600,
         width=20,
         height=20,
         channels=4,
     )
+    mock_window.capture.return_value = fake_frame
 
     screen = PlayerConfigScreen(
         window=mock_window,
@@ -383,37 +379,34 @@ async def test_player_config_capture_talisman_slot(
         page=1,
         row=2,
     )
-    output_dir = tmp_path / "talisman_captures"
 
-    saved_path = await screen.capture_talisman_slot(
-        output_dir=output_dir,
+    frame = await screen.capture_talisman_slot(
         slot_index=0,
     )
 
-    expected_path = output_dir / "talisman_BARBARIAN_1_2_0.png"
-    assert saved_path == expected_path
-    assert expected_path.exists()
+    assert frame == fake_frame
     assert mock_window.mouse_click.called
     assert mock_window.capture.called
 
 
 @pytest.mark.anyio
 async def test_leaderboard_state_tracking_and_pass_to_player_config(
-    mock_window: AsyncMock, tmp_path: Path
+    mock_window: AsyncMock,
 ) -> None:
-    """测试 LeaderboardScreen 记录职业、页码、行号状态并透传至 PlayerConfigScreen，默认完成命名保存。"""
+    """测试 LeaderboardScreen 记录职业、页码、行号状态并透传至 PlayerConfigScreen。"""
     from client_core import ImageFrame
     from d4_client.screens.leaderboard import LeaderboardScreen
     from d4_types.enums.player_class import PlayerClass
 
     mock_window.width = 1920
     mock_window.height = 1080
-    mock_window.capture.return_value = ImageFrame(
+    fake_frame = ImageFrame(
         data=b"\x00" * 1600,
         width=20,
         height=20,
         channels=4,
     )
+    mock_window.capture.return_value = fake_frame
 
     board = LeaderboardScreen(window=mock_window)
 
@@ -432,13 +425,8 @@ async def test_leaderboard_state_tracking_and_pass_to_player_config(
     assert player_config_screen.page == 2
     assert player_config_screen.row == 3
 
-    # 3. 验证 capture_equipment_slot 默认使用透传的状态进行保存
-    output_dir = tmp_path / "auto_state_captures"
-    saved_path = await player_config_screen.capture_equipment_slot(
-        output_dir=output_dir,
+    # 3. 验证 capture_equipment_slot 返回 ImageFrame
+    frame = await player_config_screen.capture_equipment_slot(
         slot_index=0,
     )
-
-    expected_path = output_dir / "NECROMANCER_2_3_0.png"
-    assert saved_path == expected_path
-    assert expected_path.exists()
+    assert frame == fake_frame

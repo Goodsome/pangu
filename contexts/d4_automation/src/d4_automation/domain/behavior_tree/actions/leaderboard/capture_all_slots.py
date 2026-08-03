@@ -27,29 +27,32 @@ class CaptureAllSlots(BaseNode):
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         match blackboard.current_panel:
             case PlayerConfigScreen() as screen:
-                row_dir =  blackboard.leaderboard.output_base_dir
+                row_dir = (
+                    blackboard.leaderboard.output_base_dir
+                    / screen.player_class.value
+                    / f"page_{screen.page:03d}_row_{screen.row:02d}"
+                )
+
+                # 1. 装备槽位
                 eq_count = screen.get_equipment_slot_count()
-
                 for i in range(eq_count):
-                    await screen.capture_equipment_slot(
-                        output_dir=row_dir,
-                        slot_index=i,
-                    )
+                    frame = await screen.capture_equipment_slot(slot_index=i)
+                    save_path = row_dir / f"eq_{i}.png"
+                    await frame.save(save_path)
 
+                # 2. 技能槽位
                 sk_count = screen.get_skill_slot_count()
                 for i in range(sk_count):
-                    await screen.capture_skill_slot(
-                        output_dir=row_dir,
-                        slot_index=i,
-                    )
+                    frame = await screen.capture_skill_slot(slot_index=i)
+                    save_path = row_dir / f"skill_{i}.png"
+                    await frame.save(save_path)
 
+                # 3. 护身符槽位
                 tm_count = screen.get_talisman_slot_count()
-
                 for i in range(tm_count):
-                    await screen.capture_talisman_slot(
-                        output_dir=row_dir,
-                        slot_index=i,
-                    )
+                    frame = await screen.capture_talisman_slot(slot_index=i)
+                    save_path = row_dir / f"talisman_{i}.png"
+                    await frame.save(save_path)
 
                 return NodeStatus.SUCCESS
             case _:

@@ -13,14 +13,14 @@ async def _async_main(window_index: int) -> None:
     use_case = CaptureLeaderboard()
     cancel_event = asyncio.Event()
 
-    loop = asyncio.get_running_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, cancel_event.set)
-
-    await use_case.execute(
-        window_index=window_index,
-        cancel_event=cancel_event,
-    )
+    try:
+        await use_case.execute(
+            window_index=window_index,
+            cancel_event=cancel_event,
+        )
+    except KeyboardInterrupt:
+        cancel_event.set()
+    
 
 
 def capture_leaderboard(

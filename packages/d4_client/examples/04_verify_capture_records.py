@@ -61,11 +61,11 @@ def run_capture_records_verification(
         f"正在对窗口 HWND=0x{client.hwnd:X} ({client.window.width}x{client.window.height}) 截取记录区域..."
     )
 
-    try:
-        saved_file = asyncio.run(board_screen.capture_records_region(output_path))
-        logger.info(f"[成功] 记录区域截图已成功保存至磁盘 → {saved_file.resolve()}")
-    except Exception as e:
-        logger.error(f"[失败] 截图落盘抛出异常: {e}")
+    async def _execute_capture() -> None:
+        frame = await board_screen.capture_records_region()
+        await frame.save(output_path)
+
+    asyncio.run(_execute_capture())
 
     logger.info("=" * 75)
     logger.info(

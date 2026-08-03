@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
-from client_core import AutoCalibratingScreen, RelativeRegion
+from client_core import AutoCalibratingScreen, ImageFrame, RelativeRegion
 from d4_client.config.leaderboard import LeaderboardLayoutConfig
 from d4_types.enums.player_class import PlayerClass
 
@@ -122,24 +122,16 @@ class PlayerConfigScreen(AutoCalibratingScreen):
 
     async def capture_equipment_slot(
         self,
-        output_dir: Path,
         slot_index: int,
-    ) -> Path:
-        """点击并截取指定装备槽位的 tooltip 图像，并使用持有的状态保存到指定目录。"""
+    ) -> ImageFrame:
+        """点击并截取指定装备槽位的 tooltip 图像帧。"""
         slot_roi = self.get_equipment_slot_roi(slot_index)
 
         await self.window.mouse_click(point=slot_roi.center)
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_equipment_tooltip_roi(slot_roi)
-        frame = await self.window.capture(region=tooltip_roi, refresh=True)
-
-        class_str = self.player_class.value
-        file_name = f"{class_str}_{self.page}_{self.row}_{slot_index}.png"
-        save_path = output_dir / file_name
-
-        await frame.save(save_path)
-        return save_path
+        return await self.window.capture(region=tooltip_roi, refresh=True)
 
     # ------------------------------------------------------------------
     # 技能 (Skill) 槽位 ROI 与截图
@@ -181,24 +173,16 @@ class PlayerConfigScreen(AutoCalibratingScreen):
 
     async def capture_skill_slot(
         self,
-        output_dir: Path,
         slot_index: int,
-    ) -> Path:
-        """点击并截取指定技能槽位的 tooltip 图像，并使用持有的状态保存到指定目录。"""
+    ) -> ImageFrame:
+        """点击并截取指定技能槽位的 tooltip 图像帧。"""
         slot_roi = self.get_skill_slot_roi(slot_index)
 
         await self.window.mouse_click(point=slot_roi.center)
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_skill_tooltip_roi(slot_roi)
-        frame = await self.window.capture(region=tooltip_roi, refresh=True)
-
-        class_str = self.player_class.value
-        file_name = f"skill_{class_str}_{self.page}_{self.row}_{slot_index}.png"
-        save_path = output_dir / file_name
-
-        await frame.save(save_path)
-        return save_path
+        return await self.window.capture(region=tooltip_roi, refresh=True)
 
     # ------------------------------------------------------------------
     # 护身符 (Talisman) 槽位 ROI 与截图
@@ -240,24 +224,16 @@ class PlayerConfigScreen(AutoCalibratingScreen):
 
     async def capture_talisman_slot(
         self,
-        output_dir: Path,
         slot_index: int,
-    ) -> Path:
-        """点击并截取指定护身符槽位的 tooltip 图像，并使用持有的状态保存到指定目录。"""
+    ) -> ImageFrame:
+        """点击并截取指定护身符槽位的 tooltip 图像帧。"""
         slot_roi = self.get_talisman_slot_roi(slot_index)
 
         await self.window.mouse_click(point=slot_roi.center)
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_talisman_tooltip_roi(slot_roi)
-        frame = await self.window.capture(region=tooltip_roi, refresh=True)
-
-        class_str = self.player_class.value
-        file_name = f"talisman_{class_str}_{self.page}_{self.row}_{slot_index}.png"
-        save_path = output_dir / file_name
-
-        await frame.save(save_path)
-        return save_path
+        return await self.window.capture(region=tooltip_roi, refresh=True)
 
     # ------------------------------------------------------------------
     # 关闭配置页

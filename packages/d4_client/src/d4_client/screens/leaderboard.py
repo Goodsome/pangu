@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
-from client_core import AutoCalibratingScreen, RelativePoint, SplitMode
+from client_core import AutoCalibratingScreen, ImageFrame, RelativePoint, SplitMode
 from d4_client.config.leaderboard import (
     LeaderboardLayoutConfig,
 )
@@ -102,21 +102,16 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # 榜单区域截图
     # ------------------------------------------------------------------
 
-    async def capture_records_region(self, output_path: Path) -> Path:
+    async def capture_records_region(self) -> ImageFrame:
         """截取当页 10 条记录所在矩形区域并保存为磁盘图片文件。
 
         使用新版 RelativeRegion records_roi 传入 window.capture 自动完成分辨率解算与截取。
 
-        Args:
-            output_path: 目标保存文件路径 (仅接受 Path 对象，必填)。
-
         Returns:
-            Path: 保存后的图片绝对物理路径。
+            ImageFrame: 截取的图像单帧画面。
         """
         frame = await self.window.capture(region=self.layout.records_roi)
-        await frame.save(output_path)
-        logger.info("[LeaderboardScreen] 记录区域截图已保存 → %s", output_path)
-        return output_path
+        return frame
 
     # ------------------------------------------------------------------
     # 行交互

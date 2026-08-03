@@ -79,15 +79,17 @@ class CaptureLeaderboard:
             )
 
             try:
-                await d4_client.begin_frame()
-                status = await tree.tick(blackboard)
+                while not cancel_event.is_set():
+                    await d4_client.begin_frame()
+                    status = await tree.tick(blackboard)
+                    await asyncio.sleep(0.5)
 
-                if status == NodeStatus.SUCCESS:
-                    logger.info("[CaptureLeaderboard] 采集完成")
-                else:
-                    logger.warning(
-                        "[CaptureLeaderboard] 行为树以非成功状态结束: %s", status
-                    )
+                    if status == NodeStatus.SUCCESS:
+                        logger.info("[CaptureLeaderboard] 采集完成")
+                    else:
+                        logger.warning(
+                            "[CaptureLeaderboard] 行为树以非成功状态结束: %s", status
+                        )
 
             except asyncio.CancelledError:
                 logger.info("[CaptureLeaderboard] 收到取消信号，退出")
