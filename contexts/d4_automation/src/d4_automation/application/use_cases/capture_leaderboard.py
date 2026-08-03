@@ -10,7 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 
-from d4_automation.config import load_capture_task_config
+from d4_automation.config.capture_task import CaptureTaskConfig
 from d4_automation.domain.aggregates.blackboard import (
     Blackboard,
     LeaderboardCaptureContext,
@@ -47,7 +47,7 @@ class CaptureLeaderboard:
             window_index: 目标游戏窗口索引（从 0 开始）。
             cancel_event: 外部取消信号，set 后当前页采集完成即退出。
         """
-        cfg = load_capture_task_config()
+        cfg = CaptureTaskConfig()
 
         d4_client = create_d4_client_by_index(window_index)
 
@@ -63,6 +63,7 @@ class CaptureLeaderboard:
             )
 
             blackboard = Blackboard(
+                cancel_event=cancel_event,
                 client=d4_client,
                 current_panel=leaderboard_screen,
                 leaderboard=ctx,

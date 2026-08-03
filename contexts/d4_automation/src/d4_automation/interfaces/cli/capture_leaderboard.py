@@ -1,11 +1,17 @@
 """Interface CLI: 天梯榜数据采集命令。"""
 
+import logging
+
 import asyncio
 from typing import Annotated
 
 import typer
 
 from d4_automation.application.use_cases.capture_leaderboard import CaptureLeaderboard
+
+
+logger = logging.getLogger(__name__)
+
 
 
 async def _async_main(window_index: int) -> None:
@@ -19,6 +25,8 @@ async def _async_main(window_index: int) -> None:
         )
     except KeyboardInterrupt:
         cancel_event.set()
+    except Exception as e:
+        logger.exception(f"An error occurred: {e}")
 
 
 def capture_leaderboard(

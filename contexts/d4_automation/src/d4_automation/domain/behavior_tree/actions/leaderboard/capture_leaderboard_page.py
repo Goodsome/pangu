@@ -27,7 +27,6 @@ class CaptureLeaderboardPage(BaseNode):
                 output_dir = (
                     blackboard.leaderboard.output_base_dir
                     / screen.current_class.value
-                    / f"page_{screen.current_page:03d}"
                 )
                 save_path = output_dir / f"leaderboard_{screen.current_page:03d}.png"
 

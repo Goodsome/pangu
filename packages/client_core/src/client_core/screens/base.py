@@ -101,9 +101,14 @@ class AutoCalibratingScreen:
         element_key: str,
         target_text: str,
         roi: Region | RelativeRegion | None = None,
+        is_element_fixed: bool = False,
     ) -> bool:
         """定位特定 UI 元素并进行鼠标点击。"""
-        element = self._element_cache.get(element_key)
+
+        if is_element_fixed:
+            element = self._element_cache.get(element_key)
+        else:
+            element = None
 
         if element is None:
             element = await self.locate_element(

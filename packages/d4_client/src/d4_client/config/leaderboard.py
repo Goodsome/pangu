@@ -38,9 +38,7 @@ class LeaderboardLayoutConfig:
     config_viewer_title_roi: RelativeRegion = RelativeRegion(
         x=0.7923, y=0.0772, width=0.0736, height=0.0331
     )
-    close_config_viewer_roi: RelativeRegion = RelativeRegion(
-        x=0.9650, y=0.0772, width=0.0200, height=0.0331
-    )
+    close_config_viewer_roi: RelativeRegion = RelativeRegion(x=0.9807, y=0.0532, width=0.0146, height=0.0311)
     equipment_roi: RelativeRegion = RelativeRegion(
         x=0.6827, y=0.1861, width=0.2923, height=0.1769
     )

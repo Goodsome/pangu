@@ -164,6 +164,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
         """
         from d4_client.screens.player_config import PlayerConfigScreen
 
+        await self.window.begin_frame()
         await self.click_element(
             element_key="open_player_config",
             target_text="查看配置",
@@ -176,7 +177,9 @@ class LeaderboardScreen(AutoCalibratingScreen):
             page=self.current_page,
             row=self.current_row,
         )
-        await screen.wait_until_visible()
+        page_visible = await screen.wait_until_visible()
+        if not page_visible:
+            raise TimeoutError("PlayerConfigScreen did not become visible within timeout.")
         return screen
 
     # ------------------------------------------------------------------

@@ -18,6 +18,7 @@
     await tree.tick(blackboard)
 """
 
+from d4_automation.domain.behavior_tree.actions.finish import FinishNode
 from d4_automation.domain.behavior_tree.actions.leaderboard import (
     CaptureAllSlots,
     CaptureLeaderboardPage,
@@ -85,6 +86,7 @@ def build_leaderboard_capture_tree() -> BaseNode:
         children=[
             SelectClass(),
             page_loop,
+            FinishNode(),
         ]
     )
 

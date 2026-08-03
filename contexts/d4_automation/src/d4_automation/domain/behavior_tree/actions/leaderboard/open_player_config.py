@@ -24,11 +24,6 @@ class OpenPlayerConfig(BaseNode):
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         match blackboard.current_panel:
             case LeaderboardScreen() as screen:
-                logger.info(
-                    "[OpenPlayerConfig] 打开第 %d 页第 %d 行的配置页",
-                    screen.current_page,
-                    screen.current_row + 1,
-                )
                 config_screen = await screen.open_player_config()
                 blackboard.update_panel(config_screen)
                 return NodeStatus.SUCCESS

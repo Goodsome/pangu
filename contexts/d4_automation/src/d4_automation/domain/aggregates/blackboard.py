@@ -1,3 +1,4 @@
+from asyncio import Event
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -14,6 +15,7 @@ class LeaderboardCaptureContext:
 
 @dataclass
 class Blackboard:
+    cancel_event: Event
     client: D4Client
     current_panel: D4Panel
     leaderboard: LeaderboardCaptureContext = field(
@@ -22,3 +24,6 @@ class Blackboard:
 
     def update_panel(self, panel: D4Panel) -> None:
         self.current_panel = panel
+
+    def finish(self) -> None:
+        self.cancel_event.set()

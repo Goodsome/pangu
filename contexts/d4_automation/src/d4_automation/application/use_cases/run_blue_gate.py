@@ -14,6 +14,7 @@ class RunBlueGate:
 
         async with d4_client:
             blackboard = Blackboard(
+                cancel_event=cancel_event,
                 client=d4_client,
                 current_panel=d4_client.main_hud,
             )

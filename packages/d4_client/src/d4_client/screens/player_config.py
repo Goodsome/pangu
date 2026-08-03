@@ -244,7 +244,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         from d4_client.screens.leaderboard import LeaderboardScreen
 
         close_point = self.config.close_config_viewer_roi.center
-        logger.info("[PlayerConfigScreen] 关闭配置页 → %s", close_point)
         await self.window.mouse_click(point=close_point)
 
         screen = LeaderboardScreen(window=self.window)
