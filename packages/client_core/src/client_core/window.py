@@ -3,6 +3,7 @@
 作为防腐隔离层 (Anti-Corruption Layer)，整合 sys_input 输入模拟、vision_stream 画面捕获、cv_engine 图像与 OCR 识别能力。
 """
 
+import logging
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
@@ -35,6 +36,7 @@ from client_core.models import (
     RelativeRegion,
 )
 
+logger = logging.getLogger(__name__)
 
 def activate_window(hwnd: HWND) -> None:
     """Win32 API 置顶并激活指定 HWND 窗口。"""
@@ -61,6 +63,18 @@ def client_to_screen(hwnd: HWND, point: Point) -> Point:
     user32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
     user32.ClientToScreen(hwnd, ctypes.byref(pt))
     return Point(x=pt.x, y=pt.y)
+
+
+def get_cursor_pos() -> Point:
+    """Win32 API 获取当前系统鼠标指针在屏幕上的绝对物理像素坐标。"""
+    if sys.platform != "win32":
+        return Point(0, 0)
+    import ctypes
+    from ctypes import wintypes
+
+    pt = wintypes.POINT()
+    ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
+    return Point(x=int(pt.x), y=int(pt.y))
 
 
 @dataclass
@@ -280,6 +294,96 @@ class Window:
         if isinstance(self.input_backend, Win32HardwareBackend):
             target_pt = client_to_screen(self.hwnd, abs_point)
         await self.input_backend.mouse_move(target_pt.to_sys_input())
+
+    async def smooth_mouse_move(
+        self,
+        point: Point | RelativePoint,
+        steps: int = 30,
+        duration_sec: float = 0.8,
+    ) -> None:
+        """缓慢/平滑移动鼠标光标至指定目标位置 (避免瞬间跳变引致物理光标震荡或下漂)。
+
+        Args:
+            point: 目标点 (绝对 Point 或相对 RelativePoint)
+            steps: 平滑插值步数 (默认 30 步)
+            duration_sec: 移动总耗时 (秒，默认 0.8 秒)
+        """
+        abs_point = self._resolve_point(point)
+        if abs_point is None:
+            return
+
+        if steps <= 1:
+            await self.mouse_move(abs_point)
+            return
+
+        start_pt = get_cursor_pos()
+        target_screen_pt = (
+            client_to_screen(self.hwnd, abs_point)
+            if isinstance(self.input_backend, Win32HardwareBackend)
+            else abs_point
+        )
+
+        logger.debug(
+            "[SmoothMove] 开始平滑划动鼠标: 起始位置 %s -> 目标绝对位置 %s (步数: %d, 耗时: %.2fs)",
+            start_pt,
+            target_screen_pt,
+            steps,
+            duration_sec,
+        )
+
+        interval = duration_sec / steps
+        for i in range(1, steps + 1):
+            ratio = i / steps
+            cur_x = int(start_pt.x + (target_screen_pt.x - start_pt.x) * ratio)
+            cur_y = int(start_pt.y + (target_screen_pt.y - start_pt.y) * ratio)
+
+            if isinstance(self.input_backend, Win32HardwareBackend):
+                from sys_input.models import Point as SysPoint
+
+                await self.input_backend.mouse_move(SysPoint(x=cur_x, y=cur_y))
+            else:
+                cur_client_x = int(abs_point.x * ratio)
+                cur_client_y = int(abs_point.y * ratio)
+                await self.mouse_move(Point(x=cur_client_x, y=cur_client_y))
+
+            await asyncio.sleep(interval)
+
+        # 闭环反馈微调校正 (Closed-Loop Correction): 消除长距离移动下的线性缩放与平滑四舍五入积累误差
+        for correction_step in range(3):
+            cur_pos = get_cursor_pos()
+            err_x = target_screen_pt.x - cur_pos.x
+            err_y = target_screen_pt.y - cur_pos.y
+
+            if abs(err_x) <= 1 and abs(err_y) <= 1:
+                break
+
+            logger.info(
+                "[SmoothMove] 🔍 触发闭环反馈校正 [#%d]: 当前实测光标 %s vs 目标屏幕坐标 %s (偏差: dx=%d, dy=%d)",
+                correction_step + 1,
+                cur_pos,
+                target_screen_pt,
+                err_x,
+                err_y,
+            )
+
+            # 根据实测偏差做反向物理补偿
+            correct_x = cur_pos.x + err_x
+            correct_y = cur_pos.y + err_y
+            if isinstance(self.input_backend, Win32HardwareBackend):
+                from sys_input.models import Point as SysPoint
+
+                await self.input_backend.mouse_move(SysPoint(x=correct_x, y=correct_y))
+            else:
+                await self.mouse_move(Point(x=correct_x, y=correct_y))
+            await asyncio.sleep(0.03)
+
+        final_pos = get_cursor_pos()
+        logger.info(
+            "[SmoothMove] 🎉 闭环校正完毕！最终实际屏幕物理坐标: %s (离目标点绝对残余偏差: dx=%d, dy=%d)",
+            final_pos,
+            target_screen_pt.x - final_pos.x,
+            target_screen_pt.y - final_pos.y,
+        )
 
     async def mouse_click(
         self,

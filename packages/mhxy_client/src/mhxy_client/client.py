@@ -19,6 +19,7 @@ from client_core import (
     Window,
 )
 from mhxy_client.models import MHXY_TITLE_PATTERN
+from mhxy_client.screens.main_hud import MainHUD
 from sys_input import HWND, MouseButton, VirtualKeyCode
 
 
@@ -33,13 +34,18 @@ class MhxyClient:
         client = create_mhxy_client_by_index(0, init_cv_engines=True)
         print(f"服务器: {client.server_name}, 角色名: {client.role_name}, ID: {client.role_id}")
         async with client:
-            center_roi = RelativeRegion(x=0.25, y=0.25, width=0.5, height=0.5)
-            ocr_results = await client.ocr(roi=center_roi)
+            hud = client.main_hud
+            inventory = await hud.open_inventory()
         ```
     """
 
     hwnd: HWND
     window: Window
+
+    @property
+    def main_hud(self) -> MainHUD:
+        """获取游戏常驻主界面 (MainHUD) 页面对象。"""
+        return MainHUD(window=self.window)
 
     @property
     def title(self) -> str:
