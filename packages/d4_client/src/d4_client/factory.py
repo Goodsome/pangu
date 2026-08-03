@@ -10,7 +10,7 @@ import sys
 from cv_engine import OcrEngine, TemplateMatcher
 from d4_client.client import D4Client
 from client_core import Window
-from sys_input import HWND, Win32MessageBackend
+from sys_input import HWND, Win32HardwareBackend, Win32MessageBackend
 from vision_stream import Win32DXGIBackend, Win32PrintWindowBackend
 
 
@@ -164,9 +164,25 @@ def create_d4_client_for_rect(
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
+    use_hardware_input: bool = True,
 ) -> D4Client:
-    """基于 WindowRectInfo 构建独立的 D4Client 实例。"""
-    input_backend = Win32MessageBackend(hwnd=rect.hwnd)
+    """基于 WindowRectInfo 构建独立的 D4Client 实例。
+
+    Args:
+        rect: 窗口坐标及句柄信息。
+        render_full_content: PrintWindow 模式下是否完整渲染。
+        client_only: 是否仅捕获客户区。
+        ocr_lang: OCR 语言类型。
+        use_gpu: 是否启用 GPU 加速。
+        use_dxgi: 是否启用 DXGI 画面捕获。
+        use_hardware_input: 是否使用全局物理/硬件输入模拟后端 (Win32HardwareBackend)。
+    """
+    if use_hardware_input:
+        input_backend: Win32HardwareBackend | Win32MessageBackend = (
+            Win32HardwareBackend()
+        )
+    else:
+        input_backend = Win32MessageBackend(hwnd=rect.hwnd)
 
     if use_dxgi:
         vision_backend: Win32DXGIBackend | Win32PrintWindowBackend = Win32DXGIBackend(
@@ -191,6 +207,7 @@ def create_d4_client_for_rect(
         ocr_engine=ocr_engine,
         width=rect.width,
         height=rect.height,
+        hwnd=rect.hwnd,
     )
 
     return D4Client(hwnd=rect.hwnd, window=window)
@@ -204,6 +221,7 @@ def create_d4_client_by_index(
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
+    use_hardware_input: bool = True,
 ) -> D4Client:
     """根据屏幕按网格位置排序后的 WindowRectInfo 列表，按索引创建单个 D4Client 实例。
 
@@ -225,6 +243,7 @@ def create_d4_client_by_index(
         ocr_lang=ocr_lang,
         use_gpu=use_gpu,
         use_dxgi=use_dxgi,
+        use_hardware_input=use_hardware_input,
     )
 
 
@@ -235,6 +254,7 @@ def create_d4_clients(
     ocr_lang: str = "ch",
     use_gpu: bool = False,
     use_dxgi: bool = True,
+    use_hardware_input: bool = True,
 ) -> list[D4Client]:
     """自动检索系统中所有匹配的暗黑 IV 窗口，并按网格位置顺序构建 list[D4Client]。
 
@@ -251,6 +271,7 @@ def create_d4_clients(
             ocr_lang=ocr_lang,
             use_gpu=use_gpu,
             use_dxgi=use_dxgi,
+            use_hardware_input=use_hardware_input,
         )
         for rect in sorted_rects
     ]

@@ -34,14 +34,24 @@ class CaptureAllSlots(BaseNode):
                 rank_dir = blackboard.leaderboard.rank_output_dir()
                 hover_delay = cfg.timing.after_hover_slot
 
-                # 定义各类槽位采集任务: (slot_type, count, capture_fn, name_fn)
+                # 1. 装备槽位采集 (直接使用 screen 持有的绝对状态与解算)
+                eq_count = screen.get_equipment_slot_count()
+
+                for i in range(eq_count):
+                    save_path = await screen.capture_equipment_slot(
+                        output_dir=rank_dir,
+                        slot_index=i,
+                    )
+                    await asyncio.sleep(hover_delay)
+                    logger.debug(
+                        "[CaptureAllSlots] 排名 %d | equipment[%d] → %s",
+                        blackboard.leaderboard.current_rank,
+                        i,
+                        save_path,
+                    )
+
+                # 2. 其它槽位采集任务 (skill / paragon / amulet)
                 slot_tasks = [
-                    (
-                        "equipment",
-                        screen.equipment_slot_count,
-                        screen.capture_equipment_slot,
-                        screen.equipment_slot_name,
-                    ),
                     (
                         "skill",
                         screen.skill_slot_count,

@@ -37,4 +37,3 @@ async def test_d4client_async_context_manager() -> None:
     assert mock_window.close.called
     assert mock_window.select_roi.called
     assert mock_window.select_relative_roi.called
-

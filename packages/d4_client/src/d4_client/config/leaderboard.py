@@ -18,6 +18,7 @@ from client_core import Point, Region, RelativeRegion
 # 配置文件路径（与本模块同目录）
 _CONFIG_PATH = Path(__file__).parent / "leaderboard.yaml"
 
+
 @dataclass(frozen=True)
 class LeaderboardLayoutConfig:
     """新版天梯榜页面布局配置 (基于 RelativeRegion 相对物理坐标解算)。"""
@@ -28,14 +29,29 @@ class LeaderboardLayoutConfig:
     class_selector_roi: RelativeRegion = RelativeRegion(
         x=0.1362, y=0.0762, width=0.2751, height=0.0592
     )
-    records_roi: RelativeRegion = RelativeRegion(x=0.3377, y=0.3882, width=0.4248, height=0.3992)
-    view_config_roi: RelativeRegion = RelativeRegion(x=0.3904, y=0.3811, width=0.2077, height=0.0421)
-    next_page_roi: RelativeRegion = RelativeRegion(x=0.4870, y=0.8716, width=0.0167, height=0.0381)
-    previous_page_roi: RelativeRegion = RelativeRegion(x=0.4588, y=0.8716, width=0.0209, height=0.0411)
-    page_number_roi: RelativeRegion = RelativeRegion(x=0.5104, y=0.8766, width=0.0381, height=0.0301)
-    
-    config_viewer_title_roi: RelativeRegion = RelativeRegion(x=0.7923, y=0.0772, width=0.0736, height=0.0331)
-    
+    records_roi: RelativeRegion = RelativeRegion(
+        x=0.3377, y=0.3882, width=0.4248, height=0.3992
+    )
+    view_config_roi: RelativeRegion = RelativeRegion(
+        x=0.3904, y=0.3811, width=0.2077, height=0.0421
+    )
+    next_page_roi: RelativeRegion = RelativeRegion(
+        x=0.4870, y=0.8716, width=0.0167, height=0.0381
+    )
+    previous_page_roi: RelativeRegion = RelativeRegion(
+        x=0.4588, y=0.8716, width=0.0209, height=0.0411
+    )
+    page_number_roi: RelativeRegion = RelativeRegion(
+        x=0.5104, y=0.8766, width=0.0381, height=0.0301
+    )
+    config_viewer_title_roi: RelativeRegion = RelativeRegion(
+        x=0.7923, y=0.0772, width=0.0736, height=0.0331
+    )
+    equipment_roi: RelativeRegion = RelativeRegion(x=0.6827, y=0.1861, width=0.2923, height=0.1769)
+    equipment_01_roi: RelativeRegion = RelativeRegion(
+        x=0.49, y=0.05, width=0.1874, height=0.7011
+    )
+
     title_text: str = "天梯榜"
 
 

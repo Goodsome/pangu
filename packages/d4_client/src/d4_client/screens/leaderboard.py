@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-import re
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
+from client_core import AutoCalibratingScreen, RelativePoint, SplitMode
 from d4_client.config.leaderboard import (
     LeaderboardLayoutConfig,
     LeaderboardLayoutConfigLegacy,
     load_leaderboard_config,
 )
-from client_core import AutoCalibratingScreen, RelativePoint, SplitMode
 from d4_types.enums.player_class import PlayerClass
 
 if TYPE_CHECKING:
@@ -27,14 +27,14 @@ _PAGE_PATTERN = re.compile(r"(\d+)\s*/\s*\d+")
 
 # 8 个职业在顶部 class_selector_roi 区域中从左到右的顺序 (8 等分)
 ORDERED_PLAYER_CLASSES: tuple[PlayerClass, ...] = (
-    PlayerClass.BARBARIAN,   # 1. 野蛮人
-    PlayerClass.NECROMANCER, # 2. 死灵法师
-    PlayerClass.SORCERER,    # 3. 巫师
-    PlayerClass.ROGUE,       # 4. 游侠
-    PlayerClass.DRUID,       # 5. 德鲁伊
+    PlayerClass.BARBARIAN,  # 1. 野蛮人
+    PlayerClass.NECROMANCER,  # 2. 死灵法师
+    PlayerClass.SORCERER,  # 3. 巫师
+    PlayerClass.ROGUE,  # 4. 游侠
+    PlayerClass.DRUID,  # 5. 德鲁伊
     PlayerClass.SPIRITBORN,  # 6. 灵巫
-    PlayerClass.PALADIN,     # 7. 圣骑士
-    PlayerClass.WARLOCK,     # 8. 术士
+    PlayerClass.PALADIN,  # 7. 圣骑士
+    PlayerClass.WARLOCK,  # 8. 术士
 )
 
 
@@ -51,6 +51,9 @@ class LeaderboardScreen(AutoCalibratingScreen):
     """
 
     screen_name: str = "LeaderboardScreen"
+    current_class: PlayerClass = PlayerClass.BARBARIAN
+    current_page: int = 1
+    current_row: int = 0
 
     @property
     def layout(self) -> LeaderboardLayoutConfig:
@@ -100,6 +103,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
             mode=SplitMode.HORIZONTAL,
         )[index]
         await self.window.mouse_click(point=relative_roi.center)
+        self.current_class = player_class
 
     # ------------------------------------------------------------------
     # 榜单区域截图
@@ -140,10 +144,13 @@ class LeaderboardScreen(AutoCalibratingScreen):
         if row_index < 0 or row_index >= 10:
             raise IndexError(f"row_index={row_index} 超出有效范围 [0, 9]")
 
-        row_roi = self.layout.records_roi.split(n=10, mode=SplitMode.VERTICAL)[row_index]
+        row_roi = self.layout.records_roi.split(n=10, mode=SplitMode.VERTICAL)[
+            row_index
+        ]
         click_point = row_roi.center
 
         await self.window.mouse_click(point=click_point)
+        self.current_row = row_index
         return click_point
 
     # ------------------------------------------------------------------
@@ -153,15 +160,22 @@ class LeaderboardScreen(AutoCalibratingScreen):
     async def open_player_config(self) -> PlayerConfigScreen:
         """点击弹出菜单中的"查看配置" ROI 区域，返回 PlayerConfigScreen 实例。
 
-        使用新版 RelativeRegion view_config_roi 根据当前窗口物理分辨率解算点击中心点。
+        自动将天梯榜当下的职业、页码、行号状态传递至 PlayerConfigScreen 实例。
 
         Returns:
-            PlayerConfigScreen 页面对象实例。
+            绑定了天梯榜当前状态的 PlayerConfigScreen 页面对象实例。
         """
         from d4_client.screens.player_config import PlayerConfigScreen
 
         await self.window.mouse_click(point=self.layout.view_config_roi.center)
-        screen = PlayerConfigScreen(window=self.window)
+
+        screen = PlayerConfigScreen(
+            window=self.window,
+            player_class=self.current_class,
+            page=self.current_page,
+            row=self.current_row,
+        )
+        # await screen.wait_until_visible()
         return screen
 
     # ------------------------------------------------------------------
@@ -171,10 +185,13 @@ class LeaderboardScreen(AutoCalibratingScreen):
     async def next_page(self) -> None:
         """点击"下一页"按钮翻页。"""
         await self.window.mouse_click(point=self.layout.next_page_roi.center)
+        self.current_page += 1
 
     async def previous_page(self) -> None:
         """点击"上一页"按钮翻页。"""
         await self.window.mouse_click(point=self.layout.previous_page_roi.center)
+        if self.current_page > 1:
+            self.current_page -= 1
 
     async def current_page_number(self) -> int | None:
         """通过 OCR 识别页码区域，返回当前页码整数。
@@ -195,6 +212,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
                 logger.debug(
                     "[LeaderboardScreen] 识别页码: %d（原文: %r）", page, ocr.text
                 )
+                self.current_page = page
                 return page
 
         logger.warning("[LeaderboardScreen] 页码 OCR 未识别到有效结果，区域=%s", roi)

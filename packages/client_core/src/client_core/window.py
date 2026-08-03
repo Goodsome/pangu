@@ -131,11 +131,14 @@ class Window:
         await self.vision_backend.begin_frame()
 
     async def capture(
-        self, region: Region | RelativeRegion | None = None
+        self, region: Region | RelativeRegion | None = None,
+        refresh: bool = False,
     ) -> ImageFrame:
         """捕获窗口当前画面。"""
         abs_region = self._resolve_region(region)
         vision_roi = abs_region.to_vision_stream() if abs_region else None
+        if refresh:
+            await self.vision_backend.begin_frame()
         res = await self.vision_backend.capture(region=vision_roi)
         return ImageFrame.from_vision_stream(res)
 

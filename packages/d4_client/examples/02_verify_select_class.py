@@ -52,9 +52,7 @@ def run_select_class_verification(
     # 检索真实目标窗口
     rects = find_d4_window_rects(title_keyword=title_keyword)
     if not rects:
-        logger.warning(
-            f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。"
-        )
+        logger.warning(f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。")
         logger.info(
             '             请开启游戏或传入 --title "目标窗口" (如 "记事本") 后重新运行。'
         )

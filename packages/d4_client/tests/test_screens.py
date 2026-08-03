@@ -124,7 +124,7 @@ async def test_leaderboard_click_row(mock_window: AsyncMock) -> None:
     # 2. 成功计算第 10 行 (row_index=9)
     pt9 = await board.click_row(9)
     assert pt9.x == pt0.x  # 同一列，X 相对坐标对齐
-    assert pt9.y > pt0.y    # 第 10 行的 Y 坐标显著大于第 1 行
+    assert pt9.y > pt0.y  # 第 10 行的 Y 坐标显著大于第 1 行
 
     # 3. 越界 row_index 抛出 IndexError
     with pytest.raises(IndexError):
@@ -172,3 +172,133 @@ async def test_leaderboard_current_page_number(mock_window: AsyncMock) -> None:
 
     assert page_num == 23
     mock_window.ocr.assert_called_once_with(roi=board.layout.page_number_roi)
+
+
+@pytest.mark.anyio
+async def test_player_config_get_equipment_slot_roi(mock_window: AsyncMock) -> None:
+    """测试 PlayerConfigScreen 针对 1/2 排及不同职业计算装备格子 ROI 与居中对齐。"""
+    from d4_client.screens.player_config import PlayerConfigScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    screen_barbarian = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.BARBARIAN,
+        page=1,
+        row=1,
+    )
+
+    # 1. 第一排装备槽 (slot_index=0 ~ 7)
+    roi_0 = screen_barbarian.get_equipment_slot_roi(0)
+    roi_7 = screen_barbarian.get_equipment_slot_roi(7)
+    assert roi_0.y == roi_7.y
+    assert roi_7.x > roi_0.x
+    assert (
+        pytest.approx(roi_0.width) == screen_barbarian.config.equipment_roi.width / 8.0
+    )
+
+    # 2. 第二排装备槽 (野蛮人 4 件: slot_index=8 ~ 11)
+    roi_8 = screen_barbarian.get_equipment_slot_roi(8)
+    roi_11 = screen_barbarian.get_equipment_slot_roi(11)
+    assert roi_8.y > roi_0.y
+    assert roi_11.x > roi_8.x
+
+    # 验证居中逻辑: 第二排 4 件的总宽度与起点相对居中
+    eq_roi = screen_barbarian.config.equipment_roi
+    slot_w = eq_roi.width / 8.0
+    expected_start_x = eq_roi.x + (eq_roi.width - 4 * slot_w) / 2.0
+    assert pytest.approx(roi_8.x) == expected_start_x
+
+    # 3. 越界 slot_index 校验 (灵巫共 8+1=9 个槽位 0~8)
+    screen_spirit = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.SPIRITBORN,
+        page=1,
+        row=1,
+    )
+    with pytest.raises(IndexError):
+        screen_spirit.get_equipment_slot_roi(9)
+
+
+@pytest.mark.anyio
+async def test_player_config_capture_equipment_slot(
+    mock_window: AsyncMock, tmp_path: Path
+) -> None:
+    """测试 PlayerConfigScreen.capture_equipment_slot 使用持有的状态保存截图。"""
+    from client_core import ImageFrame
+    from d4_client.screens.player_config import PlayerConfigScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+    mock_window.capture.return_value = ImageFrame(
+        data=b"\x00" * 1600,
+        width=20,
+        height=20,
+        channels=4,
+    )
+
+    screen = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.BARBARIAN,
+        page=1,
+        row=2,
+    )
+    output_dir = tmp_path / "equipment_captures"
+
+    saved_path = await screen.capture_equipment_slot(
+        output_dir=output_dir,
+        slot_index=0,
+    )
+
+    expected_path = output_dir / "BARBARIAN_1_2_0.png"
+    assert saved_path == expected_path
+    assert expected_path.exists()
+    assert mock_window.smooth_mouse_move.called or mock_window.mouse_move.called
+    assert mock_window.capture.called
+
+
+@pytest.mark.anyio
+async def test_leaderboard_state_tracking_and_pass_to_player_config(
+    mock_window: AsyncMock, tmp_path: Path
+) -> None:
+    """测试 LeaderboardScreen 记录职业、页码、行号状态并透传至 PlayerConfigScreen，默认完成命名保存。"""
+    from client_core import ImageFrame
+    from d4_client.screens.leaderboard import LeaderboardScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+    mock_window.capture.return_value = ImageFrame(
+        data=b"\x00" * 1600,
+        width=20,
+        height=20,
+        channels=4,
+    )
+
+    board = LeaderboardScreen(window=mock_window)
+
+    # 1. 模拟交互并记录状态
+    await board.select_class(PlayerClass.NECROMANCER)
+    await board.next_page()  # current_page -> 2
+    await board.click_row(3)  # current_row -> 3
+
+    assert board.current_class == PlayerClass.NECROMANCER
+    assert board.current_page == 2
+    assert board.current_row == 3
+
+    # 2. 打开 PlayerConfigScreen 并验证状态继承
+    player_config_screen = await board.open_player_config()
+    assert player_config_screen.player_class == PlayerClass.NECROMANCER
+    assert player_config_screen.page == 2
+    assert player_config_screen.row == 3
+
+    # 3. 验证 capture_equipment_slot 默认使用透传的状态进行保存
+    output_dir = tmp_path / "auto_state_captures"
+    saved_path = await player_config_screen.capture_equipment_slot(
+        output_dir=output_dir,
+        slot_index=0,
+    )
+
+    expected_path = output_dir / "NECROMANCER_2_3_0.png"
+    assert saved_path == expected_path
+    assert expected_path.exists()

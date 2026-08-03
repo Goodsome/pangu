@@ -168,7 +168,6 @@ def test_relative_point() -> None:
     assert conv_rel.x == 0.5 and conv_rel.y == 0.5
 
 
-
 @pytest.mark.anyio
 async def test_capture(window: Window, mock_deps: tuple[MagicMock, ...]) -> None:
     """测试画面捕获与领域模型包装 (含相对 ROI 解算)。"""
@@ -311,14 +310,13 @@ def test_window_dimensions(mock_deps: tuple[MagicMock, ...]) -> None:
 
 
 @pytest.mark.anyio
-async def test_select_roi(
-    window: Window, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_select_roi(window: Window, monkeypatch: pytest.MonkeyPatch) -> None:
     """测试基于 OpenCV 交互框选获取绝对 Region 和相对 RelativeRegion。"""
     mock_select_roi = MagicMock(return_value=(192, 216, 960, 432))
     mock_destroy_window = MagicMock()
 
     import cv2
+
     monkeypatch.setattr(cv2, "selectROI", mock_select_roi)
     monkeypatch.setattr(cv2, "destroyWindow", mock_destroy_window)
 
@@ -329,7 +327,9 @@ async def test_select_roi(
     assert mock_destroy_window.called
 
     # 2. 测试 select_relative_roi 获取 RelativeRegion (1920x1080 屏幕)
-    rel_region = await window.select_relative_roi(window_name="Test OpenCV Relative ROI")
+    rel_region = await window.select_relative_roi(
+        window_name="Test OpenCV Relative ROI"
+    )
     assert rel_region == RelativeRegion(x=0.1, y=0.2, width=0.5, height=0.4)
 
 
@@ -349,4 +349,3 @@ async def test_image_frame_save(tmp_path: Path) -> None:
 
     assert save_file.exists()
     assert save_file.stat().st_size > 0
-

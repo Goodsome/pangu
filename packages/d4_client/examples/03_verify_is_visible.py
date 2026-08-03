@@ -52,7 +52,9 @@ async def measure_is_visible_loops(
 
 def run_is_visible_verification(title_keyword: str, logger: logging.Logger) -> None:
     logger.info("=" * 75)
-    logger.info("开始执行功能 [2/7]: LeaderboardScreen.is_visible (4 次连续真实耗时测试)")
+    logger.info(
+        "开始执行功能 [2/7]: LeaderboardScreen.is_visible (4 次连续真实耗时测试)"
+    )
     logger.info("=" * 75)
 
     layout = LeaderboardLayoutConfig()
@@ -61,9 +63,7 @@ def run_is_visible_verification(title_keyword: str, logger: logging.Logger) -> N
 
     rects = find_d4_window_rects(title_keyword=title_keyword)
     if not rects:
-        logger.warning(
-            f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。"
-        )
+        logger.warning(f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。")
         logger.info(
             '             请开启游戏或传入 --title "目标窗口" (如 "记事本") 后重新运行。'
         )
@@ -84,9 +84,13 @@ def run_is_visible_verification(title_keyword: str, logger: logging.Logger) -> N
         measure_is_visible_loops(real_screen, iterations=4, interval_sec=0.5)
     )
 
-    logger.info("---------------------------------------------------------------------------")
+    logger.info(
+        "---------------------------------------------------------------------------"
+    )
     logger.info("📊 连续 4 次 is_visible() 真实执行耗时分析:")
-    logger.info("---------------------------------------------------------------------------")
+    logger.info(
+        "---------------------------------------------------------------------------"
+    )
 
     first_ms = results[0][2]
     for idx, res, ms in results:
@@ -100,7 +104,9 @@ def run_is_visible_verification(title_keyword: str, logger: logging.Logger) -> N
         saved_ratio = (
             ((first_ms - avg_cached_ms) / first_ms) * 100.0 if first_ms > 0 else 0.0
         )
-        logger.info("---------------------------------------------------------------------------")
+        logger.info(
+            "---------------------------------------------------------------------------"
+        )
         logger.info(f"  第 1 次冷调用耗时 : {first_ms:.2f} ms")
         logger.info(f"  后续 3 次平均耗时 : {avg_cached_ms:.2f} ms")
         logger.info(f"  缓存与响应提升   : 节省耗时 {saved_ratio:.1f}%")

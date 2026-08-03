@@ -5,16 +5,17 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, override
 
 from d4_client.config.leaderboard import (
-    LeaderboardConfig,
     LeaderboardLayoutConfig,
     PlayerConfigLayoutConfig,
     SlotConfig,
     load_leaderboard_config,
 )
-from client_core import AutoCalibratingScreen, ImageFrame, Region
+from client_core import AutoCalibratingScreen, ImageFrame, Region, RelativeRegion
+from d4_types.enums.player_class import PlayerClass
 
 if TYPE_CHECKING:
     from d4_client.screens.leaderboard import LeaderboardScreen
@@ -22,7 +23,19 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+SECOND_ROW_EQUIPMENTS_NUMBER: dict[PlayerClass, int] = {
+    PlayerClass.BARBARIAN: 4,
+    PlayerClass.NECROMANCER: 2,
+    PlayerClass.SORCERER: 2,
+    PlayerClass.ROGUE: 3,
+    PlayerClass.DRUID: 2,
+    PlayerClass.SPIRITBORN: 1,
+    PlayerClass.PALADIN: 2,
+    PlayerClass.WARLOCK: 1,
+}
+
+
+@dataclass(kw_only=True)
 class PlayerConfigScreen(AutoCalibratingScreen):
     """暗黑破坏神 4 玩家配置查看器页面对象。
 
@@ -32,6 +45,9 @@ class PlayerConfigScreen(AutoCalibratingScreen):
     - 关闭配置页回到天梯榜
     """
 
+    player_class: PlayerClass
+    page: int
+    row: int
     screen_name: str = "PlayerConfigScreen"
 
     @property
@@ -85,20 +101,104 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         )
         return await self.window.capture(region=region)
 
+    def get_equipment_slot_count(self) -> int:
+        """获取当前职业的装备槽位总数量（第一排 8 个 + 第二排依据职业决定）。"""
+        return 8 + SECOND_ROW_EQUIPMENTS_NUMBER[self.player_class]
+
+    def get_equipment_slot_roi(self, slot_index: int) -> RelativeRegion:
+        """计算当前职业及槽位索引的装备格子 RelativeRegion。
+
+        第一排固定 8 个装备，第二排由职业决定（1-4个），装备格子大小与第一排一致，且第二排居中。
+        """
+        second_row_count = SECOND_ROW_EQUIPMENTS_NUMBER[self.player_class]
+        total_slots = 8 + second_row_count
+
+        if slot_index < 0 or slot_index >= total_slots:
+            raise IndexError(
+                f"装备槽索引 {slot_index} 超出有效范围 [0, {total_slots - 1}]"
+            )
+
+        eq_roi = self.config.equipment_roi
+        slot_w = eq_roi.width / 8.0
+        slot_h = eq_roi.height / 2.0
+
+        if slot_index < 8:
+            col = slot_index
+            x = eq_roi.x + col * slot_w
+            y = eq_roi.y
+        else:
+            k = slot_index - 8
+            row2_start_x = eq_roi.x + (eq_roi.width - second_row_count * slot_w) / 2.0
+            x = row2_start_x + k * slot_w
+            y = eq_roi.y + slot_h
+
+        return RelativeRegion(x=x, y=y, width=slot_w, height=slot_h)
+
+    def get_equipment_tooltip_roi(self, slot_roi: RelativeRegion) -> RelativeRegion:
+        """根据装备格子的 RelativeRegion，计算对应的装备详细 tooltip RelativeRegion。
+
+        01 号装备 tooltip 区域为 self.config.equipment_01_roi，其相对于装备格子的偏移是固定的。
+        """
+        eq_roi = self.config.equipment_roi
+        slot_01_x = eq_roi.x
+        slot_01_y = eq_roi.y
+
+        offset_x = self.config.equipment_01_roi.x - slot_01_x
+        offset_y = self.config.equipment_01_roi.y - slot_01_y
+
+        return RelativeRegion(
+            x=slot_roi.x + offset_x,
+            y=slot_roi.y + offset_y,
+            width=self.config.equipment_01_roi.width,
+            height=self.config.equipment_01_roi.height,
+        )
+
     # ------------------------------------------------------------------
     # 各类槽位公开截图接口
     # ------------------------------------------------------------------
 
-    async def capture_equipment_slot(self, slot_index: int) -> ImageFrame:
-        """悬停并截取指定装备槽位的 tooltip 图像。
+    async def capture_equipment_slot(
+        self,
+        output_dir: Path,
+        slot_index: int,
+    ) -> Path:
+        """悬停并截取指定装备槽位的 tooltip 图像，并使用持有的状态保存到指定目录。
 
         Args:
-            slot_index: 装备槽索引，范围 0 ~ len(equipment_slots)-1。
+            output_dir: 保存图片的目录路径 (Path)。
+            slot_index: 装备槽索引 (0 ~ 8+second_row_count-1)。
+
+        Returns:
+            Path: 保存的图片绝对物理/相对路径。
+
+        Raises:
+            IndexError: 当 slot_index 超出有效范围时抛出。
         """
-        slots = self._layout.equipment_slots
-        if slot_index < 0 or slot_index >= len(slots):
-            raise IndexError(f"装备槽索引 {slot_index} 超出范围 [0, {len(slots) - 1}]")
-        return await self._capture_slot(slots[slot_index])
+        slot_roi = self.get_equipment_slot_roi(slot_index)
+
+        await self.window.mouse_click(
+            point=slot_roi.center
+        )
+        await asyncio.sleep(0.5)
+
+        tooltip_roi = self.get_equipment_tooltip_roi(slot_roi)
+        logger.debug(
+            "[PlayerConfigScreen] 悬停装备槽位 index=%d, 装备ROI=%s, tooltip ROI=%s",
+            slot_index,
+            slot_roi,
+            tooltip_roi,
+        )
+        frame = await self.window.capture(region=tooltip_roi, refresh=True)
+
+        class_str = self.player_class.value
+        file_name = f"{class_str}_{self.page}_{self.row}_{slot_index}.png"
+        save_path = output_dir / file_name
+
+        await frame.save(save_path)
+        logger.info(
+            "[PlayerConfigScreen] 装备槽位 [%d] 截图已保存 → %s", slot_index, save_path
+        )
+        return save_path
 
     async def capture_skill_slot(self, slot_index: int) -> ImageFrame:
         """悬停并截取指定技能槽位的 tooltip 图像。

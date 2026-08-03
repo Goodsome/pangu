@@ -2,7 +2,6 @@
 
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import override
 
 from d4_automation.domain.aggregates.blackboard import Blackboard
@@ -40,5 +39,7 @@ class CaptureLeaderboardPage(BaseNode):
                 )
                 return NodeStatus.SUCCESS
             case _:
-                logger.warning("[CaptureLeaderboardPage] 当前面板非 LeaderboardScreen，跳过")
+                logger.warning(
+                    "[CaptureLeaderboardPage] 当前面板非 LeaderboardScreen，跳过"
+                )
                 return NodeStatus.FAILURE

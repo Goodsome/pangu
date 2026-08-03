@@ -33,7 +33,9 @@ def run_capture_records_verification(
     title_keyword: str, output_path: Path, logger: logging.Logger
 ) -> None:
     logger.info("=" * 75)
-    logger.info("开始执行功能 [3/7]: LeaderboardScreen.capture_records_region (记录区域截图落盘)")
+    logger.info(
+        "开始执行功能 [3/7]: LeaderboardScreen.capture_records_region (记录区域截图落盘)"
+    )
     logger.info("=" * 75)
 
     layout = LeaderboardLayoutConfig()
@@ -43,9 +45,7 @@ def run_capture_records_verification(
     # 检索真实目标窗口
     rects = find_d4_window_rects(title_keyword=title_keyword)
     if not rects:
-        logger.warning(
-            f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。"
-        )
+        logger.warning(f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。")
         logger.info(
             '             请开启游戏或传入 --title "目标窗口" (如 "记事本") 后重新运行。'
         )
@@ -68,7 +68,9 @@ def run_capture_records_verification(
         logger.error(f"[失败] 截图落盘抛出异常: {e}")
 
     logger.info("=" * 75)
-    logger.info("功能 [3/7]: capture_records_region 完毕！日志: logs/verify_capture_records.log")
+    logger.info(
+        "功能 [3/7]: capture_records_region 完毕！日志: logs/verify_capture_records.log"
+    )
     logger.info("=" * 75)
 
 

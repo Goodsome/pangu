@@ -64,9 +64,7 @@ def run_current_page_number_verification(
 
     rects = find_d4_window_rects(title_keyword=title_keyword)
     if not rects:
-        logger.warning(
-            f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。"
-        )
+        logger.warning(f"[未找到窗口] 当前未开启标题包含 '{title_keyword}' 的窗口。")
         logger.info(
             '             请开启游戏或传入 --title "目标窗口" (如 "记事本") 后重新运行。'
         )
@@ -84,12 +82,18 @@ def run_current_page_number_verification(
     logger.info(f"正在执行 current_page_number() 真实 OCR 识别 (共 {loops} 次)...\n")
 
     results = asyncio.run(
-        measure_current_page_number_loops(board_screen, iterations=loops, interval_sec=0.5)
+        measure_current_page_number_loops(
+            board_screen, iterations=loops, interval_sec=0.5
+        )
     )
 
-    logger.info("---------------------------------------------------------------------------")
+    logger.info(
+        "---------------------------------------------------------------------------"
+    )
     logger.info("📊 current_page_number() 真实执行耗时与识别页码分析:")
-    logger.info("---------------------------------------------------------------------------")
+    logger.info(
+        "---------------------------------------------------------------------------"
+    )
 
     first_ms = results[0][2]
     for idx, page_val, ms in results:
@@ -104,7 +108,9 @@ def run_current_page_number_verification(
         saved_ratio = (
             ((first_ms - avg_cached_ms) / first_ms) * 100.0 if first_ms > 0 else 0.0
         )
-        logger.info("---------------------------------------------------------------------------")
+        logger.info(
+            "---------------------------------------------------------------------------"
+        )
         logger.info(f"  第 1 次冷调用耗时 : {first_ms:.2f} ms")
         logger.info(f"  后续平均耗时     : {avg_cached_ms:.2f} ms")
         logger.info(f"  缓存与响应提升   : 节省耗时 {saved_ratio:.1f}%")

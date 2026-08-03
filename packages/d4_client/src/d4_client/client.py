@@ -61,8 +61,9 @@ class D4Client:
         image: ImageFrame | None = None,
     ) -> RelativeRegion | None:
         """快捷代理：弹出 OpenCV 拖拽选区并获取相对 RelativeRegion。"""
-        return await self.window.select_relative_roi(window_name=window_name, image=image)
-
+        return await self.window.select_relative_roi(
+            window_name=window_name, image=image
+        )
 
     async def close(self) -> None:
         """释放底层图形设备、句柄与视觉匹配引擎缓存。"""
