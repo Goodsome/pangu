@@ -14,7 +14,13 @@ from client_core.models import (
     WindowRectInfo,
 )
 from client_core.screens.base import AutoCalibratingScreen
-from client_core.window import BaseWindow, Window, activate_window, client_to_screen
+from client_core.window import (
+    BaseWindow,
+    Window,
+    activate_window,
+    client_to_screen,
+    get_cursor_pos,
+)
 
 __all__ = [
     "AutoCalibratingScreen",
@@ -33,4 +39,5 @@ __all__ = [
     "WindowRectInfo",
     "activate_window",
     "client_to_screen",
+    "get_cursor_pos",
 ]

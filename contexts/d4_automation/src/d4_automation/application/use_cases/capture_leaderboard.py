@@ -39,7 +39,7 @@ class CaptureLeaderboard:
     async def execute(
         self,
         window_index: int,
-        cancel_event: asyncio.Event,  # noqa: ARG002 — Phase 6 中断逻辑时接入
+        cancel_event: asyncio.Event,
     ) -> None:
         """执行天梯榜数据采集流程。
 

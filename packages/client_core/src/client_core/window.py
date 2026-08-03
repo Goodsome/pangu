@@ -326,14 +326,6 @@ class Window:
             else abs_point
         )
 
-        logger.debug(
-            "[SmoothMove] 开始平滑划动鼠标: 起始位置 %s -> 目标绝对位置 %s (步数: %d, 耗时: %.2fs)",
-            start_pt,
-            target_screen_pt,
-            steps,
-            duration_sec,
-        )
-
         interval = duration_sec / steps
         for i in range(1, steps + 1):
             ratio = i / steps
@@ -360,15 +352,6 @@ class Window:
             if abs(err_x) <= 1 and abs(err_y) <= 1:
                 break
 
-            logger.info(
-                "[SmoothMove] 🔍 触发闭环反馈校正 [#%d]: 当前实测光标 %s vs 目标屏幕坐标 %s (偏差: dx=%d, dy=%d)",
-                correction_step + 1,
-                cur_pos,
-                target_screen_pt,
-                err_x,
-                err_y,
-            )
-
             # 根据实测偏差做反向物理补偿
             correct_x = cur_pos.x + err_x
             correct_y = cur_pos.y + err_y
@@ -380,13 +363,6 @@ class Window:
                 await self.mouse_move(Point(x=correct_x, y=correct_y))
             await asyncio.sleep(0.03)
 
-        final_pos = get_cursor_pos()
-        logger.info(
-            "[SmoothMove] 🎉 闭环校正完毕！最终实际屏幕物理坐标: %s (离目标点绝对残余偏差: dx=%d, dy=%d)",
-            final_pos,
-            target_screen_pt.x - final_pos.x,
-            target_screen_pt.y - final_pos.y,
-        )
 
     async def mouse_click(
         self,
