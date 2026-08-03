@@ -67,6 +67,8 @@ async def main() -> None:
         ("config_viewer_title_roi", "配置查看器标题区域"),
         ("equipment_roi", "装备区域"),
         ("equipment_01_roi", "装备01区域"),
+        ("skill_roi", "技能区域"),
+        ("skill_01_roi", "技能区域"),
     ]
 
     final_rois: dict[str, RelativeRegion | None] = {}

@@ -253,7 +253,77 @@ async def test_player_config_capture_equipment_slot(
     expected_path = output_dir / "BARBARIAN_1_2_0.png"
     assert saved_path == expected_path
     assert expected_path.exists()
-    assert mock_window.smooth_mouse_move.called or mock_window.mouse_move.called
+    assert mock_window.mouse_click.called or mock_window.smooth_mouse_move.called
+    assert mock_window.capture.called
+
+
+@pytest.mark.anyio
+async def test_player_config_get_skill_slot_roi(mock_window: AsyncMock) -> None:
+    """测试 PlayerConfigScreen 1 排 6 个技能格子 ROI 计算与 tooltip ROI 计算。"""
+    from d4_client.screens.player_config import PlayerConfigScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    screen = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.BARBARIAN,
+        page=1,
+        row=1,
+    )
+
+    assert screen.get_skill_slot_count() == 6
+
+    # 1. 验证第 1 个与第 6 个技能格子 ROI (0 ~ 5)
+    s_roi_0 = screen.get_skill_slot_roi(0)
+    s_roi_5 = screen.get_skill_slot_roi(5)
+    assert s_roi_0.y == s_roi_5.y
+    assert s_roi_5.x > s_roi_0.x
+    assert pytest.approx(s_roi_0.width) == screen.config.skill_roi.width / 6.0
+
+    # 2. 验证 tooltip ROI 相对偏移
+    tt_roi_0 = screen.get_skill_tooltip_roi(s_roi_0)
+    assert tt_roi_0.width == screen.config.skill_01_roi.width
+    assert tt_roi_0.height == screen.config.skill_01_roi.height
+
+    # 3. 越界 slot_index 校验
+    with pytest.raises(IndexError):
+        screen.get_skill_slot_roi(6)
+
+
+@pytest.mark.anyio
+async def test_player_config_capture_skill_slot(
+    mock_window: AsyncMock, tmp_path: Path
+) -> None:
+    """测试 PlayerConfigScreen.capture_skill_slot 使用持有的状态截取并保存技能图片。"""
+    from client_core import ImageFrame
+    from d4_client.screens.player_config import PlayerConfigScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+    mock_window.capture.return_value = ImageFrame(
+        data=b"\x00" * 1600,
+        width=20,
+        height=20,
+        channels=4,
+    )
+
+    screen = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.BARBARIAN,
+        page=1,
+        row=2,
+    )
+    output_dir = tmp_path / "skill_captures"
+
+    saved_path = await screen.capture_skill_slot(
+        output_dir=output_dir,
+        slot_index=0,
+    )
+
+    expected_path = output_dir / "skill_BARBARIAN_1_2_0.png"
+    assert saved_path == expected_path
+    assert expected_path.exists()
+    assert mock_window.mouse_click.called
     assert mock_window.capture.called
 
 

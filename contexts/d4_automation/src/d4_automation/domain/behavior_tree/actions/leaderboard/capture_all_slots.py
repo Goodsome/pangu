@@ -50,14 +50,24 @@ class CaptureAllSlots(BaseNode):
                         save_path,
                     )
 
-                # 2. 其它槽位采集任务 (skill / paragon / amulet)
+                # 2. 技能槽位采集 (使用 LeaderboardLayoutConfig 相对比例区域解算)
+                sk_count = screen.get_skill_slot_count()
+
+                for i in range(sk_count):
+                    save_path = await screen.capture_skill_slot(
+                        output_dir=rank_dir,
+                        slot_index=i,
+                    )
+                    await asyncio.sleep(hover_delay)
+                    logger.debug(
+                        "[CaptureAllSlots] 排名 %d | skill[%d] → %s",
+                        blackboard.leaderboard.current_rank,
+                        i,
+                        save_path,
+                    )
+
+                # 3. 其它槽位采集任务 (paragon / amulet)
                 slot_tasks = [
-                    (
-                        "skill",
-                        screen.skill_slot_count,
-                        screen.capture_skill_slot,
-                        screen.skill_slot_name,
-                    ),
                     (
                         "paragon",
                         screen.paragon_slot_count,

@@ -153,6 +153,43 @@ class PlayerConfigScreen(AutoCalibratingScreen):
             height=self.config.equipment_01_roi.height,
         )
 
+    def get_skill_slot_count(self) -> int:
+        """获取技能槽位总数量（固定 1 排 6 个技能）。"""
+        return 6
+
+    def get_skill_slot_roi(self, slot_index: int) -> RelativeRegion:
+        """计算 1 排 6 个技能中指定槽位索引的 RelativeRegion。"""
+        if slot_index < 0 or slot_index >= 6:
+            raise IndexError(f"技能槽索引 {slot_index} 超出有效范围 [0, 5]")
+
+        sk_roi = self.config.skill_roi
+        slot_w = sk_roi.width / 6.0
+        slot_h = sk_roi.height
+
+        x = sk_roi.x + slot_index * slot_w
+        y = sk_roi.y
+
+        return RelativeRegion(x=x, y=y, width=slot_w, height=slot_h)
+
+    def get_skill_tooltip_roi(self, slot_roi: RelativeRegion) -> RelativeRegion:
+        """根据技能格子的 RelativeRegion，计算对应的技能详细 tooltip RelativeRegion。
+
+        01 号技能 tooltip 区域为 self.config.skill_01_roi，其相对于技能格子的偏移是固定的。
+        """
+        sk_roi = self.config.skill_roi
+        slot_01_x = sk_roi.x
+        slot_01_y = sk_roi.y
+
+        offset_x = self.config.skill_01_roi.x - slot_01_x
+        offset_y = self.config.skill_01_roi.y - slot_01_y
+
+        return RelativeRegion(
+            x=slot_roi.x + offset_x,
+            y=slot_roi.y + offset_y,
+            width=self.config.skill_01_roi.width,
+            height=self.config.skill_01_roi.height,
+        )
+
     # ------------------------------------------------------------------
     # 各类槽位公开截图接口
     # ------------------------------------------------------------------
@@ -162,7 +199,7 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         output_dir: Path,
         slot_index: int,
     ) -> Path:
-        """悬停并截取指定装备槽位的 tooltip 图像，并使用持有的状态保存到指定目录。
+        """点击并截取指定装备槽位的 tooltip 图像，并使用持有的状态保存到指定目录。
 
         Args:
             output_dir: 保存图片的目录路径 (Path)。
@@ -176,14 +213,12 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         """
         slot_roi = self.get_equipment_slot_roi(slot_index)
 
-        await self.window.mouse_click(
-            point=slot_roi.center
-        )
+        await self.window.mouse_click(point=slot_roi.center)
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_equipment_tooltip_roi(slot_roi)
         logger.debug(
-            "[PlayerConfigScreen] 悬停装备槽位 index=%d, 装备ROI=%s, tooltip ROI=%s",
+            "[PlayerConfigScreen] 点击装备槽位 index=%d, 装备ROI=%s, tooltip ROI=%s",
             slot_index,
             slot_roi,
             tooltip_roi,
@@ -200,16 +235,46 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         )
         return save_path
 
-    async def capture_skill_slot(self, slot_index: int) -> ImageFrame:
-        """悬停并截取指定技能槽位的 tooltip 图像。
+    async def capture_skill_slot(
+        self,
+        output_dir: Path,
+        slot_index: int,
+    ) -> Path:
+        """点击并截取指定技能槽位的 tooltip 图像，并使用持有的状态保存到指定目录。
 
         Args:
-            slot_index: 技能槽索引，范围 0 ~ len(skill_slots)-1。
+            output_dir: 保存图片的目录路径 (Path)。
+            slot_index: 技能槽索引 (0 ~ 5)。
+
+        Returns:
+            Path: 保存的图片绝对物理/相对路径。
+
+        Raises:
+            IndexError: 当 slot_index 超出有效范围时抛出。
         """
-        slots = self._layout.skill_slots
-        if slot_index < 0 or slot_index >= len(slots):
-            raise IndexError(f"技能槽索引 {slot_index} 超出范围 [0, {len(slots) - 1}]")
-        return await self._capture_slot(slots[slot_index])
+        slot_roi = self.get_skill_slot_roi(slot_index)
+
+        await self.window.mouse_click(point=slot_roi.center)
+        await asyncio.sleep(0.5)
+
+        tooltip_roi = self.get_skill_tooltip_roi(slot_roi)
+        logger.debug(
+            "[PlayerConfigScreen] 点击技能槽位 index=%d, 技能ROI=%s, tooltip ROI=%s",
+            slot_index,
+            slot_roi,
+            tooltip_roi,
+        )
+        frame = await self.window.capture(region=tooltip_roi, refresh=True)
+
+        class_str = self.player_class.value
+        file_name = f"skill_{class_str}_{self.page}_{self.row}_{slot_index}.png"
+        save_path = output_dir / file_name
+
+        await frame.save(save_path)
+        logger.info(
+            "[PlayerConfigScreen] 技能槽位 [%d] 截图已保存 → %s", slot_index, save_path
+        )
+        return save_path
 
     async def capture_paragon_slot(self, slot_index: int) -> ImageFrame:
         """悬停并截取指定巅峰槽位的 tooltip 图像。

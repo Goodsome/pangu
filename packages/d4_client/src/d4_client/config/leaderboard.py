@@ -47,9 +47,18 @@ class LeaderboardLayoutConfig:
     config_viewer_title_roi: RelativeRegion = RelativeRegion(
         x=0.7923, y=0.0772, width=0.0736, height=0.0331
     )
-    equipment_roi: RelativeRegion = RelativeRegion(x=0.6827, y=0.1861, width=0.2923, height=0.1769)
+    equipment_roi: RelativeRegion = RelativeRegion(
+        x=0.6827, y=0.1861, width=0.2923, height=0.1769
+    )
     equipment_01_roi: RelativeRegion = RelativeRegion(
         x=0.49, y=0.05, width=0.1874, height=0.7011
+    )
+
+    skill_roi: RelativeRegion = RelativeRegion(
+        x=0.7265, y=0.4356, width=0.2035, height=0.0654
+    )
+    skill_01_roi: RelativeRegion = RelativeRegion(
+        x=0.6451, y=0.5562, width=0.1994, height=0.2270
     )
 
     title_text: str = "天梯榜"
