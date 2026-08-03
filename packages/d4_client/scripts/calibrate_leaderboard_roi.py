@@ -69,6 +69,8 @@ async def main() -> None:
         ("equipment_01_roi", "装备01区域"),
         ("skill_roi", "技能区域"),
         ("skill_01_roi", "技能区域"),
+        ("talismans_roi", "护符区域"),
+        ("talismans_01_roi", "护符01区域"),
     ]
 
     final_rois: dict[str, RelativeRegion | None] = {}

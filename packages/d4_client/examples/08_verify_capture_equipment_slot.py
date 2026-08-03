@@ -27,7 +27,6 @@ from pathlib import Path
 
 from d4_client import PlayerConfigScreen
 from d4_client.factory import create_d4_clients, find_d4_window_rects
-from d4_client.screens.leaderboard import LeaderboardScreen
 from d4_types.enums.player_class import PlayerClass
 from foundation.logging_setup import configure_logging
 
@@ -60,6 +59,7 @@ def run_capture_verification(
         page=1,
         row=0,
     )
+
     async def _execute_capture() -> None:
         # 2. 点击'查看配置'打开配置页，自动透传绑定当前状态
         logger.info(
@@ -98,6 +98,21 @@ def run_capture_verification(
                 )
                 logger.info(f"  [技能槽位 {i + 1}/{sk_count}] 截图已保存 → {save_path}")
 
+        # 护身符槽位测试
+        if target in ("all", "talisman"):
+            tm_count = player_config_screen.get_talisman_slot_count()
+            logger.info(
+                f"护身符槽位总数量: {tm_count}，准备逐一点击截图保存至: {output_dir}"
+            )
+            for i in range(tm_count):
+                save_path = await player_config_screen.capture_talisman_slot(
+                    output_dir=output_dir,
+                    slot_index=i,
+                )
+                logger.info(
+                    f"  [护身符槽位 {i + 1}/{tm_count}] 截图已保存 → {save_path}"
+                )
+
     try:
         asyncio.run(_execute_capture())
         logger.info(f"[成功] 目标 [{target}] 槽位截图处理完成！")
@@ -122,9 +137,9 @@ def main() -> None:
     parser.add_argument(
         "--target",
         type=str,
-        choices=["all", "equipment", "skill"],
+        choices=["all", "equipment", "skill", "talisman"],
         default="all",
-        help="截图测试目标: all (全部), equipment (仅装备), skill (仅技能)。默认: all",
+        help="截图测试目标: all (全部), equipment (仅装备), skill (仅技能), talisman (仅护身符)。默认: all",
     )
     parser.add_argument(
         "--skills-only",
@@ -136,6 +151,11 @@ def main() -> None:
         action="store_true",
         help="快捷开关: 仅测试装备截图 (等同于 --target equipment)",
     )
+    parser.add_argument(
+        "--talisman-only",
+        action="store_true",
+        help="快捷开关: 仅测试护身符截图 (等同于 --target talisman)",
+    )
 
     args = parser.parse_args()
 
@@ -145,6 +165,8 @@ def main() -> None:
         target = "skill"
     elif args.equipments_only:
         target = "equipment"
+    elif args.talisman_only:
+        target = "talisman"
 
     configure_logging(
         app_name="verify_capture_equipment_slot",

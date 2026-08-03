@@ -328,6 +328,76 @@ async def test_player_config_capture_skill_slot(
 
 
 @pytest.mark.anyio
+async def test_player_config_get_talisman_slot_roi(mock_window: AsyncMock) -> None:
+    """测试 PlayerConfigScreen 1 排 7 个护身符格子 ROI 计算与 tooltip ROI 计算。"""
+    from d4_client.screens.player_config import PlayerConfigScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    screen = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.BARBARIAN,
+        page=1,
+        row=1,
+    )
+
+    assert screen.get_talisman_slot_count() == 7
+
+    # 1. 验证第 1 个与第 7 个护身符格子 ROI (0 ~ 6)
+    t_roi_0 = screen.get_talisman_slot_roi(0)
+    t_roi_6 = screen.get_talisman_slot_roi(6)
+    assert t_roi_0.y == t_roi_6.y
+    assert t_roi_6.x > t_roi_0.x
+    assert pytest.approx(t_roi_0.width) == screen.config.talismans_roi.width / 7.0
+
+    # 2. 验证 tooltip ROI 相对偏移
+    tt_roi_0 = screen.get_talisman_tooltip_roi(t_roi_0)
+    assert tt_roi_0.width == screen.config.talismans_01_roi.width
+    assert tt_roi_0.height == screen.config.talismans_01_roi.height
+
+    # 3. 越界 slot_index 校验
+    with pytest.raises(IndexError):
+        screen.get_talisman_slot_roi(7)
+
+
+@pytest.mark.anyio
+async def test_player_config_capture_talisman_slot(
+    mock_window: AsyncMock, tmp_path: Path
+) -> None:
+    """测试 PlayerConfigScreen.capture_talisman_slot 使用持有的状态截取并保存护身符图片。"""
+    from client_core import ImageFrame
+    from d4_client.screens.player_config import PlayerConfigScreen
+    from d4_types.enums.player_class import PlayerClass
+
+    mock_window.width = 1920
+    mock_window.height = 1080
+    mock_window.capture.return_value = ImageFrame(
+        data=b"\x00" * 1600,
+        width=20,
+        height=20,
+        channels=4,
+    )
+
+    screen = PlayerConfigScreen(
+        window=mock_window,
+        player_class=PlayerClass.BARBARIAN,
+        page=1,
+        row=2,
+    )
+    output_dir = tmp_path / "talisman_captures"
+
+    saved_path = await screen.capture_talisman_slot(
+        output_dir=output_dir,
+        slot_index=0,
+    )
+
+    expected_path = output_dir / "talisman_BARBARIAN_1_2_0.png"
+    assert saved_path == expected_path
+    assert expected_path.exists()
+    assert mock_window.mouse_click.called
+    assert mock_window.capture.called
+
+
+@pytest.mark.anyio
 async def test_leaderboard_state_tracking_and_pass_to_player_config(
     mock_window: AsyncMock, tmp_path: Path
 ) -> None:

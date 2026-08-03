@@ -8,13 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
-from d4_client.config.leaderboard import (
-    LeaderboardLayoutConfig,
-    PlayerConfigLayoutConfig,
-    SlotConfig,
-    load_leaderboard_config,
-)
-from client_core import AutoCalibratingScreen, ImageFrame, Region, RelativeRegion
+from client_core import AutoCalibratingScreen, RelativeRegion
+from d4_client.config.leaderboard import LeaderboardLayoutConfig
 from d4_types.enums.player_class import PlayerClass
 
 if TYPE_CHECKING:
@@ -40,8 +35,9 @@ class PlayerConfigScreen(AutoCalibratingScreen):
     """暗黑破坏神 4 玩家配置查看器页面对象。
 
     负责：
-    - 鼠标悬停各类槽位（装备/技能/巅峰/护身符）
-    - 截取左侧 tooltip 预览区图像
+    - 点击各类槽位（装备/技能/护身符）
+    - 结合 LeaderboardLayoutConfig 动态解算 RelativeRegion
+    - 截取 tooltip 预览区图像并使用内部持有的绝对状态保存
     - 关闭配置页回到天梯榜
     """
 
@@ -52,11 +48,8 @@ class PlayerConfigScreen(AutoCalibratingScreen):
 
     @property
     def config(self) -> LeaderboardLayoutConfig:
+        """天梯榜与玩家配置页强类型相对物理布局配置。"""
         return LeaderboardLayoutConfig()
-
-    @property
-    def _layout(self) -> PlayerConfigLayoutConfig:
-        return load_leaderboard_config().player_config
 
     # ------------------------------------------------------------------
     # 页面状态检测
@@ -72,34 +65,8 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         return result is not None
 
     # ------------------------------------------------------------------
-    # 通用槽位截图（内部）
+    # 装备 (Equipment) 槽位 ROI 与截图
     # ------------------------------------------------------------------
-
-    async def _capture_slot(self, slot: SlotConfig) -> ImageFrame:
-        """移动鼠标到槽位悬停坐标，等待 tooltip 渲染后截取预览区图像。"""
-        await self.window.mouse_move(point=slot.hover)
-
-        # 等待 tooltip 渲染（时间由上层 capture_task.yaml 控制，此处给基础等待）
-        await asyncio.sleep(0.1)
-
-        tt = self._layout.tooltip
-        if tt.strategy == "fixed_left":
-            region = tt.fixed_region
-        else:
-            # near_cursor: 以悬停点为基准计算截图区域
-            ox, oy = tt.cursor_offset
-            cw, ch = tt.cursor_size
-            region = Region(
-                x=slot.hover.x + ox,
-                y=slot.hover.y + oy,
-                width=cw,
-                height=ch,
-            )
-
-        logger.debug(
-            "[PlayerConfigScreen] 悬停槽位 '%s'，截取区域 %s", slot.name, region
-        )
-        return await self.window.capture(region=region)
 
     def get_equipment_slot_count(self) -> int:
         """获取当前职业的装备槽位总数量（第一排 8 个 + 第二排依据职业决定）。"""
@@ -153,64 +120,12 @@ class PlayerConfigScreen(AutoCalibratingScreen):
             height=self.config.equipment_01_roi.height,
         )
 
-    def get_skill_slot_count(self) -> int:
-        """获取技能槽位总数量（固定 1 排 6 个技能）。"""
-        return 6
-
-    def get_skill_slot_roi(self, slot_index: int) -> RelativeRegion:
-        """计算 1 排 6 个技能中指定槽位索引的 RelativeRegion。"""
-        if slot_index < 0 or slot_index >= 6:
-            raise IndexError(f"技能槽索引 {slot_index} 超出有效范围 [0, 5]")
-
-        sk_roi = self.config.skill_roi
-        slot_w = sk_roi.width / 6.0
-        slot_h = sk_roi.height
-
-        x = sk_roi.x + slot_index * slot_w
-        y = sk_roi.y
-
-        return RelativeRegion(x=x, y=y, width=slot_w, height=slot_h)
-
-    def get_skill_tooltip_roi(self, slot_roi: RelativeRegion) -> RelativeRegion:
-        """根据技能格子的 RelativeRegion，计算对应的技能详细 tooltip RelativeRegion。
-
-        01 号技能 tooltip 区域为 self.config.skill_01_roi，其相对于技能格子的偏移是固定的。
-        """
-        sk_roi = self.config.skill_roi
-        slot_01_x = sk_roi.x
-        slot_01_y = sk_roi.y
-
-        offset_x = self.config.skill_01_roi.x - slot_01_x
-        offset_y = self.config.skill_01_roi.y - slot_01_y
-
-        return RelativeRegion(
-            x=slot_roi.x + offset_x,
-            y=slot_roi.y + offset_y,
-            width=self.config.skill_01_roi.width,
-            height=self.config.skill_01_roi.height,
-        )
-
-    # ------------------------------------------------------------------
-    # 各类槽位公开截图接口
-    # ------------------------------------------------------------------
-
     async def capture_equipment_slot(
         self,
         output_dir: Path,
         slot_index: int,
     ) -> Path:
-        """点击并截取指定装备槽位的 tooltip 图像，并使用持有的状态保存到指定目录。
-
-        Args:
-            output_dir: 保存图片的目录路径 (Path)。
-            slot_index: 装备槽索引 (0 ~ 8+second_row_count-1)。
-
-        Returns:
-            Path: 保存的图片绝对物理/相对路径。
-
-        Raises:
-            IndexError: 当 slot_index 超出有效范围时抛出。
-        """
+        """点击并截取指定装备槽位的 tooltip 图像，并使用持有的状态保存到指定目录。"""
         slot_roi = self.get_equipment_slot_roi(slot_index)
 
         await self.window.mouse_click(point=slot_roi.center)
@@ -235,23 +150,50 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         )
         return save_path
 
+    # ------------------------------------------------------------------
+    # 技能 (Skill) 槽位 ROI 与截图
+    # ------------------------------------------------------------------
+
+    def get_skill_slot_count(self) -> int:
+        """获取技能槽位总数量（固定 1 排 6 个技能）。"""
+        return 6
+
+    def get_skill_slot_roi(self, slot_index: int) -> RelativeRegion:
+        """计算 1 排 6 个技能中指定槽位索引的 RelativeRegion。"""
+        if slot_index < 0 or slot_index >= 6:
+            raise IndexError(f"技能槽索引 {slot_index} 超出有效范围 [0, 5]")
+
+        sk_roi = self.config.skill_roi
+        slot_w = sk_roi.width / 6.0
+        slot_h = sk_roi.height
+
+        x = sk_roi.x + slot_index * slot_w
+        y = sk_roi.y
+
+        return RelativeRegion(x=x, y=y, width=slot_w, height=slot_h)
+
+    def get_skill_tooltip_roi(self, slot_roi: RelativeRegion) -> RelativeRegion:
+        """根据技能格子的 RelativeRegion，计算对应的技能详细 tooltip RelativeRegion。"""
+        sk_roi = self.config.skill_roi
+        slot_01_x = sk_roi.x
+        slot_01_y = sk_roi.y
+
+        offset_x = self.config.skill_01_roi.x - slot_01_x
+        offset_y = self.config.skill_01_roi.y - slot_01_y
+
+        return RelativeRegion(
+            x=slot_roi.x + offset_x,
+            y=slot_roi.y + offset_y,
+            width=self.config.skill_01_roi.width,
+            height=self.config.skill_01_roi.height,
+        )
+
     async def capture_skill_slot(
         self,
         output_dir: Path,
         slot_index: int,
     ) -> Path:
-        """点击并截取指定技能槽位的 tooltip 图像，并使用持有的状态保存到指定目录。
-
-        Args:
-            output_dir: 保存图片的目录路径 (Path)。
-            slot_index: 技能槽索引 (0 ~ 5)。
-
-        Returns:
-            Path: 保存的图片绝对物理/相对路径。
-
-        Raises:
-            IndexError: 当 slot_index 超出有效范围时抛出。
-        """
+        """点击并截取指定技能槽位的 tooltip 图像，并使用持有的状态保存到指定目录。"""
         slot_roi = self.get_skill_slot_roi(slot_index)
 
         await self.window.mouse_click(point=slot_roi.center)
@@ -276,83 +218,85 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         )
         return save_path
 
-    async def capture_paragon_slot(self, slot_index: int) -> ImageFrame:
-        """悬停并截取指定巅峰槽位的 tooltip 图像。
-
-        Args:
-            slot_index: 巅峰槽索引，范围 0 ~ len(paragon_slots)-1。
-        """
-        slots = self._layout.paragon_slots
-        if slot_index < 0 or slot_index >= len(slots):
-            raise IndexError(f"巅峰槽索引 {slot_index} 超出范围 [0, {len(slots) - 1}]")
-        return await self._capture_slot(slots[slot_index])
-
-    async def capture_amulet_slot(self, slot_index: int) -> ImageFrame:
-        """悬停并截取指定护身符槽位的 tooltip 图像。
-
-        Args:
-            slot_index: 护身符槽索引，范围 0 ~ len(amulet_slots)-1。
-        """
-        slots = self._layout.amulet_slots
-        if slot_index < 0 or slot_index >= len(slots):
-            raise IndexError(
-                f"护身符槽索引 {slot_index} 超出范围 [0, {len(slots) - 1}]"
-            )
-        return await self._capture_slot(slots[slot_index])
-
     # ------------------------------------------------------------------
-    # 槽位数量查询（便于上层行为树循环）
+    # 护身符 (Talisman) 槽位 ROI 与截图
     # ------------------------------------------------------------------
 
-    @property
-    def equipment_slot_count(self) -> int:
-        """装备槽位数量。"""
-        return len(self._layout.equipment_slots)
+    def get_talisman_slot_count(self) -> int:
+        """获取护身符槽位总数量（固定 1 排 7 个护身符）。"""
+        return 7
 
-    @property
-    def skill_slot_count(self) -> int:
-        """技能槽位数量。"""
-        return len(self._layout.skill_slots)
+    def get_talisman_slot_roi(self, slot_index: int) -> RelativeRegion:
+        """计算 1 排 7 个护身符中指定槽位索引的 RelativeRegion。"""
+        if slot_index < 0 or slot_index >= 7:
+            raise IndexError(f"护身符槽索引 {slot_index} 超出有效范围 [0, 6]")
 
-    @property
-    def paragon_slot_count(self) -> int:
-        """巅峰槽位数量。"""
-        return len(self._layout.paragon_slots)
+        t_roi = self.config.talismans_roi
+        slot_w = t_roi.width / 7.0
+        slot_h = t_roi.height
 
-    @property
-    def amulet_slot_count(self) -> int:
-        """护身符槽位数量。"""
-        return len(self._layout.amulet_slots)
+        x = t_roi.x + slot_index * slot_w
+        y = t_roi.y
 
-    # ------------------------------------------------------------------
-    # 槽位名称查询（便于上层构建输出文件名）
-    # ------------------------------------------------------------------
+        return RelativeRegion(x=x, y=y, width=slot_w, height=slot_h)
 
-    def equipment_slot_name(self, slot_index: int) -> str:
-        return self._layout.equipment_slots[slot_index].name
+    def get_talisman_tooltip_roi(self, slot_roi: RelativeRegion) -> RelativeRegion:
+        """根据护身符格子的 RelativeRegion，计算对应的护身符详细 tooltip RelativeRegion。"""
+        t_roi = self.config.talismans_roi
+        slot_01_x = t_roi.x
+        slot_01_y = t_roi.y
 
-    def skill_slot_name(self, slot_index: int) -> str:
-        return self._layout.skill_slots[slot_index].name
+        offset_x = self.config.talismans_01_roi.x - slot_01_x
+        offset_y = self.config.talismans_01_roi.y - slot_01_y
 
-    def paragon_slot_name(self, slot_index: int) -> str:
-        return self._layout.paragon_slots[slot_index].name
+        return RelativeRegion(
+            x=slot_roi.x + offset_x,
+            y=slot_roi.y + offset_y,
+            width=self.config.talismans_01_roi.width,
+            height=self.config.talismans_01_roi.height,
+        )
 
-    def amulet_slot_name(self, slot_index: int) -> str:
-        return self._layout.amulet_slots[slot_index].name
+    async def capture_talisman_slot(
+        self,
+        output_dir: Path,
+        slot_index: int,
+    ) -> Path:
+        """点击并截取指定护身符槽位的 tooltip 图像，并使用持有的状态保存到指定目录。"""
+        slot_roi = self.get_talisman_slot_roi(slot_index)
+
+        await self.window.mouse_click(point=slot_roi.center)
+        await asyncio.sleep(0.5)
+
+        tooltip_roi = self.get_talisman_tooltip_roi(slot_roi)
+        logger.debug(
+            "[PlayerConfigScreen] 点击护身符槽位 index=%d, 护身符ROI=%s, tooltip ROI=%s",
+            slot_index,
+            slot_roi,
+            tooltip_roi,
+        )
+        frame = await self.window.capture(region=tooltip_roi, refresh=True)
+
+        class_str = self.player_class.value
+        file_name = f"talisman_{class_str}_{self.page}_{self.row}_{slot_index}.png"
+        save_path = output_dir / file_name
+
+        await frame.save(save_path)
+        logger.info(
+            "[PlayerConfigScreen] 护身符槽位 [%d] 截图已保存 → %s",
+            slot_index,
+            save_path,
+        )
+        return save_path
 
     # ------------------------------------------------------------------
     # 关闭配置页
     # ------------------------------------------------------------------
 
     async def close(self) -> LeaderboardScreen:
-        """点击右上角关闭按钮，等待返回天梯榜页面。
-
-        Returns:
-            就绪的 LeaderboardScreen 实例。
-        """
+        """点击右上角关闭按钮，等待返回天梯榜页面。"""
         from d4_client.screens.leaderboard import LeaderboardScreen
 
-        close_point = self._layout.close_btn
+        close_point = self.config.close_config_viewer_roi.center
         logger.info("[PlayerConfigScreen] 关闭配置页 → %s", close_point)
         await self.window.mouse_click(point=close_point)
 

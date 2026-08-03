@@ -66,19 +66,29 @@ class CaptureAllSlots(BaseNode):
                         save_path,
                     )
 
-                # 3. 其它槽位采集任务 (paragon / amulet)
+                # 3. 护身符槽位采集 (1排7个，使用 LeaderboardLayoutConfig 相对比例区域解算)
+                tm_count = screen.get_talisman_slot_count()
+
+                for i in range(tm_count):
+                    save_path = await screen.capture_talisman_slot(
+                        output_dir=rank_dir,
+                        slot_index=i,
+                    )
+                    await asyncio.sleep(hover_delay)
+                    logger.debug(
+                        "[CaptureAllSlots] 排名 %d | talisman[%d] → %s",
+                        blackboard.leaderboard.current_rank,
+                        i,
+                        save_path,
+                    )
+
+                # 4. 其它槽位采集任务 (paragon)
                 slot_tasks = [
                     (
                         "paragon",
                         screen.paragon_slot_count,
                         screen.capture_paragon_slot,
                         screen.paragon_slot_name,
-                    ),
-                    (
-                        "amulet",
-                        screen.amulet_slot_count,
-                        screen.capture_amulet_slot,
-                        screen.amulet_slot_name,
                     ),
                 ]
 

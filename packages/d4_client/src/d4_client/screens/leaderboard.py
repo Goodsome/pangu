@@ -11,8 +11,6 @@ from typing import TYPE_CHECKING, override
 from client_core import AutoCalibratingScreen, RelativePoint, SplitMode
 from d4_client.config.leaderboard import (
     LeaderboardLayoutConfig,
-    LeaderboardLayoutConfigLegacy,
-    load_leaderboard_config,
 )
 from d4_types.enums.player_class import PlayerClass
 
@@ -59,11 +57,6 @@ class LeaderboardScreen(AutoCalibratingScreen):
     def layout(self) -> LeaderboardLayoutConfig:
         """全新的天梯榜强类型相对物理布局配置。"""
         return LeaderboardLayoutConfig()
-
-    @property
-    def _legacy_layout(self) -> LeaderboardLayoutConfigLegacy:
-        """旧版配置（渐进式替换过渡用）。"""
-        return load_leaderboard_config().leaderboard
 
     # ------------------------------------------------------------------
     # 页面状态检测
