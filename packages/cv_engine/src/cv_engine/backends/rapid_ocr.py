@@ -23,15 +23,10 @@ class RapidOcrEngine(BaseOcrEngine):
     det_use_cuda: bool = False
     rec_use_cuda: bool = False
 
-    # 外部注入或懒加载的 rapidocr_onnxruntime.RapidOCR 实例
-    ocr_instance: Any = field(default=None, repr=False)
     _ocr_app: Any = field(default=None, repr=False)
 
     def _get_ocr_app(self) -> Any:
         """获取或延迟初始化 RapidOCR 识别实例。"""
-        if self.ocr_instance is not None:
-            return self.ocr_instance
-
         if self._ocr_app is not None:
             return self._ocr_app
 
