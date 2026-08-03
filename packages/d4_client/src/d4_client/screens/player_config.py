@@ -132,12 +132,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_equipment_tooltip_roi(slot_roi)
-        logger.debug(
-            "[PlayerConfigScreen] 点击装备槽位 index=%d, 装备ROI=%s, tooltip ROI=%s",
-            slot_index,
-            slot_roi,
-            tooltip_roi,
-        )
         frame = await self.window.capture(region=tooltip_roi, refresh=True)
 
         class_str = self.player_class.value
@@ -145,9 +139,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         save_path = output_dir / file_name
 
         await frame.save(save_path)
-        logger.info(
-            "[PlayerConfigScreen] 装备槽位 [%d] 截图已保存 → %s", slot_index, save_path
-        )
         return save_path
 
     # ------------------------------------------------------------------
@@ -200,12 +191,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_skill_tooltip_roi(slot_roi)
-        logger.debug(
-            "[PlayerConfigScreen] 点击技能槽位 index=%d, 技能ROI=%s, tooltip ROI=%s",
-            slot_index,
-            slot_roi,
-            tooltip_roi,
-        )
         frame = await self.window.capture(region=tooltip_roi, refresh=True)
 
         class_str = self.player_class.value
@@ -213,9 +198,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         save_path = output_dir / file_name
 
         await frame.save(save_path)
-        logger.info(
-            "[PlayerConfigScreen] 技能槽位 [%d] 截图已保存 → %s", slot_index, save_path
-        )
         return save_path
 
     # ------------------------------------------------------------------
@@ -268,12 +250,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         await asyncio.sleep(0.5)
 
         tooltip_roi = self.get_talisman_tooltip_roi(slot_roi)
-        logger.debug(
-            "[PlayerConfigScreen] 点击护身符槽位 index=%d, 护身符ROI=%s, tooltip ROI=%s",
-            slot_index,
-            slot_roi,
-            tooltip_roi,
-        )
         frame = await self.window.capture(region=tooltip_roi, refresh=True)
 
         class_str = self.player_class.value
@@ -281,11 +257,6 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         save_path = output_dir / file_name
 
         await frame.save(save_path)
-        logger.info(
-            "[PlayerConfigScreen] 护身符槽位 [%d] 截图已保存 → %s",
-            slot_index,
-            save_path,
-        )
         return save_path
 
     # ------------------------------------------------------------------

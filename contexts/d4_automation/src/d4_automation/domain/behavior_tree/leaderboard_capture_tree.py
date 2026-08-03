@@ -10,9 +10,7 @@
         client=client,
         current_panel=leaderboard_screen,
         leaderboard=LeaderboardCaptureContext(
-            player_class=cfg.player_class,
             target_end_page=cfg.end_page,
-            current_page=cfg.start_page,
             output_base_dir=cfg.output_dir,
         ),
     )

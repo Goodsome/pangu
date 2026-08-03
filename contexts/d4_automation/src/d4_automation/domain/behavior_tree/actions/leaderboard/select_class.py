@@ -19,7 +19,6 @@ class SelectClass(BaseNode):
     """点击顶部职业按钮，切换天梯榜到目标职业。
 
     前置条件：blackboard.current_panel 为 LeaderboardScreen。
-    副作用：更新 blackboard.leaderboard.player_class。
     """
 
     @override
@@ -30,7 +29,6 @@ class SelectClass(BaseNode):
                 player_class = cfg.player_class
                 logger.info("[SelectClass] 切换职业 → %s", player_class)
                 await screen.select_class(player_class)
-                blackboard.leaderboard.player_class = player_class
                 await asyncio.sleep(cfg.timing.after_select_class)
                 return NodeStatus.SUCCESS
             case _:

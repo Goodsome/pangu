@@ -27,13 +27,12 @@ class OpenPlayerConfig(BaseNode):
         match blackboard.current_panel:
             case LeaderboardScreen() as screen:
                 logger.info(
-                    "[OpenPlayerConfig] 打开排名 %d 的配置页",
-                    blackboard.leaderboard.current_rank,
+                    "[OpenPlayerConfig] 打开第 %d 页第 %d 行的配置页",
+                    screen.current_page,
+                    screen.current_row + 1,
                 )
                 config_screen = await screen.open_player_config()
                 blackboard.update_panel(config_screen)
-                cfg = load_capture_task_config()
-                await asyncio.sleep(cfg.timing.after_open_config)
                 return NodeStatus.SUCCESS
             case _:
                 logger.warning("[OpenPlayerConfig] 当前面板非 LeaderboardScreen，跳过")

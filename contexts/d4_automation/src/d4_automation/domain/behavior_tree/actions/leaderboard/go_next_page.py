@@ -16,30 +16,28 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class GoNextPage(BaseNode):
-    """点击"下一页"按钮翻页，等待新页加载，推进黑板页码。
+    """点击"下一页"按钮翻页，等待新页加载，重置 screen.current_row。
 
     前置条件：blackboard.current_panel 为 LeaderboardScreen。
     副作用：
-      - blackboard.leaderboard.current_page += 1
-      - blackboard.leaderboard.current_row 重置为 0
+      - screen.next_page() 会递增 screen.current_page
+      - screen.current_row 重置为 0
     """
 
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         match blackboard.current_panel:
             case LeaderboardScreen() as screen:
-                ctx = blackboard.leaderboard
                 logger.info(
                     "[GoNextPage] 翻页 %d → %d",
-                    ctx.current_page,
-                    ctx.current_page + 1,
+                    screen.current_page,
+                    screen.current_page + 1,
                 )
                 await screen.next_page()
+                screen.current_row = 0
 
                 cfg = load_capture_task_config()
                 await asyncio.sleep(cfg.timing.after_next_page)
-
-                ctx.advance_page()
                 return NodeStatus.SUCCESS
             case _:
                 logger.warning("[GoNextPage] 当前面板非 LeaderboardScreen，跳过")

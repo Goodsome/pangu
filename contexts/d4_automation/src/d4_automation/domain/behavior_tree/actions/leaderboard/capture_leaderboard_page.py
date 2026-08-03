@@ -7,7 +7,6 @@ from typing import override
 from d4_automation.domain.aggregates.blackboard import Blackboard
 from d4_automation.domain.behavior_tree.core import BaseNode
 from d4_automation.domain.enums.node_status import NodeStatus
-from d4_automation.infrastructure.image_io import save_image
 from d4_client import LeaderboardScreen
 
 logger = logging.getLogger(__name__)
@@ -25,16 +24,17 @@ class CaptureLeaderboardPage(BaseNode):
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         match blackboard.current_panel:
             case LeaderboardScreen() as screen:
-                ctx = blackboard.leaderboard
-                frame = await screen.capture_records_region()
+                output_dir = (
+                    blackboard.leaderboard.output_base_dir
+                    / screen.current_class.value
+                    / f"page_{screen.current_page:03d}"
+                )
+                save_path = output_dir / f"leaderboard_{screen.current_page:03d}.png"
 
-                page_dir = ctx.page_output_dir()
-                save_path = page_dir / f"leaderboard_{ctx.current_page:03d}.png"
-
-                await save_image(frame, save_path)
+                await screen.capture_records_region(save_path)
                 logger.info(
                     "[CaptureLeaderboardPage] 第 %d 页榜单截图已保存 → %s",
-                    ctx.current_page,
+                    screen.current_page,
                     save_path,
                 )
                 return NodeStatus.SUCCESS

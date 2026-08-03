@@ -9,7 +9,6 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 
 from d4_automation.config import load_capture_task_config
 from d4_automation.domain.aggregates.blackboard import (
@@ -41,32 +40,25 @@ class CaptureLeaderboard:
         self,
         window_index: int,
         cancel_event: asyncio.Event,  # noqa: ARG002 — Phase 6 中断逻辑时接入
-        config_path: Path | None = None,
     ) -> None:
         """执行天梯榜数据采集流程。
 
         Args:
             window_index: 目标游戏窗口索引（从 0 开始）。
             cancel_event: 外部取消信号，set 后当前页采集完成即退出。
-            config_path: 可选的 capture_task.yaml 路径，默认使用内置路径。
         """
-        cfg = (
-            load_capture_task_config()
-            if config_path is None
-            else load_capture_task_config(config_path)
-        )
+        cfg = load_capture_task_config()
 
         d4_client = create_d4_client_by_index(window_index)
 
         async with d4_client:
-            leaderboard_screen = LeaderboardScreen(window=d4_client.window)
+            leaderboard_screen = LeaderboardScreen(
+                window=d4_client.window,
+                current_page=cfg.start_page,
+            )
 
             ctx = LeaderboardCaptureContext(
-                player_class=cfg.player_class,
-                current_page=cfg.start_page,
                 target_end_page=cfg.end_page,
-                current_row=0,
-                current_rank=(cfg.start_page - 1) * 10 + 1,
                 output_base_dir=cfg.output_dir,
             )
 

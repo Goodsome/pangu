@@ -2,7 +2,6 @@
 
 import asyncio
 import signal
-from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -10,7 +9,7 @@ import typer
 from d4_automation.application.use_cases.capture_leaderboard import CaptureLeaderboard
 
 
-async def _async_main(window_index: int, config: Path | None) -> None:
+async def _async_main(window_index: int) -> None:
     use_case = CaptureLeaderboard()
     cancel_event = asyncio.Event()
 
@@ -21,7 +20,6 @@ async def _async_main(window_index: int, config: Path | None) -> None:
     await use_case.execute(
         window_index=window_index,
         cancel_event=cancel_event,
-        config_path=config,
     )
 
 
@@ -29,17 +27,6 @@ def capture_leaderboard(
     window_index: Annotated[
         int, typer.Option("--idx", "-i", help="游戏窗口索引（从 0 开始）")
     ] = 0,
-    config: Annotated[
-        Path | None,
-        typer.Option(
-            "--config",
-            "-c",
-            help="自定义 capture_task.yaml 路径，默认使用内置配置",
-            exists=True,
-            file_okay=True,
-            dir_okay=False,
-        ),
-    ] = None,
 ) -> None:
     """采集天梯榜截图：按配置逐页截取榜单及玩家装备/技能/巅峰/护身符 tooltip。"""
-    asyncio.run(_async_main(window_index, config))
+    asyncio.run(_async_main(window_index))

@@ -168,7 +168,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
             page=self.current_page,
             row=self.current_row,
         )
-        # await screen.wait_until_visible()
+        await screen.wait_until_visible()
         return screen
 
     # ------------------------------------------------------------------
