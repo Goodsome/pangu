@@ -17,9 +17,9 @@ pkg_src = Path(__file__).resolve().parent.parent / "src"
 if str(pkg_src) not in sys.path:
     sys.path.insert(0, str(pkg_src))
 
+from client_core import Point
 from mhxy_client import (  # noqa: E402
     MouseButton,
-    Point,
     create_mhxy_client_by_index,
 )
 

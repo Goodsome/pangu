@@ -21,8 +21,8 @@ pkg_src = Path(__file__).resolve().parent.parent / "src"
 if str(pkg_src) not in sys.path:
     sys.path.insert(0, str(pkg_src))
 
+from client_core import RelativeRegion
 from mhxy_client import (  # noqa: E402
-    RelativeRegion,
     create_mhxy_client_by_index,
 )
 
