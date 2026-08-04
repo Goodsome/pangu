@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar
 
-from client_core.models import Element, Region, RelativeRegion
+from client_core.models import Element, Point, Region, RelativePoint, RelativeRegion
 from client_core.window import Window
 
 logger = logging.getLogger(__name__)
@@ -64,13 +64,19 @@ class AutoCalibratingScreen:
         element_key: str,
         target_text: str,
         roi: Region | RelativeRegion | None = None,
+        is_element_fixed: bool = False,
     ) -> Element | None:
         """定位特定 UI 元素。
 
         优先基于内存缓存的特征图片执行极速模板匹配；
         未命中缓存时回退至基于 OCR 文本的精确定位，并自动截取该元素特征存入缓存。
         """
+        
         cached = self._element_cache.get(element_key)
+        
+        if is_element_fixed and cached:
+            return cached
+            
         if cached:
             if roi is None:
                 roi = cached.region
@@ -88,13 +94,13 @@ class AutoCalibratingScreen:
             return None
 
         image = await self.window.capture(res.rect)
-        element = Element(
+        cached = Element(
             name=element_key,
             region=res.rect,
             image=image,
         )
-        self._element_cache[element_key] = element
-        return element
+        self._element_cache[element_key] = cached
+        return cached
 
     async def click_element(
         self,
@@ -105,17 +111,12 @@ class AutoCalibratingScreen:
     ) -> bool:
         """定位特定 UI 元素并进行鼠标点击。"""
 
-        if is_element_fixed:
-            element = self._element_cache.get(element_key)
-        else:
-            element = None
-
-        if element is None:
-            element = await self.locate_element(
-                element_key=element_key,
-                target_text=target_text,
-                roi=roi,
-            )
+        element = await self.locate_element(
+            element_key=element_key,
+            target_text=target_text,
+            roi=roi,
+            is_element_fixed=is_element_fixed
+        )
 
         if element is None:
             logger.warning(

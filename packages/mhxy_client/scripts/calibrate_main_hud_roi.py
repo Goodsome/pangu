@@ -23,6 +23,13 @@ from mhxy_client import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+target_fields = [
+    ("map_name_roi", "地图名称与坐标显示区域"),
+    ("task_list_roi", "任务追踪列表区域"),
+    ("fu_roi", "任务追踪列表区域"),
+    ("dialog_name_roi", "对话框名称区域"),
+    ("claim_task_roi", "师门任务区域"),
+]
 
 def is_valid_relative_roi(roi: RelativeRegion | None) -> bool:
     """检查 RelativeRegion 是否为有效配置 (宽度和高度均大于 0)。"""
@@ -52,12 +59,6 @@ async def main() -> None:
     current_config = MainHudLayoutConfig()
     print("\n📋 检查既有 MainHudLayoutConfig 配置状态 (增量模式):")
 
-    target_fields = [
-        ("map_name_roi", "地图名称与坐标显示区域"),
-        ("task_list_roi", "任务追踪列表区域"),
-        ("fu_roi", "任务追踪列表区域"),
-        ("dialog_name_roi", "对话框名称区域"),
-    ]
 
     final_rois: dict[str, RelativeRegion | None] = {}
     need_calibrate: list[tuple[str, str]] = []

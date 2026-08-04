@@ -17,7 +17,7 @@ _DEFAULT_POINTER_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "template
 @dataclass
 class BaseScreen(AutoCalibratingScreen, ABC):
 
-    layout: MainHudLayoutConfig = field(default_factory=MainHudLayoutConfig)
+    config: MainHudLayoutConfig = field(default_factory=MainHudLayoutConfig)
 
     async def _get_cursor_region(self) -> Region:
         sys_client_pos = await self.window.ensure_cursor_in_window()
@@ -91,12 +91,11 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         await asyncio.sleep(0.1)
         return False
 
-    async def move_mouse(
+    async def mouse_move(
         self,
         target_point: Point,
         max_retries: int = 5,
     ) -> bool:
-        """循环调用 _calibrate_and_realign_mouse，直至实际游戏鼠标与目标点差距在 tolerance_px (10px) 以内。"""
         _ = await self.window.ensure_cursor_in_window()
 
         for _ in range(1, max_retries + 1):
@@ -108,3 +107,12 @@ class BaseScreen(AutoCalibratingScreen, ABC):
 
         logger.warning( "达到最大校准重试次数")
         return False
+
+    async def mouse_click(
+        self,
+        point: Point | None = None,
+    ) -> None:
+        if point:
+            await self.window.smooth_mouse_move(point=point)
+            await asyncio.sleep(0.1)
+        await self.window.mouse_click()

@@ -1,13 +1,14 @@
 """梦幻西游 常驻主界面 (MainHUD) 页面对象模型。"""
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
 from typing import override
 
 from client_core import OcrResult, Point, Region, RelativeRegion
 from mhxy_client.models import SectTaskInfo, SectTaskStatus
 from mhxy_client.screens.base import BaseScreen
+from mhxy_client.screens.dialogs.dialogs import Dialogs
 from mhxy_client.screens.dialogs.guan_yin_jie_jie import GuanYinJieJie
 
 logger = logging.getLogger(__name__)
@@ -71,14 +72,18 @@ class MainHUD(BaseScreen):
     """梦幻西游 主界面常驻 HUD 视角与面板控制对象。"""
 
     screen_name: str = "MainHUD"
+    dialogs: Dialogs = field(init=False)
+
+    def __post_init__(self):
+        self.dialogs = Dialogs(window=self.window)
 
     @override
     async def is_visible(self) -> bool:
         """检查当前界面是否为主 HUD 视角。"""
         roi = (
-            self.layout.map_name_roi
-            if self.layout.map_name_roi.width > 0
-            and self.layout.map_name_roi.height > 0
+            self.config.map_name_roi
+            if self.config.map_name_roi.width > 0
+            and self.config.map_name_roi.height > 0
             else _DEFAULT_MAP_NAME_ROI
         )
         results = await self.window.ocr(roi=roi)
@@ -93,9 +98,9 @@ class MainHUD(BaseScreen):
         根据配置的 map_name_roi 识别地图区域 OCR 文本，自动剥离坐标后缀。
         """
         roi = (
-            self.layout.map_name_roi
-            if self.layout.map_name_roi.width > 0
-            and self.layout.map_name_roi.height > 0
+            self.config.map_name_roi
+            if self.config.map_name_roi.width > 0
+            and self.config.map_name_roi.height > 0
             else _DEFAULT_MAP_NAME_ROI
         )
         results = await self.window.ocr(roi=roi)
@@ -116,12 +121,7 @@ class MainHUD(BaseScreen):
         提取师门任务多行描述文本，判定任务状态 (如可领取 CLAIMABLE / 进行中 IN_PROGRESS)，
         并精确定位包含 '师父'/'父'/'师' 等可交互超链接文字的精准像素坐标 Point。
         """
-        roi = (
-            self.layout.task_list_roi
-            if self.layout.task_list_roi.width > 0
-            and self.layout.task_list_roi.height > 0
-            else _DEFAULT_TASK_LIST_ROI
-        )
+        roi =  self.config.task_list_roi
         results = await self.window.ocr(roi=roi)
         logger.info(
             "[%s] 开始扫描任务列表区域 (ROI: %s)，共检索到 %d 条 OCR 文本",
@@ -210,16 +210,13 @@ class MainHUD(BaseScreen):
 
     async def claim_sect_task(
         self,
-        move_only: bool = False,
         delay_before_click_sec: float = 1.0,
     ) -> bool:
         """检查并触发师门任务领取/寻路交互。
 
         Args:
             move_only: 若为 True，仅将鼠标光标移动至目标位置，不执行点击 (用于调试校准)
-            smooth_move: 若为 True，开启鼠标缓慢/平滑划动轨迹移动，避免瞬移引发跳变下漂 (默认 True)
             delay_before_click_sec: 光标移动到位后、执行点击前的等待延时秒数 (默认 1.0s)
-            smooth_duration_sec: 平滑移动的总耗时秒数 (默认 1.0s)
 
         Returns:
             bool: 成功触发移动/点击返回 True，否则返回 False
@@ -238,16 +235,8 @@ class MainHUD(BaseScreen):
 
         target_point = task_info.action_point
 
-        await self.move_mouse(target_point=target_point)
+        await self.mouse_move(target_point=target_point)
 
-        if move_only:
-            logger.info(
-                "[%s] [Move Only 模式] 鼠标指针已精准停靠，跳过点击操作",
-                self.screen_name,
-            )
-            return True
-
-        # 悬停沉淀等待
         if delay_before_click_sec > 0:
             logger.info(
                 "[%s] ⏳ 暂停等待 %.2f 秒以稳定鼠标焦点...",
@@ -256,8 +245,5 @@ class MainHUD(BaseScreen):
             )
             await asyncio.sleep(delay_before_click_sec)
 
-        # 发送物理鼠标点击事件
-        logger.info("[%s] 🚀 正在触发原点物理点击...", self.screen_name)
         await self.window.mouse_click(point=None)
-        logger.info("[%s] ✅ 原点物理点击完成！", self.screen_name)
         return True

@@ -87,7 +87,7 @@ async def async_main() -> None:
         hud.window.activate()
 
         # 1. 抓取并保存 task_list_roi 调试切片图
-        roi = hud.layout.task_list_roi
+        roi = hud.config.task_list_roi
         roi_save_path = Path("screenshots/sect_task_debug_roi.png").resolve()
         roi_save_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -147,8 +147,7 @@ async def async_main() -> None:
                 f"\n[Action] 检测到师门任务可领取，调用 claim_sect_task(move_only={MOVE_ONLY}, smooth_duration={SMOOTH_DURATION_SEC}s, delay={DELAY_BEFORE_CLICK_SEC}s)..."
             )
             await hud.claim_sect_task(
-                move_only=MOVE_ONLY,
-                delay_before_click_sec=DELAY_BEFORE_CLICK_SEC,
+
             )
         else:
             logger.info(
