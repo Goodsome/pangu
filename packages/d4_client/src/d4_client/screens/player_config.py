@@ -246,6 +246,11 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         close_point = self.config.close_config_viewer_roi.center
         await self.window.mouse_click(point=close_point)
 
-        screen = LeaderboardScreen(window=self.window)
+        screen = LeaderboardScreen(
+            window=self.window,
+            current_class=self.player_class,
+            current_page=self.page,
+            current_row=self.row
+        )
         await screen.wait_until_visible()
         return screen
