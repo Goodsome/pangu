@@ -12,8 +12,6 @@ from foundation.persistence.adapters.neo4j_driver import (
     init_neo4j_driver,
 )
 from foundation.integration_events.registry import EventRegistry
-from foundation.persistence.adapters.database import Database
-from foundation.persistence.adapters.database import init_database
 from foundation.message_bus.gateways.redis_stream_publisher import RedisStreamPublisher
 from foundation.persistence.adapters.resources import init_async_db_engine
 from foundation.persistence.adapters.resources import init_async_redis
@@ -25,9 +23,6 @@ class Container(DeclarativeContainer):
     """Shared kernel DI container for cross-cutting concerns."""
 
     config: Configuration = Configuration()
-    database: Resource[Database] = Resource(
-        init_database, connection_string=config.database_url.as_(str)
-    )
     db_engine: Resource[AsyncEngine] = Resource(
         init_async_db_engine, db_url=config.database_url.as_(str)
     )

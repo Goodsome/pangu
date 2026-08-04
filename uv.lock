@@ -419,6 +419,16 @@ requires-dist = [
 name = "d4-injestion"
 version = "0.1.0"
 source = { editable = "contexts/d4_injestion" }
+dependencies = [
+    { name = "cv-engine" },
+    { name = "d4-types" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cv-engine", editable = "packages/cv_engine" },
+    { name = "d4-types", editable = "packages/d4_types" },
+]
 
 [[package]]
 name = "d4-leaderboard"
