@@ -1,39 +1,100 @@
 """师门任务相关数据模型。"""
 
-from enum import StrEnum
-from pydantic import BaseModel, Field
-from client_core import Point
+from dataclasses import dataclass, field
+from enum import StrEnum, auto
+
+from client_core import OcrResult, Point
+from mhxy_client.models.task import calculate_substring_point, resolve_action_point
 
 
 class SectTaskStatus(StrEnum):
     """师门任务当前状态枚举。"""
 
-    NOT_FOUND = "not_found"  # 任务列表中未找到师门任务/未追踪
+    NOT_FOUND = "not_found"  
     CLAIMABLE = (
-        "claimable"  # 可领取/需回师门 (如 "新的一天，回师门看看师父有什么吩咐吧")
+        "claimable"  
     )
-    IN_PROGRESS = "in_progress"  # 进行中 (寻路/送信/上交/巡逻等)
+    IN_PROGRESS = "in_progress"  
 
+class TaskType(StrEnum):
+    """任务类型枚举。"""
 
-class SectTaskInfo(BaseModel):
-    """师门任务解析结果与交互定位模型 (Pydantic 2.0 风格)。"""
+    SEND_MAIL = auto()
 
-    is_tracking_panel_open: bool = Field(
-        default=False, description="任务追踪面板是否展开"
-    )
-    is_sect_task_active: bool = Field(
-        default=False, description="师门任务是否在列表中处于追踪中"
-    )
-    status: SectTaskStatus = Field(
-        default=SectTaskStatus.NOT_FOUND, description="师门任务当前状态"
-    )
-    task_title: str = Field(default="", description="任务标题 (如 '师门任务')")
-    description_lines: list[str] = Field(
-        default_factory=list, description="师门任务多行描述文本列表"
-    )
-    action_text: str = Field(
-        default="", description="匹配到的可点击关键文本 (如 '父有什么吩咐吧。')"
-    )
-    action_point: Point | None = Field(
-        default=None, description="自动寻路/交互的目标点物理坐标"
-    )
+@dataclass
+class SectTaskInfo:
+    """师门任务解析结果与交互定位模型。"""
+
+    is_tracking_panel_open: bool = False
+    is_sect_task_active: bool = False
+    status: SectTaskStatus = SectTaskStatus.NOT_FOUND
+    description_lines: list[str] = field(default_factory=list)
+    action_text: str = ""
+    action_point: Point | None = None
+    ocr_items: list[OcrResult] = field(default_factory=list)
+    full_description: str = ""
+    task_type: TaskType | None = None
+
+    def resolve(
+        self,
+    ) -> None:
+        """从 OCR 文本项列表中按优先级精准查找可点击超链接文字并更新 action_text 和 action_point。"""
+
+        self._resolve_full_description()
+        self._resolve_status()
+        self._resolve_action_point()
+
+    def _resolve_full_description(self) -> None:
+        """解析完整的师门任务描述文本。"""
+        self.full_description = "".join(i.text for i in self.ocr_items)
+        
+    def _resolve_status(self) -> None:
+        """解析任务状态。"""
+        if self.full_description.startswith("新的一天"):
+            self.status = SectTaskStatus.CLAIMABLE
+        elif self.full_description.startswith("帮师父送信"):
+            self.status = SectTaskStatus.IN_PROGRESS
+            self.task_type = TaskType.SEND_MAIL
+        elif self.full_description.startswith("任务完成"):
+            self.status = SectTaskStatus.CLAIMABLE
+        else:
+            raise ValueError(f"Unknown task status: {self.full_description}")
+
+    def _resolve_action_point(self) -> None:
+        """解析可点击超链接文字的物理中心坐标。"""
+        match self.status:
+            case SectTaskStatus.CLAIMABLE:
+                self.action_point = self._resolve_point_by_targets(
+                    search_targets=("师父", "父", "师"),
+                )
+            case SectTaskStatus.IN_PROGRESS:
+                self.action_point = self._resove_in_progress_point()
+            case _:
+                raise NotImplementedError
+        
+        
+    def _resolve_point_by_targets(
+        self,
+        search_targets: tuple[str, ...],
+        get_next_word: bool = False,
+    ) -> Point:
+        for target in search_targets:
+            for item in self.ocr_items:
+                if target in item.text:
+                    sub_point = calculate_substring_point(
+                        text=item.text, target_sub=target, rect=item.rect,
+                        get_next_word=get_next_word,
+                    )
+                    if sub_point is not None:
+                        return sub_point
+        raise ValueError(f"Unknown claim task point: {self.full_description}")
+
+    def _resove_in_progress_point(self) -> Point:
+        match self.task_type:
+            case TaskType.SEND_MAIL:
+                return self._resolve_point_by_targets(
+                    search_targets=("送信给",),
+                    get_next_word=True
+                )
+            case _:
+                raise NotImplementedError

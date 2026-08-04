@@ -109,7 +109,7 @@ class Window:
             )
         return region
 
-    def _resolve_point(self, point: Point | RelativePoint | None) -> Point | None:
+    def resolve_point(self, point: Point | RelativePoint | None) -> Point | None:
         """解析并统一 Point。
 
         若传入的点坐标为 RelativePoint (0.0 ~ 1.0 的相对比例)，
@@ -358,7 +358,7 @@ class Window:
 
     async def mouse_move(self, point: Point | RelativePoint) -> None:
         """异步移动光标到相对窗口的指定像素或相对比例位置。"""
-        abs_point = self._resolve_point(point)
+        abs_point = self.resolve_point(point)
         if abs_point is None:
             return
         target_pt = abs_point
@@ -388,7 +388,7 @@ class Window:
             steps: 平滑插值步数 (默认 30 步)
             duration_sec: 移动总耗时 (秒，默认 0.8 秒)
         """
-        abs_point = self._resolve_point(point)
+        abs_point = self.resolve_point(point)
         if abs_point is None:
             return
 
@@ -449,7 +449,7 @@ class Window:
         interval_ms: int = 0,
     ) -> None:
         """异步在窗口指定位置点击鼠标。"""
-        abs_point = self._resolve_point(point)
+        abs_point = self.resolve_point(point)
         ipt = None
         if abs_point is not None:
             target_pt = abs_point
@@ -470,7 +470,7 @@ class Window:
         button: MouseButton = MouseButton.LEFT,
     ) -> None:
         """异步在窗口指定位置按下鼠标按键。"""
-        abs_point = self._resolve_point(point)
+        abs_point = self.resolve_point(point)
         ipt = None
         if abs_point is not None:
             target_pt = abs_point
@@ -486,7 +486,7 @@ class Window:
         button: MouseButton = MouseButton.LEFT,
     ) -> None:
         """异步在窗口指定位置抬起鼠标按键。"""
-        abs_point = self._resolve_point(point)
+        abs_point = self.resolve_point(point)
         ipt = None
         if abs_point is not None:
             target_pt = abs_point
@@ -509,7 +509,7 @@ class Window:
         self, amount: int, point: Point | RelativePoint | None = None
     ) -> None:
         """异步模拟滚轮滚动。"""
-        abs_point = self._resolve_point(point)
+        abs_point = self.resolve_point(point)
         ipt = None
         if abs_point is not None:
             target_pt = abs_point

@@ -29,6 +29,8 @@ target_fields = [
     ("fu_roi", "任务追踪列表区域"),
     ("dialog_name_roi", "对话框名称区域"),
     ("claim_task_roi", "师门任务区域"),
+    ("dialog_roi", "对话框区域"),
+    ("confirm_give_roi", "确认赠送区域"),
 ]
 
 def is_valid_relative_roi(roi: RelativeRegion | None) -> bool:

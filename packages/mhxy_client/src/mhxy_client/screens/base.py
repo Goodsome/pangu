@@ -5,7 +5,7 @@ import logging
 
 from pathlib import Path
 
-from client_core import AutoCalibratingScreen, Point, Region
+from client_core import AutoCalibratingScreen, Point, Region, RelativePoint, RelativeRegion
 from mhxy_client.config import MainHudLayoutConfig
 
 logger = logging.getLogger(__name__)
@@ -93,14 +93,16 @@ class BaseScreen(AutoCalibratingScreen, ABC):
 
     async def mouse_move(
         self,
-        target_point: Point,
+        target_point: Point | RelativePoint,
         max_retries: int = 5,
     ) -> bool:
+        abs_point = self.window.resolve_point(target_point)
+        assert abs_point is not None
         _ = await self.window.ensure_cursor_in_window()
 
         for _ in range(1, max_retries + 1):
             result = await self._calibrate_and_realign_mouse(
-                target_point=target_point,
+                target_point=abs_point,
             )
             if result:
                 return True
@@ -110,9 +112,9 @@ class BaseScreen(AutoCalibratingScreen, ABC):
 
     async def mouse_click(
         self,
-        point: Point | None = None,
+        point: Point | RelativePoint | None = None,
     ) -> None:
         if point:
-            await self.window.smooth_mouse_move(point=point)
+            await self.mouse_move(point)
             await asyncio.sleep(0.1)
         await self.window.mouse_click()

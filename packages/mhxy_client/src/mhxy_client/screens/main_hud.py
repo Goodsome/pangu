@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import logging
 from typing import override
 
-from client_core import OcrResult, Point, Region, RelativeRegion
+from client_core import OcrResult, RelativeRegion
 from mhxy_client.models import SectTaskInfo, SectTaskStatus
 from mhxy_client.screens.base import BaseScreen
 from mhxy_client.screens.dialogs.dialogs import Dialogs
@@ -27,40 +27,6 @@ _KNOWN_OTHER_TASKS = (
     "宝图任务",
     "日常任务",
 )
-
-
-def calculate_substring_point(
-    text: str,
-    target_sub: str,
-    rect: Region,
-) -> Point | None:
-    """在单行 OCR 识别文本框中，基于字符分布横向比例精准计算特定子字符串 (如 '师父'/'父'/'师') 的像素中心点。
-
-    Args:
-        text: OCR 识别出的完整行文本
-        target_sub: 要定位的子字符串 (如 "师父", "父", "师")
-        rect: 完整行文本的像素矩形 Region
-
-    Returns:
-        Point | None: 该子字符串的中心像素坐标 Point；若未找到子串则返回 None
-    """
-    if not text or not target_sub or target_sub not in text:
-        return None
-
-    n = len(text)
-    if n == 0:
-        return None
-
-    start_idx = text.find(target_sub)
-    end_idx = start_idx + len(target_sub)
-
-    # 算得子字符串在整行字符宽度上的相对比例中心 (0.0 ~ 1.0)
-    center_ratio = (start_idx + end_idx) / (2.0 * n)
-
-    center_x = int(rect.x + rect.width * center_ratio)
-    center_y = int(rect.y + rect.height / 2.0)
-
-    return Point(x=center_x, y=center_y)
 
 
 dialogs = {
@@ -123,30 +89,20 @@ class MainHUD(BaseScreen):
         """
         roi =  self.config.task_list_roi
         results = await self.window.ocr(roi=roi)
-        logger.info(
-            "[%s] 开始扫描任务列表区域 (ROI: %s)，共检索到 %d 条 OCR 文本",
-            self.screen_name,
-            roi,
-            len(results),
-        )
-
         task_info = SectTaskInfo()
         if not results:
             return task_info
 
-        # 1. 检查任务追踪面板是否开启 (画面中包含 "任务追踪")
         for res in results:
             if "任务追踪" in res.text:
                 task_info.is_tracking_panel_open = True
                 break
 
-        # 2. 定位 "师门任务" 标题位置
         sect_title_idx = -1
         for idx, res in enumerate(results):
             if "师门任务" in res.text:
                 sect_title_idx = idx
                 task_info.is_sect_task_active = True
-                task_info.task_title = res.text.strip()
                 break
 
         if sect_title_idx == -1:
@@ -164,46 +120,8 @@ class MainHUD(BaseScreen):
                 break
             sect_desc_ocr_items.append(res)
 
-        task_info.description_lines = [item.text for item in sect_desc_ocr_items]
-        full_desc = "".join(task_info.description_lines)
-
-        logger.info(
-            "[%s] 识别到师门任务描述 (%d 行): %s",
-            self.screen_name,
-            len(task_info.description_lines),
-            full_desc,
-        )
-
-        # 4. 判定师门任务状态 (如可领取 CLAIMABLE / 进行中 IN_PROGRESS)
-        claimable_keywords = ("回师门", "师父有什么吩咐", "领取", "新的一天", "吩咐")
-        if any(kw in full_desc for kw in claimable_keywords):
-            task_info.status = SectTaskStatus.CLAIMABLE
-        else:
-            task_info.status = SectTaskStatus.IN_PROGRESS
-
-        # 5. 精确计算可点击超链接文字 ('师父' / '父' / '师') 的物理中心坐标
-        # 优先级: 1) 完整 "师父"  2) 换行开头的 "父"  3) 换行末尾的 "师"
-        search_targets = ("师父", "父", "师")
-
-        for target in search_targets:
-            for item in sect_desc_ocr_items:
-                if target in item.text:
-                    sub_point = calculate_substring_point(
-                        text=item.text, target_sub=target, rect=item.rect
-                    )
-                    if sub_point is not None:
-                        task_info.action_text = target
-                        task_info.action_point = sub_point
-                        logger.info(
-                            "[%s] 🎯 精确定位到可点击超链接文字 '%s' (整行: '%s') -> 物理坐标: %s",
-                            self.screen_name,
-                            target,
-                            item.text,
-                            sub_point,
-                        )
-                        break
-            if task_info.action_point is not None:
-                break
+        task_info.ocr_items = sect_desc_ocr_items
+        task_info.resolve()
 
         return task_info
 
@@ -247,3 +165,14 @@ class MainHUD(BaseScreen):
 
         await self.window.mouse_click(point=None)
         return True
+
+    async def do_sect_task(self):
+        task_info = await self.check_sect_task()
+        action_point = task_info.action_point
+        if action_point is None:
+            raise ValueError("action_point is None")
+        await self.mouse_click(action_point)
+        
+    async def confirm_give(self):
+        await self.mouse_click(self.config.confirm_give_roi.center)
+        
