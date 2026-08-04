@@ -422,12 +422,22 @@ source = { editable = "contexts/d4_injestion" }
 dependencies = [
     { name = "cv-engine" },
     { name = "d4-types" },
+    { name = "dependency-injector" },
+    { name = "foundation" },
+    { name = "httpx" },
+    { name = "pydantic-settings" },
+    { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cv-engine", editable = "packages/cv_engine" },
     { name = "d4-types", editable = "packages/d4_types" },
+    { name = "dependency-injector", specifier = ">=4.49.0" },
+    { name = "foundation", editable = "foundation" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pydantic-settings", specifier = ">=2.14.1" },
+    { name = "typer", specifier = ">=0.26.7" },
 ]
 
 [[package]]
