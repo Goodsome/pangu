@@ -22,3 +22,6 @@ class MainHudLayoutConfig:
     fu_roi: RelativeRegion = RelativeRegion(
         x=0.7562, y=0.3501, width=0.0246, height=0.0330
     )
+    dialog_name_roi: RelativeRegion = RelativeRegion(x=0.1736, y=0.4443, width=0.1047, height=0.0455)
+
+MAIN_HUD_LAYOUT_CONFIG = MainHudLayoutConfig()

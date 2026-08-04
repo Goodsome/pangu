@@ -56,6 +56,7 @@ async def main() -> None:
         ("map_name_roi", "地图名称与坐标显示区域"),
         ("task_list_roi", "任务追踪列表区域"),
         ("fu_roi", "任务追踪列表区域"),
+        ("dialog_name_roi", "对话框名称区域"),
     ]
 
     final_rois: dict[str, RelativeRegion | None] = {}

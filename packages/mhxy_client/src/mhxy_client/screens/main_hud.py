@@ -1,23 +1,16 @@
 """梦幻西游 常驻主界面 (MainHUD) 页面对象模型。"""
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import logging
-from typing import Literal, override
+from typing import override
 
-from pathlib import Path
-
-from client_core import AutoCalibratingScreen, OcrResult, Point, Region, RelativeRegion
-from mhxy_client.config import MainHudLayoutConfig
+from client_core import OcrResult, Point, Region, RelativeRegion
 from mhxy_client.models import SectTaskInfo, SectTaskStatus
-from mhxy_client.screens.inventory import InventoryPanel
-from mhxy_client.screens.social import SocialPanel
-from sys_input import VirtualKeyCode
+from mhxy_client.screens.base import BaseScreen
+from mhxy_client.screens.dialogs.guan_yin_jie_jie import GuanYinJieJie
 
 logger = logging.getLogger(__name__)
-
-_DEFAULT_CURSOR_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "templates" / "cursor.png"
-_DEFAULT_POINTER_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "templates" / "pointer.png"
 
 # 未标定时的默认兜底选区
 _DEFAULT_MAP_NAME_ROI = RelativeRegion(x=0.8, y=0.0, width=0.2, height=0.15)
@@ -69,12 +62,15 @@ def calculate_substring_point(
     return Point(x=center_x, y=center_y)
 
 
+dialogs = {
+    "guan_yin_jie_jie": GuanYinJieJie,
+}
+
 @dataclass
-class MainHUD(AutoCalibratingScreen):
+class MainHUD(BaseScreen):
     """梦幻西游 主界面常驻 HUD 视角与面板控制对象。"""
 
     screen_name: str = "MainHUD"
-    layout: MainHudLayoutConfig = field(default_factory=MainHudLayoutConfig)
 
     @override
     async def is_visible(self) -> bool:
@@ -211,97 +207,6 @@ class MainHUD(AutoCalibratingScreen):
 
         return task_info
 
-    async def _get_cursor_region(self) -> Region:
-        sys_client_pos = await self.window.ensure_cursor_in_window()
-        radius = 50
-        win_w = self.window.width
-        win_h = self.window.height
-
-        roi_x = max(0, sys_client_pos.x - radius)
-        roi_y = max(0, sys_client_pos.y - radius)
-        roi_w = min(win_w - roi_x, radius * 2)
-        roi_h = min(win_h - roi_y, radius * 2)
-        return Region(x=roi_x, y=roi_y, width=roi_w, height=roi_h)
-
-    async def _get_game_mouse(self) -> tuple[Point | None, bool]:
-        """获取游戏鼠标指针位置。"""
-
-        roi = await self._get_cursor_region()
-        await self.window.begin_frame()
-        pointer_result = await self.window.match_template_masked(
-            template=_DEFAULT_POINTER_TEMPLATE_PATH,
-            threshold=0.7,
-            roi=roi,
-        )
-        cursor_result = await self.window.match_template_masked(
-            template=_DEFAULT_CURSOR_TEMPLATE_PATH,
-            threshold=0.7,
-            roi=roi,
-        )
-        if pointer_result is not None and cursor_result is not None:
-            if pointer_result.score > cursor_result.score:
-                return pointer_result.top_left, True
-            return cursor_result.top_left, False
-        elif pointer_result is None and cursor_result is not None:
-            return cursor_result.top_left, False
-        elif pointer_result is not None and cursor_result is None:
-            return pointer_result.top_left, True
-        else:
-            return None, False
-
-    async def _calibrate_and_realign_mouse(
-        self,
-        target_point: Point,
-        tolerance_px: float = 10.0,
-    ) -> bool:
-        """单次测量游戏鼠标与目标的误差，按偏移量反算绝对像素坐标并移动矫正。
-
-        Returns:
-            tuple[Point, float]: (当前游戏鼠标实际位置, 距离目标的像素残差距离)
-        """
-        sys_client_pos = await self.window.ensure_cursor_in_window()
-        game_cursor, is_pointer = await self._get_game_mouse()
-        if game_cursor is None:
-            raise RuntimeError("未匹配到游戏鼠标模板 cursor.png")
-        if is_pointer:
-            return True
-        offset_x = game_cursor.x - sys_client_pos.x
-        offset_y = game_cursor.y - sys_client_pos.y
-
-        dx = float(game_cursor.x - target_point.x)
-        dy = float(game_cursor.y - target_point.y)
-        dist: float = (dx * dx + dy * dy) ** 0.5
-
-        if dist <= tolerance_px:
-            return True
-
-        corrected_target = Point(
-            x=target_point.x - offset_x,
-            y=target_point.y - offset_y,
-        )
-        await self.window.smooth_mouse_move(point=corrected_target)
-        await asyncio.sleep(0.1)
-        return False
-
-    async def _move_and_align_cursor_to_target(
-        self,
-        target_point: Point,
-        max_retries: int = 5,
-        tolerance_px: float = 10.0,
-    ) -> bool:
-        """循环调用 _calibrate_and_realign_mouse，直至实际游戏鼠标与目标点差距在 tolerance_px (10px) 以内。"""
-        _ = await self.window.ensure_cursor_in_window()
-
-        for attempt in range(1, max_retries + 1):
-            result = await self._calibrate_and_realign_mouse(
-                target_point=target_point,
-                tolerance_px=tolerance_px,
-            )
-            if result:
-                return True
-
-        logger.warning( "达到最大校准重试次数")
-        return False
 
     async def claim_sect_task(
         self,
@@ -324,8 +229,7 @@ class MainHUD(AutoCalibratingScreen):
             task_info.status != SectTaskStatus.CLAIMABLE
             or task_info.action_point is None
         ):
-            logger.warning(
-                "[%s] 无法触发师门任务领取 (当前状态: %s, 坐标: %s)",
+            logger.warning( "[%s] 无法触发师门任务领取 (当前状态: %s, 坐标: %s)",
                 self.screen_name,
                 task_info.status,
                 task_info.action_point,
@@ -333,19 +237,8 @@ class MainHUD(AutoCalibratingScreen):
             return False
 
         target_point = task_info.action_point
-        logger.info(
-            "[%s] 🎯 定位到师门任务超链接文字 '%s'，目标相对坐标 %s",
-            self.screen_name,
-            task_info.action_text,
-            target_point,
-        )
 
-        # 循环调用校准移动，直到与目标点差距在 10px 以内
-        _ = await self._move_and_align_cursor_to_target(
-            target_point=target_point,
-            max_retries=5,
-            tolerance_px=10.0,
-        )
+        await self.move_mouse(target_point=target_point)
 
         if move_only:
             logger.info(
@@ -368,17 +261,3 @@ class MainHUD(AutoCalibratingScreen):
         await self.window.mouse_click(point=None)
         logger.info("[%s] ✅ 原点物理点击完成！", self.screen_name)
         return True
-
-    async def open_inventory(self) -> InventoryPanel:
-        """按下快捷键打开道具/背包面板并返回 InventoryPanel 实例。"""
-        await self.window.key_press(VirtualKeyCode.VK_E)
-        screen = InventoryPanel(window=self.window)
-        await screen.wait_until_visible()
-        return screen
-
-    async def open_social(self) -> SocialPanel:
-        """按下快捷键打开社交面板并返回 SocialPanel 实例。"""
-        await self.window.key_press(VirtualKeyCode.VK_F)
-        screen = SocialPanel(window=self.window)
-        await screen.wait_until_visible()
-        return screen
