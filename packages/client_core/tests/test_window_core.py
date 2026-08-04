@@ -137,6 +137,10 @@ async def test_mouse_and_key_actions(
     await base_window.mouse_move(Point(100, 200))
     mock_input.mouse_move.assert_called_once()
 
+    mock_input.reset_mock()
+    await base_window.mouse_move_relative(10, -20)
+    mock_input.mouse_move_relative.assert_called_once_with(10, -20)
+
     await base_window.key_press(0x0D, duration_sec=0.01)
     assert mock_input.key_down.called
     assert mock_input.key_up.called

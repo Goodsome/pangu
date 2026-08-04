@@ -98,6 +98,11 @@ class Win32MessageBackend:
                 code=err,
             )
 
+    async def mouse_move_relative(self, dx: int, dy: int) -> None:
+        """Win32 后台消息注入不支持全局/物理鼠标光标相对移动。"""
+        _ = (dx, dy)
+        raise NotImplementedError("Win32MessageBackend 消息注入不支持鼠标相对移动，请使用 Win32HardwareBackend")
+
     async def mouse_down(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:

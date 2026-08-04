@@ -172,6 +172,27 @@ class Win32HardwareBackend:
                     code=err,
                 )
 
+    async def mouse_move_relative(self, dx: int, dy: int) -> None:
+        """全局相对移动鼠标光标（无需 MOUSEEVENTF_ABSOLUTE，纯增量移动）。"""
+        if sys.platform != "win32" or _SendInput is None:
+            raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
+
+        import ctypes
+
+        inp = INPUT()  # type: ignore
+        inp.type = INPUT_MOUSE  # type: ignore
+        inp.union.mi.dx = dx  # type: ignore
+        inp.union.mi.dy = dy  # type: ignore
+        inp.union.mi.dwFlags = MOUSEEVENTF_MOVE  # type: ignore
+
+        res = int(_SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT)))
+        if res == 0:
+            err = ctypes.GetLastError()
+            raise InputSimulationError(
+                f"SendInput mouse_move_relative 失败 dx={dx}, dy={dy}",
+                code=err,
+            )
+
     async def mouse_down(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:

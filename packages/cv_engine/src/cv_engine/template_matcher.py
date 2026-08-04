@@ -33,6 +33,45 @@ def get_opencv_match_modes() -> dict[MatchMode, int]:
         MatchMode.SQDIFF_NORMED: getattr(cv2, "TM_SQDIFF_NORMED", 1),
     }
 
+def load_template_with_mask(template_path: Path | str) -> tuple[np.ndarray, np.ndarray]:
+    """
+    加载模板图片，保留彩色信息，并提取 Alpha 通道作为掩码。
+    """
+    path_obj = Path(template_path)
+    path_key = str(path_obj.resolve())
+
+    # 使用 IMREAD_UNCHANGED 保留可能存在的 Alpha 通道
+    img = cv2.imread(path_key, cv2.IMREAD_UNCHANGED)
+    if img is None or img.size == 0:
+        raise ValueError(f"无法解析模板图片: {template_path}")
+
+    mask = None
+    if img.ndim == 3 and img.shape[2] == 4:
+        # 分离出 BGRA 通道
+        b, g, r, a = cv2.split(img)
+        img_bgr = cv2.merge((b, g, r))
+        mask = a # 使用 Alpha 通道作为掩码
+        return img_bgr, mask
+
+    raise ValueError("不支持的模板图像格式类型")
+
+def _normalize_scene_bgr(scene: np.ndarray) -> np.ndarray:
+    """
+    将场景输入图像规范化解析为 3D BGR 三通道矩阵。
+    """
+    if scene.size == 0:
+        raise ValueError("场景图像矩阵 size 为 0")
+
+    if scene.ndim == 2:
+        return cv2.cvtColor(scene, cv2.COLOR_GRAY2BGR)
+    if scene.ndim == 3:
+        channels = int(scene.shape[2])
+        if channels == 4:
+            return cv2.cvtColor(scene, cv2.COLOR_BGRA2BGR)
+        if channels == 3:
+            return scene
+
+    raise ValueError(f"不支持的场景图像格式类型")
 
 @dataclass
 class TemplateMatcher(ITemplateMatcher):
@@ -72,6 +111,23 @@ class TemplateMatcher(ITemplateMatcher):
         self._template_cache[path_key] = img
         return img
 
+    def match_masked_template(
+        self,
+        scene: MatLike,
+        template: Path,
+        roi: Region | None = None,
+        threshold: float = DEFAULT_MATCH_THRESHOLD,
+    ) -> MatchResult | None:
+        template_bgr, mask = load_template_with_mask(template)
+        scene_normalized = _normalize_scene_bgr(scene)
+        roi_img, offset_x, offset_y = self._crop_roi(scene_normalized, template_bgr, roi)
+        result = self._match_masked_core(
+            roi_img=roi_img,
+            template_bgr=template_bgr,
+            mask=mask,
+        )
+        return self._get_match_result(result, template_bgr, threshold, offset_x, offset_y, mode=MatchMode.CCORR_NORMED)
+
     @override
     def match_best(
         self,
@@ -99,9 +155,20 @@ class TemplateMatcher(ITemplateMatcher):
         roi_img, offset_x, offset_y = self._crop_roi(scene_gray, template_gray, roi)
         res = self._match_core(roi_img, template_gray, mode)
 
+        return self._get_match_result(res, template_gray, threshold, offset_x, offset_y, mode)
+
+
+    def _get_match_result(
+        self, 
+        res: np.ndarray,
+        template_gray: np.ndarray,
+        threshold: float,
+        offset_x: int,
+        offset_y: int,
+        mode: MatchMode
+    ) -> MatchResult | None:
         cv_mode = get_opencv_match_modes().get(mode, 5)
         th, tw = int(template_gray.shape[0]), int(template_gray.shape[1])
-
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
         if cv_mode == getattr(cv2, "TM_SQDIFF_NORMED", 1):
@@ -117,7 +184,7 @@ class TemplateMatcher(ITemplateMatcher):
             return MatchResult(
                 score=score,
                 rect=Region(x=abs_x, y=abs_y, width=tw, height=th),
-                template_name=t_name,
+                template_name=None,
             )
 
         return None
@@ -322,3 +389,9 @@ class TemplateMatcher(ITemplateMatcher):
             return cv2.matchTemplate(roi_img, template_gray, cv_mode)
         except Exception as e:
             raise MatchFailedError(f"OpenCV matchTemplate 计算失败: {e}") from e
+
+    def _match_masked_core(
+        self, roi_img: np.ndarray, template_bgr: np.ndarray, mask: np.ndarray,
+    ) -> np.ndarray:
+        cv_mode = cv2.TM_CCORR_NORMED
+        return cv2.matchTemplate(roi_img, template_bgr, cv_mode, mask=mask)

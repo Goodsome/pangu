@@ -68,6 +68,14 @@ class ITemplateMatcher(Protocol):
         """清理已加载的模板缓存。"""
         ...
 
+    def match_masked_template(
+        self,
+        scene: MatLike,
+        template: Path,
+        roi: Region | None = None,
+        threshold: float = DEFAULT_MATCH_THRESHOLD,
+    ) -> MatchResult | None:
+        ...
 
 @runtime_checkable
 class IOCREngine(Protocol):

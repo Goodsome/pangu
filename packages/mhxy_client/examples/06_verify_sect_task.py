@@ -84,6 +84,7 @@ async def async_main() -> None:
 
     async with client:
         hud = client.main_hud
+        hud.window.activate()
 
         # 1. 抓取并保存 task_list_roi 调试切片图
         roi = hud.layout.task_list_roi

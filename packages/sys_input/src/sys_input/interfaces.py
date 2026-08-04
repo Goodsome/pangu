@@ -28,6 +28,10 @@ class InputBackend(Protocol):
         """模拟/发送鼠标光标移动。"""
         ...
 
+    async def mouse_move_relative(self, dx: int, dy: int) -> None:
+        """模拟/发送鼠标光标相对移动（dx, dy）。"""
+        ...
+
     async def mouse_down(
         self, point: Point | None = None, button: MouseButton = MouseButton.LEFT
     ) -> None:

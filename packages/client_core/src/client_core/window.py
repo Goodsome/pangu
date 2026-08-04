@@ -168,6 +168,30 @@ class Window:
             if res
             else None
         )
+        
+    async def match_template_masked(
+        self,
+        template: Path,
+        threshold: float = 0.8,
+        roi: Region | RelativeRegion | None = None,
+    ) -> MatchResult | None:
+        """异步从当前画面中进行单目标模板匹配 (极速局部捕获)。"""
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        offset_x = abs_roi.x if abs_roi else 0
+        offset_y = abs_roi.y if abs_roi else 0
+
+        res = self.template_matcher.match_masked_template(
+            scene=frame.mat,
+            template=template,
+            threshold=threshold,
+            roi=None,
+        )
+        return (
+            MatchResult.from_cv_engine(res, offset_x=offset_x, offset_y=offset_y)
+            if res
+            else None
+        )
 
     async def match_template_multi(
         self,
@@ -288,6 +312,50 @@ class Window:
     # ---------------------------------------------------------------------------
     # 输入模拟异步代理
     # ---------------------------------------------------------------------------
+    def get_sys_cursor_client_pos(self) -> Point | None:
+        """获取当前系统物理鼠标指针在窗口客户区中的相对坐标 Point。"""
+        if not self.hwnd:
+            return None
+        try:
+            valid_hwnd = int(self.hwnd)
+            if valid_hwnd == 0:
+                return None
+        except (ValueError, TypeError):
+            return None
+
+        sys_screen_pos = get_cursor_pos()
+        client_origin_screen = client_to_screen(valid_hwnd, Point(x=0, y=0))
+        return Point(
+            x=sys_screen_pos.x - client_origin_screen.x,
+            y=sys_screen_pos.y - client_origin_screen.y,
+        )
+
+    async def ensure_cursor_in_window(self) -> Point:
+        """检查系统物理鼠标是否在窗口客户区内。若不在，先将其平滑/直接移动至窗口中心。"""
+        win_w = getattr(self, "width", 800)
+        win_h = getattr(self, "height", 600)
+        win_w = win_w if isinstance(win_w, int) and win_w > 0 else 800
+        win_h = win_h if isinstance(win_h, int) and win_h > 0 else 600
+
+        sys_client_pos = self.get_sys_cursor_client_pos()
+        if (
+            sys_client_pos is not None
+            and 0 <= sys_client_pos.x <= win_w
+            and 0 <= sys_client_pos.y <= win_h
+        ):
+            return sys_client_pos
+
+        center_point = Point(x=win_w // 2, y=win_h // 2)
+        logger.info(
+            "[Window] ⚠️ 系统鼠标不在窗口客户区内 (%s)，先移动至窗口中心 %s",
+            sys_client_pos,
+            center_point,
+        )
+        await self.mouse_move(point=center_point)
+        await asyncio.sleep(0.1)
+        new_pos = self.get_sys_cursor_client_pos()
+        return new_pos if new_pos is not None else center_point
+
     async def mouse_move(self, point: Point | RelativePoint) -> None:
         """异步移动光标到相对窗口的指定像素或相对比例位置。"""
         abs_point = self._resolve_point(point)
@@ -297,6 +365,15 @@ class Window:
         if isinstance(self.input_backend, Win32HardwareBackend):
             target_pt = client_to_screen(self.hwnd, abs_point)
         await self.input_backend.mouse_move(target_pt.to_sys_input())
+
+    async def mouse_move_relative(self, dx: int, dy: int) -> None:
+        """异步委托底层 input_backend 相对移动鼠标光标指定偏移量 (dx, dy)。
+
+        Args:
+            dx: X 轴相对偏移像素量（正数向右，负数向左）。
+            dy: Y 轴相对偏移像素量（正数向下，负数向上）。
+        """
+        await self.input_backend.mouse_move_relative(dx, dy)
 
     async def smooth_mouse_move(
         self,

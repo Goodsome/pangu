@@ -5,8 +5,9 @@ from dataclasses import dataclass, field
 import logging
 from typing import override
 
+from pathlib import Path
+
 from client_core import AutoCalibratingScreen, OcrResult, Point, Region, RelativeRegion
-from client_core.window import get_cursor_pos
 from mhxy_client.config import MainHudLayoutConfig
 from mhxy_client.models import SectTaskInfo, SectTaskStatus
 from mhxy_client.screens.inventory import InventoryPanel
@@ -14,6 +15,9 @@ from mhxy_client.screens.social import SocialPanel
 from sys_input import VirtualKeyCode
 
 logger = logging.getLogger(__name__)
+
+# 默认鼠标模板路径 (packages/mhxy_client/templates/cursor.png)
+_DEFAULT_CURSOR_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "templates" / "cursor.png"
 
 # 未标定时的默认兜底选区
 _DEFAULT_MAP_NAME_ROI = RelativeRegion(x=0.8, y=0.0, width=0.2, height=0.15)
@@ -71,6 +75,12 @@ class MainHUD(AutoCalibratingScreen):
 
     screen_name: str = "MainHUD"
     layout: MainHudLayoutConfig = field(default_factory=MainHudLayoutConfig)
+    cursor_template: Path | str = field(default_factory=lambda: _DEFAULT_CURSOR_TEMPLATE_PATH)
+
+    @property
+    def _cursor_template_path(self) -> Path:
+        """获取 Path 类型的 cursor 模板绝对路径。"""
+        return Path(self.cursor_template).resolve()
 
     @override
     async def is_visible(self) -> bool:
@@ -207,6 +217,108 @@ class MainHUD(AutoCalibratingScreen):
 
         return task_info
 
+    async def _measure_game_mouse_offset(
+        self, sys_client_pos: Point
+    ) -> tuple[int, int, Point] | None:
+        """以系统鼠标为中心搜索 ROI 区域，匹配 cursor.png 获取游戏鼠标偏移量与实际左上角位置。"""
+        if not self._cursor_template_path.exists():
+            logger.warning(
+                "[%s] ⚠️ 游戏鼠标模板文件不存在 (%s)，无法检测偏移",
+                self.screen_name,
+                self._cursor_template_path,
+            )
+            return None
+
+        radius = 50
+        win_w = getattr(self.window, "width", 800)
+        win_h = getattr(self.window, "height", 600)
+        win_w = win_w if isinstance(win_w, int) else 800
+        win_h = win_h if isinstance(win_h, int) else 600
+
+        roi_x = max(0, sys_client_pos.x - radius)
+        roi_y = max(0, sys_client_pos.y - radius)
+        roi_w = min(win_w - roi_x, radius * 2)
+        roi_h = min(win_h - roi_y, radius * 2)
+        search_roi = Region(x=roi_x, y=roi_y, width=roi_w, height=roi_h)
+
+        await self.window.begin_frame()
+        match_res = await self.window.match_template_masked(
+            template=self._cursor_template_path,
+            threshold=0.6,
+            roi=search_roi,
+        )
+        if match_res is None or type(match_res.rect.x) not in (int, float):
+            logger.warning(
+                "[%s] ⚠️ 在系统鼠标周围 ROI %s 内未匹配到游戏鼠标模板 cursor.png",
+                self.screen_name,
+                search_roi,
+            )
+            return None
+
+        actual_game_mouse_pos = Point(x=int(match_res.rect.x), y=int(match_res.rect.y))
+        offset_x = actual_game_mouse_pos.x - sys_client_pos.x
+        offset_y = actual_game_mouse_pos.y - sys_client_pos.y
+        return offset_x, offset_y, actual_game_mouse_pos
+
+    async def _calibrate_and_realign_mouse(
+        self,
+        target_point: Point,
+    ) -> tuple[Point, float]:
+        """单次测量游戏鼠标与目标的误差，按偏移量反算绝对像素坐标并移动矫正。
+
+        Returns:
+            tuple[Point, float]: (当前游戏鼠标实际位置, 距离目标的像素残差距离)
+        """
+        sys_client_pos = await self.window.ensure_cursor_in_window()
+        measured = await self._measure_game_mouse_offset(sys_client_pos)
+
+        if measured is None:
+            await self.window.mouse_move(point=target_point)
+            return sys_client_pos, float("inf")
+
+        offset_x, offset_y, actual_game_mouse_pos = measured
+        dx = float(actual_game_mouse_pos.x - target_point.x)
+        dy = float(actual_game_mouse_pos.y - target_point.y)
+        dist: float = (dx * dx + dy * dy) ** 0.5
+
+        if dist <= 10.0:
+            return actual_game_mouse_pos, dist
+
+        corrected_target = Point(
+            x=target_point.x - offset_x,
+            y=target_point.y - offset_y,
+        )
+        await self.window.smooth_mouse_move(point=corrected_target)
+        await asyncio.sleep(0.1)
+        return actual_game_mouse_pos, dist
+
+    async def _move_and_align_cursor_to_target(
+        self,
+        target_point: Point,
+        max_retries: int = 5,
+        tolerance_px: float = 10.0,
+        smooth_move: bool = True,
+    ) -> bool:
+        """循环调用 _calibrate_and_realign_mouse，直至实际游戏鼠标与目标点差距在 tolerance_px (10px) 以内。"""
+        _ = await self.window.ensure_cursor_in_window()
+        last_dist: float = float("inf")
+
+        for attempt in range(1, max_retries + 1):
+            actual_pos, dist = await self._calibrate_and_realign_mouse(
+                target_point=target_point,
+            )
+            last_dist = dist
+            if dist <= tolerance_px:
+                return True
+
+        logger.warning(
+            "[%s] ⚠️ 达到最大校准重试次数 %d，最终残差距离: %.1f px",
+            self.screen_name,
+            max_retries,
+            last_dist,
+        )
+        return False
+
     async def claim_sect_task(
         self,
         move_only: bool = False,
@@ -215,9 +327,6 @@ class MainHUD(AutoCalibratingScreen):
         smooth_duration_sec: float = 1.0,
     ) -> bool:
         """检查并触发师门任务领取/寻路交互。
-
-        首先对任务列表进行扫描检测，若师门任务状态为 CLAIMABLE 且定位到了超链接坐标，
-        将光标缓慢平滑移动至超链接文字中心，在沉淀等待指定延时后发送点击事件。
 
         Args:
             move_only: 若为 True，仅将鼠标光标移动至目标位置，不执行点击 (用于调试校准)
@@ -230,89 +339,54 @@ class MainHUD(AutoCalibratingScreen):
         """
         task_info = await self.check_sect_task()
         if (
-            task_info.status == SectTaskStatus.CLAIMABLE
-            and task_info.action_point is not None
+            task_info.status != SectTaskStatus.CLAIMABLE
+            or task_info.action_point is None
         ):
-            start_pos = get_cursor_pos()
-            logger.info(
-                "[%s] 🎯 定位到师门任务超链接文字 '%s'，目标窗口相对坐标 %s (起始绝对屏幕坐标: %s)",
+            logger.warning(
+                "[%s] 无法触发师门任务领取 (当前状态: %s, 坐标: %s)",
                 self.screen_name,
-                task_info.action_text,
+                task_info.status,
                 task_info.action_point,
-                start_pos,
             )
+            return False
 
-            # 1. 将鼠标指针缓慢平滑划动至目标超链接位置 (默认 1.0 秒慢移)
-            if smooth_move:
-                logger.info(
-                    "[%s] 🐢 正在缓慢平滑划动鼠标指针 (耗时 %.2f 秒)...",
-                    self.screen_name,
-                    smooth_duration_sec,
-                )
-                await self.window.smooth_mouse_move(
-                    point=task_info.action_point,
-                    steps=40,
-                    duration_sec=smooth_duration_sec,
-                )
-            else:
-                await self.window.mouse_move(point=task_info.action_point)
+        target_point = task_info.action_point
+        logger.info(
+            "[%s] 🎯 定位到师门任务超链接文字 '%s'，目标相对坐标 %s",
+            self.screen_name,
+            task_info.action_text,
+            target_point,
+        )
 
-            arrived_pos = get_cursor_pos()
+        # 循环调用校准移动，直到与目标点差距在 10px 以内
+        _ = await self._move_and_align_cursor_to_target(
+            target_point=target_point,
+            max_retries=5,
+            tolerance_px=10.0,
+            smooth_move=smooth_move,
+        )
+
+        if move_only:
             logger.info(
-                "[%s] 📍 鼠标平滑划动完成到达！实测绝对屏幕坐标: %s",
+                "[%s] [Move Only 模式] 鼠标指针已精准停靠，跳过点击操作",
                 self.screen_name,
-                arrived_pos,
-            )
-
-            if move_only:
-                logger.info(
-                    "[%s] [Move Only 模式] 鼠标指针已精准停靠至实测坐标 %s，跳过点击操作",
-                    self.screen_name,
-                    arrived_pos,
-                )
-                return True
-
-            # 2. 悬停沉淀等待 1.0 秒，并在等待前/后实时打印绝地光标坐标
-            if delay_before_click_sec > 0:
-                logger.info(
-                    "[%s] ⏳ 暂停等待 %.2f 秒以稳定鼠标焦点 (等待前坐标: %s)...",
-                    self.screen_name,
-                    delay_before_click_sec,
-                    arrived_pos,
-                )
-                await asyncio.sleep(delay_before_click_sec)
-
-                pos_after_wait = get_cursor_pos()
-                logger.info(
-                    "[%s] ⌛ 沉淀等待 1.0 秒结束，点击前实测绝对屏幕坐标: %s",
-                    self.screen_name,
-                    pos_after_wait,
-                )
-
-            # 3. 发送物理鼠标点击事件 (此时 point=None，原点点击避免重复触发 mouse_move)
-            click_pos_before = get_cursor_pos()
-            logger.info(
-                "[%s] 🚀 正在触发原点物理点击，执行瞬间坐标: %s",
-                self.screen_name,
-                click_pos_before,
-            )
-            await self.window.mouse_click(point=None)
-
-            click_pos_after = get_cursor_pos()
-            logger.info(
-                "[%s] ✅ 原点物理点击完成！点击后实测绝对屏幕坐标: %s",
-                self.screen_name,
-                click_pos_after,
             )
             return True
 
-        logger.warning(
-            "[%s] 无法触发师门任务领取 (当前状态: %s, 坐标: %s)",
-            self.screen_name,
-            task_info.status,
-            task_info.action_point,
-        )
-        return False
+        # 悬停沉淀等待
+        if delay_before_click_sec > 0:
+            logger.info(
+                "[%s] ⏳ 暂停等待 %.2f 秒以稳定鼠标焦点...",
+                self.screen_name,
+                delay_before_click_sec,
+            )
+            await asyncio.sleep(delay_before_click_sec)
+
+        # 发送物理鼠标点击事件
+        logger.info("[%s] 🚀 正在触发原点物理点击...", self.screen_name)
+        await self.window.mouse_click(point=None)
+        logger.info("[%s] ✅ 原点物理点击完成！", self.screen_name)
+        return True
 
     async def open_inventory(self) -> InventoryPanel:
         """按下快捷键打开道具/背包面板并返回 InventoryPanel 实例。"""
