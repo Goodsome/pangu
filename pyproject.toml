@@ -36,6 +36,7 @@ dependencies = [
     "mhxy-client",
     "d4-types",
     "client-core",
+    "d4-injestion",
 ]
 
 [project.scripts]
@@ -84,6 +85,7 @@ d4-backend = { workspace = true }
 mhxy-client = { workspace = true }
 d4-types = { workspace = true }
 client-core = { workspace = true }
+d4-injestion = { workspace = true }
 
 
 [dependency-groups]
