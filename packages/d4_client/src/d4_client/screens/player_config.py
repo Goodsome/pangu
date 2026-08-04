@@ -110,14 +110,14 @@ class PlayerConfigScreen(AutoCalibratingScreen):
         slot_01_x = eq_roi.x
         slot_01_y = eq_roi.y
 
-        offset_x = self.config.equipment_01_roi.x - slot_01_x
-        offset_y = self.config.equipment_01_roi.y - slot_01_y
+        offset_x = slot_roi.x - slot_01_x
+        offset_y = slot_roi.y - slot_01_y
 
         return RelativeRegion(
-            x=slot_roi.x + offset_x,
-            y=slot_roi.y + offset_y,
+            x=self.config.equipment_01_roi.x + offset_x,
+            y=self.config.equipment_01_roi.y,
             width=self.config.equipment_01_roi.width,
-            height=self.config.equipment_01_roi.height,
+            height=self.config.equipment_01_roi.height + offset_y,
         )
 
     async def capture_equipment_slot(

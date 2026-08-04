@@ -35,7 +35,7 @@ class RetryConfig:
 class CaptureTaskConfig:
     """天梯榜采集任务完整配置。"""
 
-    player_class: PlayerClass = PlayerClass.DRUID
+    player_class: PlayerClass = PlayerClass.BARBARIAN
     start_page: int = 1
     end_page: int = 1
     output_dir: Path = field(default_factory=lambda: Path("output/screenshots"))

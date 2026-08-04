@@ -49,7 +49,10 @@ class CaptureLeaderboard:
         """
         cfg = CaptureTaskConfig()
 
-        d4_client = create_d4_client_by_index(window_index)
+        d4_client = create_d4_client_by_index(
+            window_index,
+            use_hardware_input=False,
+        )
 
         async with d4_client:
             leaderboard_screen = LeaderboardScreen(
