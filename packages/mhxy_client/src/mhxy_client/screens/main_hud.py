@@ -3,7 +3,7 @@
 import asyncio
 from dataclasses import dataclass, field
 import logging
-from typing import override
+from typing import Literal, override
 
 from pathlib import Path
 
@@ -16,8 +16,8 @@ from sys_input import VirtualKeyCode
 
 logger = logging.getLogger(__name__)
 
-# 默认鼠标模板路径 (packages/mhxy_client/templates/cursor.png)
 _DEFAULT_CURSOR_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "templates" / "cursor.png"
+_DEFAULT_POINTER_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "templates" / "pointer.png"
 
 # 未标定时的默认兜底选区
 _DEFAULT_MAP_NAME_ROI = RelativeRegion(x=0.8, y=0.0, width=0.2, height=0.15)
@@ -75,12 +75,6 @@ class MainHUD(AutoCalibratingScreen):
 
     screen_name: str = "MainHUD"
     layout: MainHudLayoutConfig = field(default_factory=MainHudLayoutConfig)
-    cursor_template: Path | str = field(default_factory=lambda: _DEFAULT_CURSOR_TEMPLATE_PATH)
-
-    @property
-    def _cursor_template_path(self) -> Path:
-        """获取 Path 类型的 cursor 模板绝对路径。"""
-        return Path(self.cursor_template).resolve()
 
     @override
     async def is_visible(self) -> bool:
@@ -217,72 +211,69 @@ class MainHUD(AutoCalibratingScreen):
 
         return task_info
 
-    async def _measure_game_mouse_offset(
-        self, sys_client_pos: Point
-    ) -> tuple[int, int, Point] | None:
-        """以系统鼠标为中心搜索 ROI 区域，匹配 cursor.png 获取游戏鼠标偏移量与实际左上角位置。"""
-        if not self._cursor_template_path.exists():
-            logger.warning(
-                "[%s] ⚠️ 游戏鼠标模板文件不存在 (%s)，无法检测偏移",
-                self.screen_name,
-                self._cursor_template_path,
-            )
-            return None
-
+    async def _get_cursor_region(self) -> Region:
+        sys_client_pos = await self.window.ensure_cursor_in_window()
         radius = 50
-        win_w = getattr(self.window, "width", 800)
-        win_h = getattr(self.window, "height", 600)
-        win_w = win_w if isinstance(win_w, int) else 800
-        win_h = win_h if isinstance(win_h, int) else 600
+        win_w = self.window.width
+        win_h = self.window.height
 
         roi_x = max(0, sys_client_pos.x - radius)
         roi_y = max(0, sys_client_pos.y - radius)
         roi_w = min(win_w - roi_x, radius * 2)
         roi_h = min(win_h - roi_y, radius * 2)
-        search_roi = Region(x=roi_x, y=roi_y, width=roi_w, height=roi_h)
+        return Region(x=roi_x, y=roi_y, width=roi_w, height=roi_h)
 
+    async def _get_game_mouse(self) -> tuple[Point | None, bool]:
+        """获取游戏鼠标指针位置。"""
+
+        roi = await self._get_cursor_region()
         await self.window.begin_frame()
-        match_res = await self.window.match_template_masked(
-            template=self._cursor_template_path,
-            threshold=0.6,
-            roi=search_roi,
+        pointer_result = await self.window.match_template_masked(
+            template=_DEFAULT_POINTER_TEMPLATE_PATH,
+            threshold=0.7,
+            roi=roi,
         )
-        if match_res is None or type(match_res.rect.x) not in (int, float):
-            logger.warning(
-                "[%s] ⚠️ 在系统鼠标周围 ROI %s 内未匹配到游戏鼠标模板 cursor.png",
-                self.screen_name,
-                search_roi,
-            )
-            return None
-
-        actual_game_mouse_pos = Point(x=int(match_res.rect.x), y=int(match_res.rect.y))
-        offset_x = actual_game_mouse_pos.x - sys_client_pos.x
-        offset_y = actual_game_mouse_pos.y - sys_client_pos.y
-        return offset_x, offset_y, actual_game_mouse_pos
+        cursor_result = await self.window.match_template_masked(
+            template=_DEFAULT_CURSOR_TEMPLATE_PATH,
+            threshold=0.7,
+            roi=roi,
+        )
+        if pointer_result is not None and cursor_result is not None:
+            if pointer_result.score > cursor_result.score:
+                return pointer_result.top_left, True
+            return cursor_result.top_left, False
+        elif pointer_result is None and cursor_result is not None:
+            return cursor_result.top_left, False
+        elif pointer_result is not None and cursor_result is None:
+            return pointer_result.top_left, True
+        else:
+            return None, False
 
     async def _calibrate_and_realign_mouse(
         self,
         target_point: Point,
-    ) -> tuple[Point, float]:
+        tolerance_px: float = 10.0,
+    ) -> bool:
         """单次测量游戏鼠标与目标的误差，按偏移量反算绝对像素坐标并移动矫正。
 
         Returns:
             tuple[Point, float]: (当前游戏鼠标实际位置, 距离目标的像素残差距离)
         """
         sys_client_pos = await self.window.ensure_cursor_in_window()
-        measured = await self._measure_game_mouse_offset(sys_client_pos)
+        game_cursor, is_pointer = await self._get_game_mouse()
+        if game_cursor is None:
+            raise RuntimeError("未匹配到游戏鼠标模板 cursor.png")
+        if is_pointer:
+            return True
+        offset_x = game_cursor.x - sys_client_pos.x
+        offset_y = game_cursor.y - sys_client_pos.y
 
-        if measured is None:
-            await self.window.mouse_move(point=target_point)
-            return sys_client_pos, float("inf")
-
-        offset_x, offset_y, actual_game_mouse_pos = measured
-        dx = float(actual_game_mouse_pos.x - target_point.x)
-        dy = float(actual_game_mouse_pos.y - target_point.y)
+        dx = float(game_cursor.x - target_point.x)
+        dy = float(game_cursor.y - target_point.y)
         dist: float = (dx * dx + dy * dy) ** 0.5
 
-        if dist <= 10.0:
-            return actual_game_mouse_pos, dist
+        if dist <= tolerance_px:
+            return True
 
         corrected_target = Point(
             x=target_point.x - offset_x,
@@ -290,41 +281,32 @@ class MainHUD(AutoCalibratingScreen):
         )
         await self.window.smooth_mouse_move(point=corrected_target)
         await asyncio.sleep(0.1)
-        return actual_game_mouse_pos, dist
+        return False
 
     async def _move_and_align_cursor_to_target(
         self,
         target_point: Point,
         max_retries: int = 5,
         tolerance_px: float = 10.0,
-        smooth_move: bool = True,
     ) -> bool:
         """循环调用 _calibrate_and_realign_mouse，直至实际游戏鼠标与目标点差距在 tolerance_px (10px) 以内。"""
         _ = await self.window.ensure_cursor_in_window()
-        last_dist: float = float("inf")
 
         for attempt in range(1, max_retries + 1):
-            actual_pos, dist = await self._calibrate_and_realign_mouse(
+            result = await self._calibrate_and_realign_mouse(
                 target_point=target_point,
+                tolerance_px=tolerance_px,
             )
-            last_dist = dist
-            if dist <= tolerance_px:
+            if result:
                 return True
 
-        logger.warning(
-            "[%s] ⚠️ 达到最大校准重试次数 %d，最终残差距离: %.1f px",
-            self.screen_name,
-            max_retries,
-            last_dist,
-        )
+        logger.warning( "达到最大校准重试次数")
         return False
 
     async def claim_sect_task(
         self,
         move_only: bool = False,
-        smooth_move: bool = True,
         delay_before_click_sec: float = 1.0,
-        smooth_duration_sec: float = 1.0,
     ) -> bool:
         """检查并触发师门任务领取/寻路交互。
 
@@ -363,7 +345,6 @@ class MainHUD(AutoCalibratingScreen):
             target_point=target_point,
             max_retries=5,
             tolerance_px=10.0,
-            smooth_move=smooth_move,
         )
 
         if move_only:

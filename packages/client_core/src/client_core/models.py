@@ -328,6 +328,11 @@ class MatchResult:
         """计算中心坐标。"""
         object.__setattr__(self, "center", self.rect.center)
 
+    @property
+    def top_left(self) -> Point:
+        """获取左上角坐标。"""
+        return Point(x=self.rect.x, y=self.rect.y)
+
     @classmethod
     def from_cv_engine(
         cls, res: CVMatchResult, offset_x: int = 0, offset_y: int = 0

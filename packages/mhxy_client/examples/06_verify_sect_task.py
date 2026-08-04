@@ -146,23 +146,10 @@ async def async_main() -> None:
             logger.info(
                 f"\n[Action] 检测到师门任务可领取，调用 claim_sect_task(move_only={MOVE_ONLY}, smooth_duration={SMOOTH_DURATION_SEC}s, delay={DELAY_BEFORE_CLICK_SEC}s)..."
             )
-            success = await hud.claim_sect_task(
+            await hud.claim_sect_task(
                 move_only=MOVE_ONLY,
-                smooth_move=SMOOTH_MOVE,
-                smooth_duration_sec=SMOOTH_DURATION_SEC,
                 delay_before_click_sec=DELAY_BEFORE_CLICK_SEC,
             )
-            if success:
-                if MOVE_ONLY:
-                    logger.info(
-                        "👀 [Move Only] 已将鼠标超慢平滑划至师门超链接中心，请目测检查光标停靠位置！"
-                    )
-                else:
-                    logger.info(
-                        "✅ 成功慢速平滑移动并发送原点物理点击指令！请观察游戏角色是否触发回师门自动寻路。"
-                    )
-            else:
-                logger.warning("❌ 操作触发失败。")
         else:
             logger.info(
                 f"[Action] 当前任务状态为 {task_info.status}，无需或无法发起领取操作。"
