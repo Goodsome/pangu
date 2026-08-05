@@ -6,7 +6,13 @@ import math
 
 from pathlib import Path
 
-from client_core import AutoCalibratingScreen, Point, Region, RelativePoint
+from client_core import (
+    AutoCalibratingScreen,
+    Point,
+    Region,
+    RelativeRegion,
+    RelativePoint,
+)
 from mhxy_client.config import MainHudLayoutConfig
 from sys_input import MouseButton
 
@@ -49,9 +55,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         sys_client_pos = self.window.get_sys_cursor_client_pos()
         win_w = self.window.width
         win_h = self.window.height
-        if not (
-            0 <= sys_client_pos.x <= win_w and 0 <= sys_client_pos.y <= win_h
-        ):
+        if not (0 <= sys_client_pos.x <= win_w and 0 <= sys_client_pos.y <= win_h):
             # 系统光标不在窗口客户区内时才挪进来 (不再无条件重置到中心)
             sys_client_pos = await self.window.ensure_cursor_in_window()
         radius = 100
@@ -106,16 +110,21 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         return sys_pos, game_cursor, is_pointer
 
     async def _measure_and_plan(
-        self, abs_target: Point
+        self,
+        abs_target: Point,
+        target_roi: Region | None = None,
     ) -> tuple[Point, Point, int, float] | None:
         """沉淀测量并规划下一步钟形: 返回 (sys_pos, aim, steps, duration)。
 
-        已命中指针模板或落入容差时返回 None (视为到位)。
+        已命中指针模板、游戏光标落入目标 ROI 或与目标点距离小于容差时返回 None
+        (视为到位)。
         """
         sys_pos, game_cursor, is_pointer = await self._measure_game_cursor()
         if game_cursor is None:
             raise RuntimeError("未匹配到游戏鼠标模板 cursor.png")
         if is_pointer:
+            return None
+        if target_roi is not None and target_roi.contains_point(game_cursor):
             return None
         if (
             math.hypot(game_cursor.x - abs_target.x, game_cursor.y - abs_target.y)
@@ -129,8 +138,9 @@ class BaseScreen(AutoCalibratingScreen, ABC):
 
     async def mouse_move(
         self,
-        target_point: Point | RelativePoint,
+        target_point: Point | RelativePoint | None = None,
         max_retries: int = 5,
+        target_roi: Region | RelativeRegion | None = None,
     ) -> bool:
         """校准移动鼠标光标至目标点，补偿游戏鼠标与系统光标的位置偏移。
 
@@ -139,17 +149,30 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         剩余步数 (边走边修)，避免"先冲到错误目标再二次修正"的机械感。
         未收敛则进入残差修正循环兜底。
 
+        若提供 ``target_roi``，到位判定优先使用 ROI 包含检测——只要游戏光标落在
+        ROI 内即视为到达，不再以目标点距离容差为准。此时 ``target_point`` 可省略，
+        默认以 ROI 中心作为移动方向参考点。
+
         Args:
-            target_point: 目标点 (绝对 Point 或相对 RelativePoint)。
+            target_point: 目标点 (绝对 Point 或相对 RelativePoint)。若提供了
+                ``target_roi`` 可省略，默认取 ROI 中心。
             max_retries: 残差修正最大迭代次数。
+            target_roi: 目标感兴趣区域。游戏光标进入该矩形区域即视为到位，
+                优先级高于点距离容差判定。
 
         Returns:
             bool: 到位返回 True，达到最大次数仍未收敛返回 False。
         """
-        abs_target = self.window.resolve_point(target_point)
-        assert abs_target is not None
+        abs_target_roi = self.window.resolve_region(target_roi)
+        if target_point is not None:
+            abs_target = self.window.resolve_point(target_point)
+            assert abs_target is not None
+        else:
+            if abs_target_roi is None:
+                raise ValueError("target_point 和 target_roi 不能同时为 None")
+            abs_target = abs_target_roi.center
 
-        planned = await self._measure_and_plan(abs_target)
+        planned = await self._measure_and_plan(abs_target, abs_target_roi)
         if planned is None:
             return True
         sys_pos, aim, steps, duration_sec = planned
@@ -157,7 +180,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         checkpoints.discard(0)
         converged = False
 
-        async def on_step(step: int, total: int, cur: Point) -> Point | None:
+        async def on_step(step: int, _total: int, _cur: Point) -> Point | None:
             nonlocal converged
             if step not in checkpoints:
                 return None
@@ -165,7 +188,11 @@ class BaseScreen(AutoCalibratingScreen, ABC):
             sys_cur, game, is_pointer = await self._measure_game_cursor()
             if game is None:
                 return None
-            if is_pointer or (
+            if is_pointer:
+                converged = True
+            elif abs_target_roi is not None and abs_target_roi.contains_point(game):
+                converged = True
+            elif (
                 math.hypot(game.x - abs_target.x, game.y - abs_target.y)
                 <= _TOLERANCE_PX
             ):
@@ -180,7 +207,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
             return True
 
         for _ in range(max_retries):
-            planned = await self._measure_and_plan(abs_target)
+            planned = await self._measure_and_plan(abs_target, abs_target_roi)
             if planned is None:
                 return True
             sys_pos, aim, steps, duration_sec = planned
@@ -193,11 +220,21 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         self,
         point: Point | RelativePoint | None = None,
         button: MouseButton = MouseButton.LEFT,
+        target_roi: Region | RelativeRegion | None = None,
     ) -> None:
-        if point:
-            await self.mouse_move(point)
+        """点击目标点/目标区域。
+
+        若提供 ``target_roi``，只要游戏光标进入该区域即视为到位并执行点击，
+        不再以点距离容差为准。详见 :meth:`mouse_move`。
+        """
+        if point is not None or target_roi is not None:
+            _ = await self.mouse_move(point, target_roi=target_roi)
             await asyncio.sleep(0.1)
         await self.window.mouse_click(button=button)
 
-    async def click(self, point: Point | RelativePoint | None) -> None:
-        await self.mouse_click(point)
+    async def click(
+        self,
+        point: Point | RelativePoint | None = None,
+        target_roi: Region | RelativeRegion | None = None,
+    ) -> None:
+        await self.mouse_click(point, target_roi=target_roi)

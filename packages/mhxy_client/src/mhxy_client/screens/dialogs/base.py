@@ -35,7 +35,7 @@ class NpcDialog(BaseScreen):
         )
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option_name}")
-        await self.mouse_click(element.region.center)
+        await self.mouse_click(target_roi=element.region)
         
     async def claim_task(self) -> None:
         await self.choose_option("师门任务")

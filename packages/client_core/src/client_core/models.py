@@ -52,6 +52,17 @@ class BaseRegion:
         """获取下边界 Y 坐标。"""
         return self.y + self.height
 
+    def contains_point(self, pt: "Point") -> bool:
+        """判断点是否落在矩形区域内 (含边界)。
+
+        Args:
+            pt: 待检测的坐标点。
+
+        Returns:
+            bool: 点在区域内 (含边界) 返回 True。
+        """
+        return self.x <= pt.x <= self.right and self.y <= pt.y <= self.bottom
+
     def split(
         self,
         n: int,

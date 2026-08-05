@@ -16,7 +16,7 @@ class ShopPanel(Panel):
             row_index=row,
             col_index=col,
         )
-        await self.mouse_click(unit_grid_roi.center)
+        await self.mouse_click(target_roi=unit_grid_roi)
 
     async def buy(self):
-        await self.mouse_click(self.buy_roi.center)
+        await self.mouse_click(target_roi=self.buy_roi)

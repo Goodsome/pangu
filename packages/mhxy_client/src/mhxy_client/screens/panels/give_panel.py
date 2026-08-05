@@ -9,4 +9,4 @@ class GivePanel(Panel):
     confirm_give_roi: RelativeRegion = RelativeRegion(x=0.2771, y=0.7080, width=0.1268, height=0.0392)
 
     async def confirm_give(self):
-        await self.click(self.confirm_give_roi.center)
+        await self.click(target_roi=self.confirm_give_roi)

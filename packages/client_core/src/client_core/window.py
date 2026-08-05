@@ -113,7 +113,7 @@ class Window:
         if self.hwnd:
             activate_window(self.hwnd)
 
-    def _resolve_region(self, region: Region | RelativeRegion | None) -> Region | None:
+    def resolve_region(self, region: Region | RelativeRegion | None) -> Region | None:
         """解析并统一 Region。
 
         若传入的区域为 RelativeRegion (0.0 ~ 1.0 的相对比例)，
@@ -126,6 +126,10 @@ class Window:
                 window_width=self.width, window_height=self.height
             )
         return region
+
+    def _resolve_region(self, region: Region | RelativeRegion | None) -> Region | None:
+        """内部别名，保留兼容。请使用公开的 :meth:`resolve_region`。"""
+        return self.resolve_region(region)
 
     def resolve_point(self, point: Point | RelativePoint | None) -> Point | None:
         """解析并统一 Point。
@@ -540,7 +544,7 @@ class Window:
         await asyncio.sleep(duration_sec)
         await self.input_backend.key_up(vk_code)
 
-    async def hotkey(self, *vk_codes: VirtualKeyCode, duration_sec: float = 0.05, interval_sec: float = 0.02) -> None:
+    async def hotkey(self, vk_codes: list[VirtualKeyCode], duration_sec: float = 0.05, interval_sec: float = 0.02) -> None:
         """异步模拟热键按下并立即抬起。"""
         if not vk_codes:
             return

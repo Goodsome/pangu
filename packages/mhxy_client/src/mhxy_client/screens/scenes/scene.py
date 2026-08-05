@@ -13,12 +13,12 @@ class Scene(BaseScreen):
         element = await self.locate_element(
             element_key="dialog_name",
             target_text=self.screen_name,
-            roi=self.config.dialog_name_roi
+            roi=self.config.map_name_roi
         )
         return element is not None
         
     async def interact_with_npc(self, npc: Npc) -> NpcDialog:
-        await self.mouse_click(npc.scene_location.center)
+        await self.mouse_click(target_roi=npc.scene_location)
         dialog = npc.dialog(
             window=self.window,
             npc_name=npc.name

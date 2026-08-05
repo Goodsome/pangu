@@ -129,7 +129,7 @@ class MainHUD(BaseScreen):
         await self.mouse_click(action_point)
         
     async def confirm_give(self):
-        await self.mouse_click(self.config.confirm_give_roi.center)
+        await self.mouse_click(target_roi=self.config.confirm_give_roi)
         
     async def open_inventory(self):
         await self.inventory.open()
@@ -142,7 +142,7 @@ class MainHUD(BaseScreen):
         
     async def lead_to_npc_house(self, target: Npc):
         await self.open_map()
-        await self.mouse_click(target.map_location.center)
+        await self.mouse_click(target_roi=target.map_location)
         await self.close_map()
         
     async def return_shi_meng(self):

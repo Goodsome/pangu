@@ -29,7 +29,7 @@ class InventoryPanel(BaseScreen):
     async def open(self):
         if self.is_visible:
             return
-        await self.window.hotkey(VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_E)
+        await self.window.hotkey([VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_E])
         await self.wait_until_visible()
         
     async def use_item(self, row: int, col: int):
@@ -40,7 +40,7 @@ class InventoryPanel(BaseScreen):
         import logging
         logger = logging.getLogger(__name__)
         logger.info(f"{grid_roi=}, {unit_grid_roi=}")
-        await self.mouse_click(unit_grid_roi.center, button=MouseButton.RIGHT)
+        await self.mouse_click(target_roi=unit_grid_roi, button=MouseButton.RIGHT)
 
     async def use_fei_xing_fu(self, target: Map):
         if not self.is_visible:
@@ -49,6 +49,6 @@ class InventoryPanel(BaseScreen):
         await self.use_item(row=0, col=4)
         match target:
             case Map.CHANG_AN:
-                await self.mouse_click(self.config.feixingfu_map_changan_roi.center)
+                await self.mouse_click(target_roi=self.config.feixingfu_map_changan_roi)
             case _:
                 raise ValueError(f"Invalid target: {target}")

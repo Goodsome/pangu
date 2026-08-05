@@ -108,7 +108,6 @@ async def async_main() -> None:
         print(
             f"  * 师门任务当前状态 : {task_info.status.value} (enum: {task_info.status})"
         )
-        print(f"  * 任务标题         : {task_info.task_title}")
         print(f"  * 描述多行文本     : {task_info.description_lines}")
         print(f"  * 匹配目标交互文本 : '{task_info.action_text}'")
         print(f"  * 交互点击窗口坐标 : {task_info.action_point}")
@@ -141,18 +140,6 @@ async def async_main() -> None:
                     f"🎯 [打靶可视化] 已在 ROI 截图中绘制算得的目标坐标十字准星: {target_img_path.as_uri()}"
                 )
 
-        # 3. 若为可领取状态，调用 claim_sect_task
-        if task_info.status == SectTaskStatus.CLAIMABLE:
-            logger.info(
-                f"\n[Action] 检测到师门任务可领取，调用 claim_sect_task(move_only={MOVE_ONLY}, smooth_duration={SMOOTH_DURATION_SEC}s, delay={DELAY_BEFORE_CLICK_SEC}s)..."
-            )
-            await hud.claim_sect_task(
-
-            )
-        else:
-            logger.info(
-                f"[Action] 当前任务状态为 {task_info.status}，无需或无法发起领取操作。"
-            )
 
     logger.info("=" * 75)
     logger.info(
