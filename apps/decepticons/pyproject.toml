@@ -1,0 +1,26 @@
+[project]
+name = "decepticons"
+version = "0.1.0"
+description = "Decepticons - 梦幻西游自动化机器人应用"
+readme = "README.md"
+authors = [
+    { name = "Goodsome", email = "xlxmesh@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "mhxy-automation",
+    "typer>=0.26.7",
+]
+
+[project.scripts]
+decepticons = "decepticons.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/decepticons"]
+
+[tool.uv.sources]
+mhxy-automation = { workspace = true }

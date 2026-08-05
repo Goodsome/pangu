@@ -55,6 +55,10 @@ class SectTaskInfo:
         """解析任务状态。"""
         if self.full_description.startswith("新的一天"):
             self.status = SectTaskStatus.CLAIMABLE
+            self.task_target = "父"
+        elif self.full_description.startswith("继续回师门"):
+            self.status = SectTaskStatus.CLAIMABLE
+            self.task_target = "师父"
         elif self.full_description.startswith("帮师父送信"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL

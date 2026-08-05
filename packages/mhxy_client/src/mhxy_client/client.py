@@ -5,6 +5,7 @@
 """
 
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
@@ -42,7 +43,7 @@ class MhxyClient:
     hwnd: HWND
     window: Window
 
-    @property
+    @cached_property
     def main_hud(self) -> MainHUD:
         """获取游戏常驻主界面 (MainHUD) 页面对象。"""
         return MainHUD(window=self.window)

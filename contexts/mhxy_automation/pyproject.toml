@@ -1,0 +1,21 @@
+[project]
+name = "mhxy-automation"
+version = "0.1.0"
+description = "梦幻西游自动化上下文 (Mhxy Automation Context)"
+readme = "README.md"
+authors = [
+    { name = "Goodsome", email = "xlxmesh@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "mhxy-client",
+    "typer>=0.26.7",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.22,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.basedpyright]
+reportMissingTypeStubs = "none"
+reportImportCycles = "none"

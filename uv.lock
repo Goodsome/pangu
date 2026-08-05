@@ -26,7 +26,9 @@ members = [
     "d4-leaderboard",
     "d4-robot",
     "d4-types",
+    "decepticons",
     "foundation",
+    "mhxy-automation",
     "mhxy-client",
     "pangu",
     "pangu-cli",
@@ -480,6 +482,21 @@ requires-dist = [
 name = "d4-types"
 version = "0.1.0"
 source = { editable = "packages/d4_types" }
+
+[[package]]
+name = "decepticons"
+version = "0.1.0"
+source = { editable = "apps/decepticons" }
+dependencies = [
+    { name = "mhxy-automation" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mhxy-automation", editable = "contexts/mhxy_automation" },
+    { name = "typer", specifier = ">=0.26.7" },
+]
 
 [[package]]
 name = "dependency-injector"
@@ -995,6 +1012,21 @@ wheels = [
 ]
 
 [[package]]
+name = "mhxy-automation"
+version = "0.1.0"
+source = { editable = "contexts/mhxy_automation" }
+dependencies = [
+    { name = "mhxy-client" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mhxy-client", editable = "packages/mhxy_client" },
+    { name = "typer", specifier = ">=0.26.7" },
+]
+
+[[package]]
 name = "mhxy-client"
 version = "0.1.0"
 source = { editable = "packages/mhxy_client" }
@@ -1175,8 +1207,10 @@ dependencies = [
     { name = "d4-leaderboard" },
     { name = "d4-robot" },
     { name = "d4-types" },
+    { name = "decepticons" },
     { name = "dependency-injector" },
     { name = "foundation" },
+    { name = "mhxy-automation" },
     { name = "mhxy-client" },
     { name = "neo4j" },
     { name = "pangu-cli" },
@@ -1217,8 +1251,10 @@ requires-dist = [
     { name = "d4-leaderboard", editable = "contexts/d4_leaderboard" },
     { name = "d4-robot", editable = "apps/d4_robot" },
     { name = "d4-types", editable = "packages/d4_types" },
+    { name = "decepticons", editable = "apps/decepticons" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
     { name = "foundation", editable = "foundation" },
+    { name = "mhxy-automation", editable = "contexts/mhxy_automation" },
     { name = "mhxy-client", editable = "packages/mhxy_client" },
     { name = "neo4j", specifier = ">=6.2.0" },
     { name = "pangu-cli", editable = "apps/pangu_cli" },

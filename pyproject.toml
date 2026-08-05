@@ -37,6 +37,8 @@ dependencies = [
     "d4-types",
     "client-core",
     "d4-injestion",
+    "mhxy-automation",
+    "decepticons",
 ]
 
 [project.scripts]
@@ -44,6 +46,7 @@ pangu = "pangu_cli.main:main"
 pangu_mcp = "pangu_mcp.main:main"
 d4-bot = "d4_robot.main:main"
 d4-backend = "d4_backend.main:main"
+decepticons = "decepticons.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -58,6 +61,7 @@ venv = ".venv"
 pythonVersion = "3.14"
 reportUnusedCallResult = "none"
 reportImportCycles = "none"
+reportMissingTypeStubs = "none"
 
 [tool.uv.workspace]
 members = ["contexts/*", "apps/*", "foundation", "packages/*"]
@@ -86,6 +90,8 @@ mhxy-client = { workspace = true }
 d4-types = { workspace = true }
 client-core = { workspace = true }
 d4-injestion = { workspace = true }
+mhxy-automation = { workspace = true }
+decepticons = { workspace = true }
 
 
 [dependency-groups]

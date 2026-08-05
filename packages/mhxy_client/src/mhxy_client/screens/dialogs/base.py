@@ -1,20 +1,26 @@
+import logging
+
 from dataclasses import dataclass
 from typing import override
 
+from client_core import RelativeRegion
 from mhxy_client.screens.base import BaseScreen
 from sys_input import MouseButton
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class NpcDialog(BaseScreen):
 
     npc_name: str = ""
+    dialog_name_roi: RelativeRegion = RelativeRegion(x=0.1663, y=0.4630, width=0.1145, height=0.0483)
     
     @override
     async def check_visible(self) -> bool:
         element = await self.locate_element(
             element_key="dialog_name",
             target_text=self.npc_name,
-            roi=self.config.dialog_name_roi
+            roi=self.dialog_name_roi
         )
         return element is not None
 
