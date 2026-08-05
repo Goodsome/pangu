@@ -20,6 +20,10 @@ from code_dom.domain.value_objects.ast_stmt.ast_import import AstImport
 from code_dom.domain.value_objects.ast_stmt.ast_import_from import AstImportFrom
 from code_dom.domain.value_objects.ast_stmt.ast_class_def import AstClassDef
 from code_dom.domain.value_objects.ast_stmt.ast_delete import AstDelete
+from code_dom.domain.value_objects.ast_stmt.ast_global_nonlocal import (
+    AstGlobal,
+    AstNonlocal,
+)
 
 from code_dom.domain.value_objects.ast_stmt.ast_alias import AstAlias
 from code_dom.domain.value_objects.ast_stmt.ast_arguments import AstArguments
@@ -57,4 +61,6 @@ __all__ = [
     "AstImportFrom",
     "AstClassDef",
     "AstDelete",
+    "AstGlobal",
+    "AstNonlocal",
 ]

@@ -16,6 +16,11 @@ from code_dom.domain.value_objects.ast_stmt.ast_aug_assign import (
 )
 from code_dom.domain.value_objects.ast_stmt.ast_continue import AstContinue
 from code_dom.domain.value_objects.ast_stmt.ast_delete import AstDelete
+from code_dom.domain.value_objects.ast_stmt.ast_global_nonlocal import (
+    AstGlobal,
+    AstNonlocal,
+)
+
 from code_dom.domain.value_objects.ast_stmt.ast_except_handler import (
     AstExceptHandler,
 )
@@ -109,9 +114,22 @@ class StmtToAst:
                 node = StmtToAst.from_while(stmt)
             case AstDelete():
                 node = StmtToAst.from_delete(stmt)
+            case AstGlobal():
+                node = StmtToAst.from_global(stmt)
+            case AstNonlocal():
+                node = StmtToAst.from_nonlocal(stmt)
             case _:
                 raise NotImplementedError(f"Unsupported AstStmt type: {type(stmt)}")
         return StmtToAst._fix_pos(node)
+
+    @staticmethod
+    def from_global(stmt: AstGlobal) -> ast.Global:
+        return ast.Global(names=stmt.names)
+
+    @staticmethod
+    def from_nonlocal(stmt: AstNonlocal) -> ast.Nonlocal:
+        return ast.Nonlocal(names=stmt.names)
+
 
     @staticmethod
     def from_while(stmt: AstWhile):

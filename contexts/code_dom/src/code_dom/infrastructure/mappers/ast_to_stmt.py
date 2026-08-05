@@ -14,6 +14,11 @@ from code_dom.domain.value_objects.ast_stmt.ast_aug_assign import (
 from code_dom.domain.value_objects.ast_stmt.ast_break import AstBreak
 from code_dom.domain.value_objects.ast_stmt.ast_continue import AstContinue
 from code_dom.domain.value_objects.ast_stmt.ast_delete import AstDelete
+from code_dom.domain.value_objects.ast_stmt.ast_global_nonlocal import (
+    AstGlobal,
+    AstNonlocal,
+)
+
 from code_dom.domain.value_objects.ast_stmt.ast_except_handler import (
     AstExceptHandler,
 )
@@ -113,6 +118,10 @@ class AstToStmt:
                 return AstToStmt.to_ast_expr_stmt(node)
             case ast.Delete():
                 return AstToStmt.to_ast_delete(node)
+            case ast.Global():
+                return AstToStmt.to_ast_global(node)
+            case ast.Nonlocal():
+                return AstToStmt.to_ast_nonlocal(node)
             case _:
                 raise NotImplementedError(
                     f"Unsupported AST node: node={node!r} \n{ast.unparse(node)}"
@@ -389,3 +398,12 @@ class AstToStmt:
     @staticmethod
     def to_ast_delete(node: ast.Delete) -> AstDelete:
         return AstDelete(targets=[AstToExpr.to_expr(t) for t in node.targets])
+
+    @staticmethod
+    def to_ast_global(node: ast.Global) -> AstGlobal:
+        return AstGlobal(names=node.names)
+
+    @staticmethod
+    def to_ast_nonlocal(node: ast.Nonlocal) -> AstNonlocal:
+        return AstNonlocal(names=node.names)
+

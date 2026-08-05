@@ -24,3 +24,6 @@ class AstStmtKind(StrEnum):
     IMPORT_FROM = auto()
     CLASS_DEF = auto()
     DELETE = auto()
+    GLOBAL = auto()
+    NONLOCAL = auto()
+

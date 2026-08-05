@@ -23,6 +23,11 @@ from code_dom.domain.value_objects.ast_expr.ast_comprehension import (
 from code_dom.domain.value_objects.ast_expr.ast_constant import AstConstant
 from code_dom.domain.value_objects.ast_stmt.ast_continue import AstContinue
 from code_dom.domain.value_objects.ast_stmt.ast_delete import AstDelete
+from code_dom.domain.value_objects.ast_stmt.ast_global_nonlocal import (
+    AstGlobal,
+    AstNonlocal,
+)
+
 from code_dom.domain.value_objects.ast_expr.ast_dict import AstDict
 from code_dom.domain.value_objects.ast_expr.ast_dict_comp import (
     AstDictComp,
@@ -131,6 +136,11 @@ class AstVisitor:
                 self.visit_ast_expr_stmt(node)
             case AstDelete():
                 self.visit_ast_delete(node)
+            case AstGlobal():
+                self.visit_ast_global(node)
+            case AstNonlocal():
+                self.visit_ast_nonlocal(node)
+
             case AstFor():
                 self.visit_ast_for(node)
             case AstWhile():
@@ -270,6 +280,13 @@ class AstVisitor:
     def visit_ast_delete(self, node: AstDelete):
         for target in node.targets:
             self.visit(target)
+
+    def visit_ast_global(self, node: AstGlobal):
+        pass
+
+    def visit_ast_nonlocal(self, node: AstNonlocal):
+        pass
+
 
     def visit_ast_for(self, node: AstFor):
         self.visit(node.target)
