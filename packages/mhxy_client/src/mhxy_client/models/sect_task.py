@@ -20,6 +20,7 @@ class TaskType(StrEnum):
     """任务类型枚举。"""
 
     SEND_MAIL = auto()
+    SHOPPING = auto()
 
 @dataclass
 class SectTaskInfo:
@@ -34,6 +35,7 @@ class SectTaskInfo:
     ocr_items: list[OcrResult] = field(default_factory=list)
     full_description: str = ""
     task_type: TaskType | None = None
+    task_target: str | None = None
 
     def resolve(
         self,
