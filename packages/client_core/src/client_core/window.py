@@ -5,6 +5,7 @@
 
 import logging
 import asyncio
+import random
 from dataclasses import dataclass
 from pathlib import Path
 import sys
@@ -37,6 +38,7 @@ from client_core.models import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 def activate_window(hwnd: HWND) -> None:
     """Win32 API 置顶并激活指定 HWND 窗口。"""
@@ -118,9 +120,7 @@ class Window:
         if point is None:
             return None
         if isinstance(point, RelativePoint):
-            return point.to_absolute(
-                window_width=self.width, window_height=self.height
-            )
+            return point.to_absolute(window_width=self.width, window_height=self.height)
         return point
 
     # ---------------------------------------------------------------------------
@@ -131,7 +131,8 @@ class Window:
         await self.vision_backend.begin_frame()
 
     async def capture(
-        self, region: Region | RelativeRegion | None = None,
+        self,
+        region: Region | RelativeRegion | None = None,
         refresh: bool = False,
     ) -> ImageFrame:
         """捕获窗口当前画面。"""
@@ -168,7 +169,7 @@ class Window:
             if res
             else None
         )
-        
+
     async def match_template_masked(
         self,
         template: Path,
@@ -320,7 +321,7 @@ class Window:
             valid_hwnd = int(self.hwnd)
             if valid_hwnd == 0:
                 return None
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
         sys_screen_pos = get_cursor_pos()
@@ -375,6 +376,43 @@ class Window:
         """
         await self.input_backend.mouse_move_relative(dx, dy)
 
+    async def bell_move_steps(
+        self,
+        start: Point,
+        target: Point,
+        steps: int,
+        duration_sec: float,
+    ) -> None:
+        """从 start 到 target (客户区坐标) 按 ease-in-out 钟形分步移动。
+
+        在客户区坐标空间从真实起点 start 插值至 target，每步调用原生 mouse_move
+        (由 mouse_move 统一处理 hardware 后端的 client->screen 转换)，后端无关。
+        采用 smoothstep 钟形速度曲线 (起停慢、中段快) 并叠加轻微时间抖动。
+
+        Args:
+            start: 起点客户区坐标。
+            target: 终点客户区坐标。
+            steps: 插值步数。
+            duration_sec: 移动总耗时 (秒)。
+        """
+        if steps <= 1:
+            await self.mouse_move(target)
+            return
+
+        interval = duration_sec / steps
+        for i in range(1, steps + 1):
+            r = i / steps
+            # ease-in-out (smoothstep): 起停慢、中段快，近似最小急动度轨迹
+            eased = 3 * r * r - 2 * r * r * r
+            cur = Point(
+                x=int(start.x + (target.x - start.x) * eased),
+                y=int(start.y + (target.y - start.y) * eased),
+            )
+            await self.mouse_move(cur)
+            # 轻微时间抖动 (±15%) 消除等间隔机械感
+            jitter = interval * random.uniform(-0.15, 0.15)
+            await asyncio.sleep(max(0.0, interval + jitter))
+
     async def smooth_mouse_move(
         self,
         point: Point | RelativePoint,
@@ -382,6 +420,9 @@ class Window:
         duration_sec: float = 0.8,
     ) -> None:
         """缓慢/平滑移动鼠标光标至指定目标位置 (避免瞬间跳变引致物理光标震荡或下漂)。
+
+        采用 ease-in-out (smoothstep) 钟形速度曲线 (起停慢、中段快)，近似最小急动度轨迹；
+        并在步间叠加轻微时间抖动以消除等间隔机械感，整体更贴近人类鼠标运动。
 
         Args:
             point: 目标点 (绝对 Point 或相对 RelativePoint)
@@ -392,54 +433,21 @@ class Window:
         if abs_point is None:
             return
 
-        if steps <= 1:
-            await self.mouse_move(abs_point)
-            return
+        start = self.get_sys_cursor_client_pos() or Point(x=0, y=0)
+        await self.bell_move_steps(start, abs_point, steps, duration_sec)
 
-        start_pt = get_cursor_pos()
-        target_screen_pt = (
-            client_to_screen(self.hwnd, abs_point)
-            if isinstance(self.input_backend, Win32HardwareBackend)
-            else abs_point
-        )
-
-        interval = duration_sec / steps
-        for i in range(1, steps + 1):
-            ratio = i / steps
-            cur_x = int(start_pt.x + (target_screen_pt.x - start_pt.x) * ratio)
-            cur_y = int(start_pt.y + (target_screen_pt.y - start_pt.y) * ratio)
-
-            if isinstance(self.input_backend, Win32HardwareBackend):
-                from sys_input.models import Point as SysPoint
-
-                await self.input_backend.mouse_move(SysPoint(x=cur_x, y=cur_y))
-            else:
-                cur_client_x = int(abs_point.x * ratio)
-                cur_client_y = int(abs_point.y * ratio)
-                await self.mouse_move(Point(x=cur_client_x, y=cur_client_y))
-
-            await asyncio.sleep(interval)
-
-        # 闭环反馈微调校正 (Closed-Loop Correction): 消除长距离移动下的线性缩放与平滑四舍五入积累误差
-        for correction_step in range(3):
-            cur_pos = get_cursor_pos()
-            err_x = target_screen_pt.x - cur_pos.x
-            err_y = target_screen_pt.y - cur_pos.y
-
+        # 闭环反馈微调校正 (Closed-Loop Correction): 消除长距离移动下的线性缩放与四舍五入积累误差。
+        # 在客户区坐标空间闭环，统一走 mouse_move (后端无关)。
+        for _ in range(3):
+            cur = self.get_sys_cursor_client_pos()
+            if cur is None:
+                break
+            err_x = abs_point.x - cur.x
+            err_y = abs_point.y - cur.y
             if abs(err_x) <= 1 and abs(err_y) <= 1:
                 break
-
-            # 根据实测偏差做反向物理补偿
-            correct_x = cur_pos.x + err_x
-            correct_y = cur_pos.y + err_y
-            if isinstance(self.input_backend, Win32HardwareBackend):
-                from sys_input.models import Point as SysPoint
-
-                await self.input_backend.mouse_move(SysPoint(x=correct_x, y=correct_y))
-            else:
-                await self.mouse_move(Point(x=correct_x, y=correct_y))
+            await self.mouse_move(Point(x=cur.x + err_x, y=cur.y + err_y))
             await asyncio.sleep(0.03)
-
 
     async def mouse_click(
         self,

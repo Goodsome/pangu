@@ -12,7 +12,7 @@ from cv_engine import (
     Point as CVPoint,
     Region as CVRegion,
 )
-from d4_client import (
+from client_core import (
     BaseRegion,
     MatchResult,
     Point,

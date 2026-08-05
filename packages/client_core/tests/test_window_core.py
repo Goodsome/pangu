@@ -12,7 +12,6 @@ from cv_engine import (
 )
 from client_core import (
     Point,
-    Region,
     RelativeRegion,
     Window,
 )
@@ -168,3 +167,44 @@ async def test_window_explicit_activate_and_key_press() -> None:
     win.activate()
     await win.key_press(0x78)  # VK_F9
     assert mock_input.key_down.called
+
+
+@pytest.mark.anyio
+async def test_bell_move_steps_easing(
+    base_window: Window, mock_deps: tuple[MagicMock, ...]
+) -> None:
+    """测试 bell_move_steps 产出 smoothstep 钟形插值轨迹。"""
+    mock_input = mock_deps[0]
+    mock_input.reset_mock()
+
+    start = Point(x=0, y=0)
+    target = Point(x=100, y=0)
+    await base_window.bell_move_steps(start, target, steps=10, duration_sec=0.0)
+
+    # 10 步 -> 10 次底层 mouse_move
+    assert mock_input.mouse_move.call_count == 10
+    xs = [call.args[0].x for call in mock_input.mouse_move.call_args_list]
+    # 单调递增 (钟形位置不回退)
+    assert all(xs[i] <= xs[i + 1] for i in range(len(xs) - 1))
+    # smoothstep(0.5)=0.5 -> 第 5 步 (i=5, r=0.5) 落在半距 50
+    assert xs[4] == 50
+    # 末步到达目标
+    assert xs[-1] == 100
+
+
+@pytest.mark.anyio
+async def test_smooth_mouse_move_interpolation(
+    base_window: Window, mock_deps: tuple[MagicMock, ...]
+) -> None:
+    """测试 smooth_mouse_move 从当前系统光标位置钟形插值到目标。"""
+    mock_input = mock_deps[0]
+    mock_input.reset_mock()
+
+    # base_window 无 hwnd -> get_sys_cursor_client_pos 返回 None -> start=Point(0,0)
+    await base_window.smooth_mouse_move(Point(x=100, y=200), steps=10, duration_sec=0.0)
+
+    # bell 步进 10 次；闭环因 hwnd=0 (get_sys_cursor_client_pos=None) 立即 break
+    assert mock_input.mouse_move.call_count == 10
+    last = mock_input.mouse_move.call_args_list[-1].args[0]
+    assert last.x == 100
+    assert last.y == 200

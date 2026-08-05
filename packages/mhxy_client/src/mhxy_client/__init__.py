@@ -1,6 +1,5 @@
 """mhxy_client: 梦幻西游 客户端 SDK 模块。"""
 
-from client_core import AutoCalibratingScreen, Window
 from mhxy_client.client import MhxyClient
 from mhxy_client.config import MainHudLayoutConfig
 from mhxy_client.exceptions import MhxyClientError, WindowNotFoundError
@@ -23,22 +22,17 @@ from mhxy_client.screens import (
     MhxyPanel,
     SocialPanel,
 )
-from sys_input import MouseButton, VirtualKeyCode
 
 __all__ = [
-    "AutoCalibratingScreen",
     "InventoryPanel",
     "MainHUD",
     "MainHudLayoutConfig",
     "MhxyClient",
     "MhxyClientError",
     "MhxyPanel",
-    "MouseButton",
     "SectTaskInfo",
     "SectTaskStatus",
     "SocialPanel",
-    "VirtualKeyCode",
-    "Window",
     "WindowNotFoundError",
     "WindowRectInfo",
     "create_mhxy_client_by_index",

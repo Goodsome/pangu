@@ -61,7 +61,7 @@ class PackageModule(BaseModule):
         if target_module_id in self.dependencies:
             return
         if target_module_id not in self.contains:
-            raise ValueError("package can not depend on module not contained")
+            raise ValueError(f"package {self.fqn} can not depend on module not contained")
         self._dependencies.add(target_module_id)
         event = ModuleAddedDependency(
             module_id=self.id, target_module_id=target_module_id

@@ -13,7 +13,7 @@ from client_core.models import (
     SplitMode,
     WindowRectInfo,
 )
-from client_core.screens.base import AutoCalibratingScreen
+from client_core.screens import AutoCalibratingScreen
 from client_core.window import (
     BaseWindow,
     Window,
