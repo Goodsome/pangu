@@ -59,9 +59,10 @@ class SectTaskInfo:
         elif self.full_description.startswith("继续回师门"):
             self.status = SectTaskStatus.CLAIMABLE
             self.task_target = "师父"
-        elif self.full_description.startswith("帮师父送信"):
+        elif self.full_description.startswith("帮师父送信给"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL
+            self.task_target = self.full_description[6:8]
         elif self.full_description.startswith("买到布鞋"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING

@@ -35,6 +35,7 @@ class RunSectTask:
         client = create_mhxy_client_by_index(window_index)
 
         async with client:
+            client.activate()
             blackboard = Blackboard(client=client)
             tree = build_sect_task_tree()
 

@@ -82,7 +82,6 @@ class Selector(BaseNode):
         self._running_child = None
         return NodeStatus.FAILURE
 
-
     @override
     def reset(self) -> None:
         """级联重置挂起的子节点。"""
