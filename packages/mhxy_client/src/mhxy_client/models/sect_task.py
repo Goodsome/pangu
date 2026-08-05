@@ -1,5 +1,6 @@
 """师门任务相关数据模型。"""
 
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 
@@ -10,17 +11,17 @@ from mhxy_client.models.task import calculate_substring_point
 class SectTaskStatus(StrEnum):
     """师门任务当前状态枚举。"""
 
-    NOT_FOUND = "not_found"  
-    CLAIMABLE = (
-        "claimable"  
-    )
-    IN_PROGRESS = "in_progress"  
+    NOT_FOUND = "not_found"
+    CLAIMABLE = "claimable"
+    IN_PROGRESS = "in_progress"
+
 
 class TaskType(StrEnum):
     """任务类型枚举。"""
 
     SEND_MAIL = auto()
     SHOPPING = auto()
+
 
 @dataclass
 class SectTaskInfo:
@@ -36,6 +37,7 @@ class SectTaskInfo:
     full_description: str = ""
     task_type: TaskType | None = None
     task_target: str | None = None
+    task_round: int | None = None
     has_item: bool = False
 
     def resolve(
@@ -50,7 +52,7 @@ class SectTaskInfo:
     def _resolve_full_description(self) -> None:
         """解析完整的师门任务描述文本。"""
         self.full_description = "".join(i.text for i in self.ocr_items)
-        
+
     def _resolve_status(self) -> None:
         """解析任务状态。"""
         if self.full_description.startswith("新的一天"):
@@ -59,10 +61,13 @@ class SectTaskInfo:
         elif self.full_description.startswith("继续回师门"):
             self.status = SectTaskStatus.CLAIMABLE
             self.task_target = "师父"
-        elif self.full_description.startswith("帮师父送信给"):
+        elif match := re.match(
+            r"帮师父送信给(.+?)，当前第(\d+)次", self.full_description
+        ):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL
-            self.task_target = self.full_description[6:8]
+            self.task_target = match.group(1)
+            self.task_round = int(match.group(2))
         elif self.full_description.startswith("买到布鞋"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING
@@ -87,8 +92,7 @@ class SectTaskInfo:
                 self.action_point = self._resove_in_progress_point()
             case _:
                 raise NotImplementedError
-        
-        
+
     def resolve_point_by_targets(
         self,
         search_targets: tuple[str, ...],
@@ -98,7 +102,9 @@ class SectTaskInfo:
             for item in self.ocr_items:
                 if target in item.text:
                     sub_point = calculate_substring_point(
-                        text=item.text, target_sub=target, rect=item.rect,
+                        text=item.text,
+                        target_sub=target,
+                        rect=item.rect,
                         get_next_word=get_next_word,
                     )
                     if sub_point is not None:
@@ -110,8 +116,7 @@ class SectTaskInfo:
         match self.task_type:
             case TaskType.SEND_MAIL:
                 return self.resolve_point_by_targets(
-                    search_targets=("送信给",),
-                    get_next_word=True
+                    search_targets=("送信给",), get_next_word=True
                 )
             case TaskType.SHOPPING:
                 return self.resolve_point_by_targets(
