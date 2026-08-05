@@ -93,7 +93,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
 
         relative_roi = self.layout.class_selector_roi.split(
             n=len(ORDERED_PLAYER_CLASSES),
-            mode=SplitMode.HORIZONTAL,
+            mode=SplitMode.VERTICAL,
         )[index]
         await self.window.mouse_click(point=relative_roi.center)
         self.current_class = player_class
@@ -141,7 +141,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
         if row_index < 0 or row_index >= 10:
             raise IndexError(f"row_index={row_index} 超出有效范围 [0, 9]")
 
-        row_roi = self.layout.records_roi.split(n=10, mode=SplitMode.VERTICAL)[
+        row_roi = self.layout.records_roi.split(n=10, mode=SplitMode.HORIZONTAL)[
             row_index
         ]
         click_point = row_roi.center

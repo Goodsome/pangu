@@ -32,6 +32,11 @@ target_fields = [
     ("dialog_roi", "对话框区域"),
     ("confirm_give_roi", "确认赠送区域"),
     ("inventory_title_roi", "背包标题区域"),
+    ("inventory_grid_roi", "背包网格区域"),
+    ("feixingfu_map_changan_roi", "飞行符地图长安区域"),
+    
+    # ("scene_location", ""),
+    
 ]
 
 def is_valid_relative_roi(roi: RelativeRegion | None) -> bool:

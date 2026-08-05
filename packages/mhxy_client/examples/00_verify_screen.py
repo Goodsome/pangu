@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 from foundation import configure_logging 
 from mhxy_client import create_mhxy_client_by_index
+from mhxy_client.models.npcs.fu_zhuang_dian_lao_ban import FuZhuangDianLaoBan
+from mhxy_client.screens.scenes.zhang_ji_bu_zhuang import ZhangJiBuZhuangScene
 
 log_dir = Path(__file__).resolve().parent.parent.parent.parent / "logs"
 configure_logging(app_name="mhxy_client", log_dir=log_dir, log_level=logging.INFO)
@@ -20,9 +22,14 @@ async def async_main() -> None:
         client.activate()
         hud = client.main_hud
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
-        check_result = await hud.open_inventory()
-        logger.info(f"{check_result=}")
+        # check_result = await hud.lead_to_npc_house(target=FuZhuangDianLaoBan())
+        # check_result = await hud.inventory.use_fei_xing_fu(target=FeiXingFuMap.CHANG_AN)
+        check_result = await ZhangJiBuZhuangScene(window=hud.window).interact_with_npc(npc=FuZhuangDianLaoBan())
         
+        # logger.info(f"{check_result=}")
+
+        check_result_2 = await check_result.choose_option("购买")
+        logger.info(f"{check_result_2=}")
 
     logger.info("=" * 70)
 

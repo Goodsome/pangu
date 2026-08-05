@@ -27,5 +27,7 @@ class MainHudLayoutConfig:
     dialog_roi: RelativeRegion = RelativeRegion(x=0.0764, y=0.4914, width=0.8485, height=0.2496)
     confirm_give_roi: RelativeRegion = RelativeRegion(x=0.2771, y=0.7080, width=0.1268, height=0.0392)
     inventory_title_roi: RelativeRegion = RelativeRegion(x=0.1564, y=0.1554, width=0.1429, height=0.0543)
+    inventory_grid_roi: RelativeRegion = RelativeRegion(x=0.0517, y=0.4962, width=0.3510, height=0.3424)
+    feixingfu_map_changan_roi: RelativeRegion = RelativeRegion(x=0.5837, y=0.4314, width=0.1502, height=0.1388)
 
 MAIN_HUD_LAYOUT_CONFIG = MainHudLayoutConfig()

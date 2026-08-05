@@ -8,6 +8,7 @@ from pathlib import Path
 
 from client_core import AutoCalibratingScreen, Point, Region, RelativePoint
 from mhxy_client.config import MainHudLayoutConfig
+from sys_input import MouseButton
 
 logger = logging.getLogger(__name__)
 
@@ -191,8 +192,9 @@ class BaseScreen(AutoCalibratingScreen, ABC):
     async def mouse_click(
         self,
         point: Point | RelativePoint | None = None,
+        button: MouseButton = MouseButton.LEFT,
     ) -> None:
         if point:
             await self.mouse_move(point)
             await asyncio.sleep(0.1)
-        await self.window.mouse_click()
+        await self.window.mouse_click(button=button)

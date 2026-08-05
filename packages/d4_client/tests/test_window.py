@@ -109,7 +109,7 @@ def test_region_split() -> None:
     assert isinstance(region, BaseRegion)
 
     # 1. 垂直切分 (3 行)
-    rows = region.split(n=3, mode=SplitMode.VERTICAL)
+    rows = region.split(n=3, mode=SplitMode.HORIZONTAL)
     assert len(rows) == 3
     assert rows[0] == Region(x=10, y=20, width=100, height=10)
     assert rows[1] == Region(x=10, y=30, width=100, height=10)
@@ -118,7 +118,7 @@ def test_region_split() -> None:
     assert rows[-1].bottom == 50
 
     # 2. 水平切分 (4 列)
-    cols = region.split(n=4, mode=SplitMode.HORIZONTAL)
+    cols = region.split(n=4, mode=SplitMode.VERTICAL)
     assert len(cols) == 4
     assert cols[0] == Region(x=10, y=20, width=25, height=30)
     assert cols[1] == Region(x=35, y=20, width=25, height=30)
@@ -127,15 +127,12 @@ def test_region_split() -> None:
     assert cols[-1].right == 110
 
     # 字符串兼容 "vertical" 与 "horizontal"
-    assert region.split(n=3, mode="vertical") == rows
-    assert region.split(n=4, mode="horizontal") == cols
+    assert region.split(n=3, mode=SplitMode.HORIZONTAL) == rows
+    assert region.split(n=4, mode=SplitMode.VERTICAL) == cols
 
     # 3. 异常边界防护
     with pytest.raises(ValueError, match="n 必须大于等于 1"):
         region.split(n=0)
-
-    with pytest.raises(ValueError, match="不支持的切分模式"):
-        region.split(n=2, mode="invalid_mode")
 
 
 def test_relative_region_split() -> None:
@@ -144,13 +141,13 @@ def test_relative_region_split() -> None:
     assert isinstance(rel_region, BaseRegion)
 
     # 垂直切分 2 行
-    v_splits = rel_region.split(n=2, mode=SplitMode.VERTICAL)
+    v_splits = rel_region.split(n=2, mode=SplitMode.HORIZONTAL)
     assert len(v_splits) == 2
     assert v_splits[0] == RelativeRegion(x=0.0, y=0.0, width=1.0, height=0.5)
     assert v_splits[1] == RelativeRegion(x=0.0, y=0.5, width=1.0, height=0.5)
 
     # 水平切分 5 列
-    h_splits = rel_region.split(n=5, mode=SplitMode.HORIZONTAL)
+    h_splits = rel_region.split(n=5, mode=SplitMode.VERTICAL)
     assert len(h_splits) == 5
     assert h_splits[0] == RelativeRegion(x=0.0, y=0.0, width=0.2, height=1.0)
     assert h_splits[4] == RelativeRegion(x=0.8, y=0.0, width=0.2, height=1.0)

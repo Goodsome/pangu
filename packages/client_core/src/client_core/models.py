@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from functools import cached_property
 from pathlib import Path
-from typing import Self
+from typing import Self, assert_never
 import cv2
 import numpy as np
 
@@ -57,20 +57,16 @@ class BaseRegion:
         n: int,
         mode: SplitMode = SplitMode.VERTICAL,
     ) -> list[Self]:
-        """按指定方向模式将矩形区域等分为 n 个同类型子矩形区域。
-
-        Args:
-            n: 等分的份数，必须大于等于 1。
-            mode: 切分模式 Enum (SplitMode.VERTICAL 或 SplitMode.HORIZONTAL)。
-
-        Returns:
-            list[Self]: 切分后的子矩形区域列表。
-
-        Raises:
-            ValueError: 当 n < 1 或 mode 不在 SplitMode 枚举中抛出异常。
-        """
         if n < 1:
             raise ValueError("等分份数 n 必须大于等于 1")
+
+        match mode:
+            case SplitMode.VERTICAL:
+                split_axis = "x"
+            case SplitMode.HORIZONTAL:
+                split_axis = "y"
+            case _:
+                assert_never(mode)
 
         is_int = (
             isinstance(self.x, int)
@@ -79,54 +75,33 @@ class BaseRegion:
             and isinstance(self.height, int)
         )
 
-        if mode == SplitMode.VERTICAL:
+        start = self.x if split_axis == "x" else self.y
+        length = self.width if split_axis == "x" else self.height
+
+        results: list[Self] = []
+        for i in range(n):
             if is_int:
-                return [
-                    self.__class__(
-                        x=self.x,
-                        y=self.y + int(round(i * self.height / n)),
-                        width=self.width,
-                        height=int(round((i + 1) * self.height / n))
-                        - int(round(i * self.height / n)),
-                    )
-                    for i in range(n)
-                ]
+                curr_pos = start + int(round(i * length / n))
+                curr_len = int(round((i + 1) * length / n)) - int(
+                    round(i * length / n)
+                )
             else:
-                sub_height = self.height / n
-                return [
-                    self.__class__(
-                        x=self.x,
-                        y=self.y + i * sub_height,
-                        width=self.width,
-                        height=sub_height,
-                    )
-                    for i in range(n)
-                ]
-        elif mode == SplitMode.HORIZONTAL:
-            if is_int:
-                return [
-                    self.__class__(
-                        x=self.x + int(round(i * self.width / n)),
-                        y=self.y,
-                        width=int(round((i + 1) * self.width / n))
-                        - int(round(i * self.width / n)),
-                        height=self.height,
-                    )
-                    for i in range(n)
-                ]
+                sub_len = length / n
+                curr_pos = start + i * sub_len
+                curr_len = sub_len
+
+            if split_axis == "x":
+                item = self.__class__(
+                    x=curr_pos, y=self.y, width=curr_len, height=self.height
+                )
             else:
-                sub_width = self.width / n
-                return [
-                    self.__class__(
-                        x=self.x + i * sub_width,
-                        y=self.y,
-                        width=sub_width,
-                        height=self.height,
-                    )
-                    for i in range(n)
-                ]
-        else:
-            raise ValueError(f"不支持的切分模式: {mode}")
+                item = self.__class__(
+                    x=self.x, y=curr_pos, width=self.width, height=curr_len
+                )
+
+            results.append(item)
+
+        return results
 
 
 @dataclass(frozen=True)

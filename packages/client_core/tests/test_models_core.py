@@ -63,13 +63,13 @@ def test_region_split() -> None:
     region = Region(x=10, y=20, width=100, height=30)
     assert isinstance(region, BaseRegion)
 
-    rows = region.split(n=3, mode=SplitMode.VERTICAL)
+    rows = region.split(n=3, mode=SplitMode.HORIZONTAL)
     assert len(rows) == 3
     assert rows[0] == Region(x=10, y=20, width=100, height=10)
     assert rows[1] == Region(x=10, y=30, width=100, height=10)
     assert rows[2] == Region(x=10, y=40, width=100, height=10)
 
-    cols = region.split(n=4, mode=SplitMode.HORIZONTAL)
+    cols = region.split(n=4, mode=SplitMode.VERTICAL)
     assert len(cols) == 4
     assert cols[0] == Region(x=10, y=20, width=25, height=30)
 

@@ -3,9 +3,10 @@
 from pathlib import Path
 from unittest.mock import AsyncMock
 
+from client_core import Window
 import pytest
 
-from d4_client import InventoryPanel, MainHUD, SocialPanel, Window
+from d4_client import InventoryPanel, MainHUD, SocialPanel
 from sys_input.constants import VirtualKeyCode
 
 
@@ -35,7 +36,7 @@ def main_hud(mock_window: AsyncMock) -> MainHUD:
 @pytest.mark.anyio
 async def test_main_hud_is_visible(main_hud: MainHUD) -> None:
     """测试 MainHUD 基础判定。"""
-    visible = await main_hud.is_visible()
+    visible = await main_hud.check_visible()
     assert visible is True
 
     wait_res = await main_hud.wait_until_visible(timeout_sec=0.5, poll_interval_sec=0.1)

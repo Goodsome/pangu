@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 import logging
 from typing import override
 
+from mhxy_client.models.npcs.npc import Npc
 from mhxy_client.screens.inventory import InventoryPanel
 from sys_input import VirtualKeyCode
 from client_core import OcrResult, RelativeRegion
@@ -133,8 +134,16 @@ class MainHUD(BaseScreen):
         await self.mouse_click(self.config.confirm_give_roi.center)
         
     async def open_inventory(self):
-        if self.inventory.is_visible:
-            return
-        await self.window.hotkey(VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_E)
-        self.inventory = InventoryPanel(window=self.window)
-        await self.inventory.wait_until_visible()
+        await self.inventory.open()
+        
+    async def open_map(self):
+        await self.window.key_press(VirtualKeyCode.VK_TAB)
+
+    async def close_map(self):
+        await self.window.key_press(VirtualKeyCode.VK_TAB)
+        
+    async def lead_to_npc_house(self, target: Npc):
+        await self.open_map()
+        await self.mouse_click(target.map_location.center)
+        await self.close_map()
+        
