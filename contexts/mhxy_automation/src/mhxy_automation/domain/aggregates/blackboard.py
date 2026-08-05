@@ -13,14 +13,13 @@ from mhxy_client.models import SectTaskInfo
 class SectTaskContext:
     """师门任务跨帧状态上下文。
 
-    存储上一帧检查到的任务状态，供条件节点读取，避免重复 OCR。
+    仅存储需要跨帧共享的**领域数据**（如 OCR 解析结果），
+    不存储任何具体节点的执行状态（节点状态由节点自身通过 reset() 管理）。
     """
 
     task_info: SectTaskInfo | None = None
     """最近一次 check_sect_task 的解析结果，None 表示尚未检查。"""
 
-    go_to_shi_fu_triggered: bool = False
-    """是否已发出过「前往师父」的点击指令，防止在寻路途中反复触发点击。"""
 
 
 

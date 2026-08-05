@@ -1,7 +1,7 @@
 """动作节点：点击任务追踪面板中的「师父」超链接触发寻路。"""
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
@@ -18,13 +18,21 @@ class TriggerGoToShiFu(BaseNode):
     本节点仅负责**发起点击动作**，不等待寻路结果（单帧语义）。
     寻路是否完成由后续帧的 IsShiFuDialogVisible 条件节点判断。
 
+    内部状态
+    --------
+    _has_triggered : 是否已发出过点击，防止在寻路途中反复触发点击。
+                     由框架在寻路完成（Selector 的更高优先级条件成功）时
+                     通过 reset() 自动清理。
+
     前置条件（由外部 Sequence 保证）：
         blackboard.sect_task.task_info 不为 None 且状态为 CLAIMABLE。
 
     返回值：
-        RUNNING : 点击已发出，等待下帧确认对话框出现
+        RUNNING : 点击已发出（或已在等待中）
         FAILURE : task_info 或 action_point 为 None，无法执行点击
     """
+
+    _has_triggered: bool = field(default=False, init=False, repr=False)
 
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -33,8 +41,7 @@ class TriggerGoToShiFu(BaseNode):
             logger.warning("[TriggerGoToShiFu] task_info 或 action_point 为 None，无法点击")
             return NodeStatus.FAILURE
 
-        # 已经触发过寻路，本帧直接等待，不再重复点击
-        if blackboard.sect_task.go_to_shi_fu_triggered:
+        if self._has_triggered:
             logger.debug("[TriggerGoToShiFu] 寻路已触发，等待对话框出现")
             return NodeStatus.RUNNING
 
@@ -43,5 +50,11 @@ class TriggerGoToShiFu(BaseNode):
             task_info.action_point,
         )
         await blackboard.client.main_hud.go_to_shi_fu()
-        blackboard.sect_task.go_to_shi_fu_triggered = True
+        self._has_triggered = True
         return NodeStatus.RUNNING
+
+    @override
+    def reset(self) -> None:
+        """框架回调：寻路任务完成或被中断时，重置内部触发状态。"""
+        logger.debug("[TriggerGoToShiFu] reset() 被调用，清除触发标志")
+        self._has_triggered = False
