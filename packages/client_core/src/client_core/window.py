@@ -313,16 +313,14 @@ class Window:
     # ---------------------------------------------------------------------------
     # 输入模拟异步代理
     # ---------------------------------------------------------------------------
-    def get_sys_cursor_client_pos(self) -> Point | None:
+    def get_sys_cursor_client_pos(self) -> Point:
         """获取当前系统物理鼠标指针在窗口客户区中的相对坐标 Point。"""
         if not self.hwnd:
-            return None
-        try:
-            valid_hwnd = int(self.hwnd)
-            if valid_hwnd == 0:
-                return None
-        except ValueError, TypeError:
-            return None
+            raise RuntimeError("Window not initialized")
+            
+        valid_hwnd = int(self.hwnd)
+        if valid_hwnd == 0:
+            raise RuntimeError("Invalid window handle")
 
         sys_screen_pos = get_cursor_pos()
         client_origin_screen = client_to_screen(valid_hwnd, Point(x=0, y=0))

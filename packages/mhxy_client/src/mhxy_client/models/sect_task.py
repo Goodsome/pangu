@@ -57,6 +57,10 @@ class SectTaskInfo:
         elif self.full_description.startswith("帮师父送信"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL
+        elif self.full_description.startswith("买到布鞋"):
+            self.status = SectTaskStatus.IN_PROGRESS
+            self.task_type = TaskType.SHOPPING
+            self.task_target = "布鞋"
         elif self.full_description.startswith("任务完成"):
             self.status = SectTaskStatus.CLAIMABLE
         else:
@@ -92,11 +96,16 @@ class SectTaskInfo:
         raise ValueError(f"Unknown claim task point: {self.full_description}")
 
     def _resove_in_progress_point(self) -> Point:
+        assert self.task_target is not None
         match self.task_type:
             case TaskType.SEND_MAIL:
                 return self._resolve_point_by_targets(
                     search_targets=("送信给",),
                     get_next_word=True
+                )
+            case TaskType.SHOPPING:
+                return self._resolve_point_by_targets(
+                    search_targets=(self.task_target,),
                 )
             case _:
                 raise NotImplementedError

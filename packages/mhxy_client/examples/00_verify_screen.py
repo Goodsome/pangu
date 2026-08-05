@@ -20,7 +20,7 @@ async def async_main() -> None:
         client.activate()
         hud = client.main_hud
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
-        check_result = await hud.check_sect_task()
+        check_result = await hud.do_sect_task()
         logger.info(f"{check_result=}")
         
 
