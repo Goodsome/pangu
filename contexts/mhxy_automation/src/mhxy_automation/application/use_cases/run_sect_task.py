@@ -14,7 +14,7 @@ from mhxy_client.factory import create_mhxy_client_by_index
 logger = logging.getLogger(__name__)
 
 # 持续循环模式下每帧之间的间隔时间
-_TICK_INTERVAL_SEC: float = 0.5
+_TICK_INTERVAL_SEC: float = 1
 
 
 @dataclass

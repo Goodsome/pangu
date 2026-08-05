@@ -22,6 +22,7 @@ Sequence [师门任务总主控]
         └── ClaimSectTask              # Action: 点击「师门任务」选项，领取任务
 """
 
+from _pytest.config import Config
 from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     CheckSectTask,
     ClaimSectTask,
@@ -29,6 +30,8 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     TriggerGoToShiFu,
 )
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
+from mhxy_automation.domain.behavior_tree.actions.sect_task.click_task_in_dialog import ClickTaskInDialog
+from mhxy_automation.domain.behavior_tree.actions.sect_task.confirm_give import ConfirmGive
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
     IsSectTaskInProgress,
@@ -72,6 +75,8 @@ def build_sect_task_tree() -> BaseNode:
         children=[
             IsSendMailTask(),
             go_to_target,
+            ClickTaskInDialog(),
+            ConfirmGive(),
         ]
     )
     task_selector = Selector(

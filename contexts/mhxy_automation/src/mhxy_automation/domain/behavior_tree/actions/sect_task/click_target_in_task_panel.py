@@ -22,3 +22,7 @@ class ClickTargetInTaskPanel(Action):
         await blackboard.client.main_hud.click_target_in_task_panel(task_info.task_target)
         self._has_clicked = True
         return NodeStatus.RUNNING
+
+    @override
+    def reset(self) -> None:
+        self._has_clicked = False

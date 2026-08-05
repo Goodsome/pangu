@@ -7,6 +7,7 @@ from typing import override
 from mhxy_client.models.npcs.npc import Npc
 from mhxy_client.screens.dialogs.base import NpcDialog
 from mhxy_client.screens.inventory import InventoryPanel
+from mhxy_client.screens.panels.panels import Panels
 from sys_input import VirtualKeyCode
 from client_core import OcrResult, RelativeRegion
 from mhxy_client.models import SectTaskInfo
@@ -37,12 +38,14 @@ class MainHUD(BaseScreen):
 
     screen_name: str = "MainHUD"
     dialogs: Dialogs = field(init=False)
+    panels: Panels = field(init=False)
     inventory: InventoryPanel = field(init=False)
     
     sect_task_info: SectTaskInfo = field(init=False)
 
     def __post_init__(self):
         self.dialogs = Dialogs(window=self.window)
+        self.panels = Panels(window=self.window)
         self.inventory = InventoryPanel(window=self.window)
         self.sect_task_info = SectTaskInfo()
         self.is_visible: bool = True
@@ -165,3 +168,12 @@ class MainHUD(BaseScreen):
         action_point = self.sect_task_info.resolve_point_by_targets((target,))
         await self.mouse_click(action_point)
         
+    async def choose_option_in_dialog(self, dialog_name: str, option: str):
+        element = await self.locate_element(
+            element_key=f"dialog:{dialog_name}:{option}",
+            target_text=option,
+            roi=self.config.dialog_roi,
+        )
+        if element is None:
+            raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")
+        await self.mouse_click(target_roi=element.region)

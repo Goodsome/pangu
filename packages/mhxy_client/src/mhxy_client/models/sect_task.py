@@ -14,6 +14,7 @@ class SectTaskStatus(StrEnum):
     NOT_FOUND = "not_found"
     CLAIMABLE = "claimable"
     IN_PROGRESS = "in_progress"
+    REPORT = "report"
 
 
 class TaskType(StrEnum):
@@ -82,8 +83,11 @@ class SectTaskInfo:
                 self._task_target = "师父"
             else:
                 self._task_target = "布鞋"
-        elif self.full_description.startswith("任务完成"):
-            self.status = SectTaskStatus.CLAIMABLE
+        elif match := re.match(
+            r"任务完成，找师父报告去", self.full_description
+        ):
+            self.status = SectTaskStatus.REPORT
+            self._task_target = "师父"
         else:
             raise ValueError(f"Unknown task status: {self.full_description}")
 
@@ -96,6 +100,10 @@ class SectTaskInfo:
                 )
             case SectTaskStatus.IN_PROGRESS:
                 self.action_point = self._resove_in_progress_point()
+            case SectTaskStatus.REPORT:
+                self.action_point = self.resolve_point_by_targets(
+                    search_targets=("师父",)
+                )
             case _:
                 raise NotImplementedError
 
