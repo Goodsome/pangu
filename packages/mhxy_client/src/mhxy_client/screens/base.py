@@ -22,7 +22,7 @@ _DEFAULT_POINTER_TEMPLATE_PATH = (
 _TOLERANCE_PX: float = 10.0
 _SETTLE_SEC: float = 0.1
 # 钟形减速段 CV 检查点 (占步数比例)：此处速度低、游戏光标滞后误差小，offset 估计更准
-_CV_CHECKPOINT_FRACTIONS: tuple[float, ...] = (0.85,)
+_CV_CHECKPOINT_FRACTIONS: tuple[float, ...] = (0.8,)
 
 
 def _corrected_aim(abs_target: Point, sys_pos: Point, game: Point) -> Point:
@@ -35,7 +35,9 @@ def _corrected_aim(abs_target: Point, sys_pos: Point, game: Point) -> Point:
 
 def _hop_scale(hop_dist: float) -> tuple[int, float]:
     """按跳距缩放钟形步数与时长: 短跳用更少步数与更短时长。"""
-    return max(8, min(30, int(hop_dist / 20))), max(0.15, min(0.8, hop_dist / 1000))
+    steps = max(5, min(30, int(hop_dist / 20)))
+    duration = max(0.4, min(1.5, hop_dist / 200))
+    return steps, duration
 
 
 @dataclass
@@ -46,12 +48,12 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         sys_client_pos = self.window.get_sys_cursor_client_pos()
         win_w = self.window.width
         win_h = self.window.height
-        if sys_client_pos is None or not (
+        if not (
             0 <= sys_client_pos.x <= win_w and 0 <= sys_client_pos.y <= win_h
         ):
             # 系统光标不在窗口客户区内时才挪进来 (不再无条件重置到中心)
             sys_client_pos = await self.window.ensure_cursor_in_window()
-        radius = 50
+        radius = 100
         roi_x = max(0, sys_client_pos.x - radius)
         roi_y = max(0, sys_client_pos.y - radius)
         roi_w = min(win_w - roi_x, radius * 2)
@@ -167,7 +169,8 @@ class BaseScreen(AutoCalibratingScreen, ABC):
                 <= _TOLERANCE_PX
             ):
                 converged = True
-            return _corrected_aim(abs_target, sys_cur, game)
+            aim = _corrected_aim(abs_target, sys_cur, game)
+            return aim
 
         await self.window.bell_move_steps(
             sys_pos, aim, steps, duration_sec, on_step=on_step
@@ -175,7 +178,6 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         if converged:
             return True
 
-        # 残差修正循环 (兼最终确认): on_step 钟形未收敛时兜底
         for _ in range(max_retries):
             planned = await self._measure_and_plan(abs_target)
             if planned is None:

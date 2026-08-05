@@ -9,7 +9,6 @@ from client_core import OcrResult, RelativeRegion
 from mhxy_client.models import SectTaskInfo, SectTaskStatus
 from mhxy_client.screens.base import BaseScreen
 from mhxy_client.screens.dialogs.dialogs import Dialogs
-from mhxy_client.screens.dialogs.guan_yin_jie_jie import GuanYinJieJie
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +27,6 @@ _KNOWN_OTHER_TASKS = (
     "日常任务",
 )
 
-
-dialogs = {
-    "guan_yin_jie_jie": GuanYinJieJie,
-}
 
 @dataclass
 class MainHUD(BaseScreen):

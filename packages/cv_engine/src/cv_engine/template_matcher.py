@@ -111,6 +111,7 @@ class TemplateMatcher(ITemplateMatcher):
         self._template_cache[path_key] = img
         return img
 
+    @override
     def match_masked_template(
         self,
         scene: MatLike,
