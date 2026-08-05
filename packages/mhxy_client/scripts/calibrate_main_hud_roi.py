@@ -35,7 +35,8 @@ target_fields = [
     ("inventory_grid_roi", "背包网格区域"),
     ("feixingfu_map_changan_roi", "飞行符地图长安区域"),
     
-    # ("scene_location", ""),
+    # ("title_roi", ""),
+    # ("confirm_give_roi", ""),
     
 ]
 

@@ -103,6 +103,14 @@ class BaseRegion:
 
         return results
 
+    def get_unit(self, row: int, col: int, row_index: int, col_index: int) -> Self:
+        if not 0 <= row_index < row or not 0 <= col_index < col:
+            raise ValueError(f"Invalid row/col: {row_index}/{row} {col_index}/{col}")
+        
+        rows = self.split(row, mode=SplitMode.HORIZONTAL)
+        cols = rows[row_index].split(col, mode=SplitMode.VERTICAL)
+        return cols[col_index]
+
 
 @dataclass(frozen=True)
 class Point:

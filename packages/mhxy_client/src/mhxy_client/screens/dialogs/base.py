@@ -33,3 +33,6 @@ class NpcDialog(BaseScreen):
         
     async def claim_task(self) -> None:
         await self.choose_option("师门任务")
+
+    async def give(self) -> None:
+        await self.choose_option("给予")

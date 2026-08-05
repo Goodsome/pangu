@@ -36,6 +36,7 @@ class SectTaskInfo:
     full_description: str = ""
     task_type: TaskType | None = None
     task_target: str | None = None
+    has_item: bool = False
 
     def resolve(
         self,
@@ -60,7 +61,11 @@ class SectTaskInfo:
         elif self.full_description.startswith("买到布鞋"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING
-            self.task_target = "布鞋"
+            if "已拥有" in self.full_description:
+                self.has_item = True
+                self.task_target = "师父"
+            else:
+                self.task_target = "布鞋"
         elif self.full_description.startswith("任务完成"):
             self.status = SectTaskStatus.CLAIMABLE
         else:
@@ -70,7 +75,7 @@ class SectTaskInfo:
         """解析可点击超链接文字的物理中心坐标。"""
         match self.status:
             case SectTaskStatus.CLAIMABLE:
-                self.action_point = self._resolve_point_by_targets(
+                self.action_point = self.resolve_point_by_targets(
                     search_targets=("师父", "父", "师"),
                 )
             case SectTaskStatus.IN_PROGRESS:
@@ -79,7 +84,7 @@ class SectTaskInfo:
                 raise NotImplementedError
         
         
-    def _resolve_point_by_targets(
+    def resolve_point_by_targets(
         self,
         search_targets: tuple[str, ...],
         get_next_word: bool = False,
@@ -99,12 +104,12 @@ class SectTaskInfo:
         assert self.task_target is not None
         match self.task_type:
             case TaskType.SEND_MAIL:
-                return self._resolve_point_by_targets(
+                return self.resolve_point_by_targets(
                     search_targets=("送信给",),
                     get_next_word=True
                 )
             case TaskType.SHOPPING:
-                return self._resolve_point_by_targets(
+                return self.resolve_point_by_targets(
                     search_targets=(self.task_target,),
                 )
             case _:

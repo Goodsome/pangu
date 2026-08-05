@@ -4,6 +4,9 @@ from pathlib import Path
 from foundation import configure_logging 
 from mhxy_client import create_mhxy_client_by_index
 from mhxy_client.models.npcs.fu_zhuang_dian_lao_ban import FuZhuangDianLaoBan
+from mhxy_client.screens.dialogs.zhen_yuan_da_xian import ZhenYuanDaXianDialog
+from mhxy_client.screens.panels.give_panel import GivePanel
+from mhxy_client.screens.panels.shop_panel import ShopPanel
 from mhxy_client.screens.scenes.zhang_ji_bu_zhuang import ZhangJiBuZhuangScene
 
 log_dir = Path(__file__).resolve().parent.parent.parent.parent / "logs"
@@ -21,15 +24,14 @@ async def async_main() -> None:
     async with client:
         client.activate()
         hud = client.main_hud
+        # check_result = await hud.do_sect_task()
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
         # check_result = await hud.lead_to_npc_house(target=FuZhuangDianLaoBan())
         # check_result = await hud.inventory.use_fei_xing_fu(target=FeiXingFuMap.CHANG_AN)
-        check_result = await ZhangJiBuZhuangScene(window=hud.window).interact_with_npc(npc=FuZhuangDianLaoBan())
+        check_result = await GivePanel(hud.window).confirm_give()
         
-        # logger.info(f"{check_result=}")
+        logger.info(f"{check_result=}")
 
-        check_result_2 = await check_result.choose_option("购买")
-        logger.info(f"{check_result_2=}")
 
     logger.info("=" * 70)
 

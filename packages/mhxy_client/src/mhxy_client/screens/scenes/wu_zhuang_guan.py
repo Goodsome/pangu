@@ -4,5 +4,6 @@ from mhxy_client.screens.scenes.scene import Scene
 
 
 @dataclass
-class ZhangJiBuZhuangScene(Scene):
-    screen_name: str = "张记布庄"
+class WuZhuangGuan(Scene):
+    screen_name: str = "五庄观"
+    

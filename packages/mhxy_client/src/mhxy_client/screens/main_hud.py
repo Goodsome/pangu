@@ -37,10 +37,13 @@ class MainHUD(BaseScreen):
     screen_name: str = "MainHUD"
     dialogs: Dialogs = field(init=False)
     inventory: InventoryPanel = field(init=False)
+    
+    sect_task_info: SectTaskInfo = field(init=False)
 
     def __post_init__(self):
         self.dialogs = Dialogs(window=self.window)
         self.inventory = InventoryPanel(window=self.window)
+        self.sect_task_info = SectTaskInfo()
         self.is_visible: bool = True
 
     @override
@@ -81,12 +84,6 @@ class MainHUD(BaseScreen):
         return ""
 
     async def check_sect_task(self) -> SectTaskInfo:
-        """检查并解析主界面任务列表区域中的师门任务 (Sect Task)。
-
-        解析任务追踪面板是否展开、师门任务是否处于追踪中，
-        提取师门任务多行描述文本，判定任务状态 (如可领取 CLAIMABLE / 进行中 IN_PROGRESS)，
-        并精确定位包含 '师父'/'父'/'师' 等可交互超链接文字的精准像素坐标 Point。
-        """
         roi =  self.config.task_list_roi
         results = await self.window.ocr(roi=roi)
         task_info = SectTaskInfo()
@@ -121,11 +118,12 @@ class MainHUD(BaseScreen):
         task_info.ocr_items = sect_desc_ocr_items
         task_info.resolve()
 
+        self.sect_task_info = task_info
+
         return task_info
 
     async def do_sect_task(self):
-        task_info = await self.check_sect_task()
-        action_point = task_info.action_point
+        action_point = self.sect_task_info.action_point
         if action_point is None:
             raise ValueError("action_point is None")
         await self.mouse_click(action_point)
@@ -147,3 +145,9 @@ class MainHUD(BaseScreen):
         await self.mouse_click(target.map_location.center)
         await self.close_map()
         
+    async def return_shi_meng(self):
+        await self.window.key_press(VirtualKeyCode.VK_F8)
+
+    async def go_to_shi_fu(self):
+        action_point = self.sect_task_info.resolve_point_by_targets(("师父",))
+        await self.mouse_click(action_point)
