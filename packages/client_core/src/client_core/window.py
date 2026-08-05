@@ -6,6 +6,7 @@
 import logging
 import asyncio
 import random
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 import sys
@@ -317,7 +318,7 @@ class Window:
         """获取当前系统物理鼠标指针在窗口客户区中的相对坐标 Point。"""
         if not self.hwnd:
             raise RuntimeError("Window not initialized")
-            
+
         valid_hwnd = int(self.hwnd)
         if valid_hwnd == 0:
             raise RuntimeError("Invalid window handle")
@@ -380,6 +381,7 @@ class Window:
         target: Point,
         steps: int,
         duration_sec: float,
+        on_step: Callable[[int, int, Point], Awaitable[Point | None]] | None = None,
     ) -> None:
         """从 start 到 target (客户区坐标) 按 ease-in-out 钟形分步移动。
 
@@ -392,24 +394,38 @@ class Window:
             target: 终点客户区坐标。
             steps: 插值步数。
             duration_sec: 移动总耗时 (秒)。
+            on_step: 每步移动后的异步回调 (step_index 从 1 起, total_steps, current_point)。
+                返回 None 维持当前目标；返回 Point 则以当前位置为起点、返回值为新目标，
+                剩余步数重新走一条钟形 (用于减速段中途 CV 校正目标，实现边走边修)。
         """
         if steps <= 1:
             await self.mouse_move(target)
             return
 
         interval = duration_sec / steps
+        seg_start = start
+        seg_target = target
+        seg_offset = 0
         for i in range(1, steps + 1):
-            r = i / steps
+            seg_len = steps - seg_offset
+            r = (i - seg_offset) / seg_len if seg_len > 0 else 1.0
             # ease-in-out (smoothstep): 起停慢、中段快，近似最小急动度轨迹
             eased = 3 * r * r - 2 * r * r * r
             cur = Point(
-                x=int(start.x + (target.x - start.x) * eased),
-                y=int(start.y + (target.y - start.y) * eased),
+                x=int(seg_start.x + (seg_target.x - seg_start.x) * eased),
+                y=int(seg_start.y + (seg_target.y - seg_start.y) * eased),
             )
             await self.mouse_move(cur)
             # 轻微时间抖动 (±15%) 消除等间隔机械感
             jitter = interval * random.uniform(-0.15, 0.15)
             await asyncio.sleep(max(0.0, interval + jitter))
+            if on_step is not None and i < steps:
+                new_target = await on_step(i, steps, cur)
+                if new_target is not None and new_target != seg_target:
+                    # 重新基准: 从当前位置到新目标，剩余步数走一条新钟形
+                    seg_start = cur
+                    seg_target = new_target
+                    seg_offset = i
 
     async def smooth_mouse_move(
         self,
@@ -431,15 +447,13 @@ class Window:
         if abs_point is None:
             return
 
-        start = self.get_sys_cursor_client_pos() or Point(x=0, y=0)
+        start = self.get_sys_cursor_client_pos()
         await self.bell_move_steps(start, abs_point, steps, duration_sec)
 
         # 闭环反馈微调校正 (Closed-Loop Correction): 消除长距离移动下的线性缩放与四舍五入积累误差。
         # 在客户区坐标空间闭环，统一走 mouse_move (后端无关)。
         for _ in range(3):
             cur = self.get_sys_cursor_client_pos()
-            if cur is None:
-                break
             err_x = abs_point.x - cur.x
             err_y = abs_point.y - cur.y
             if abs(err_x) <= 1 and abs(err_y) <= 1:

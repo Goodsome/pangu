@@ -199,12 +199,47 @@ async def test_smooth_mouse_move_interpolation(
     """测试 smooth_mouse_move 从当前系统光标位置钟形插值到目标。"""
     mock_input = mock_deps[0]
     mock_input.reset_mock()
+    # start=Point(0,0)；闭环复测返回目标点 -> err=0 立即收敛，不额外移动
+    base_window.get_sys_cursor_client_pos = MagicMock(
+        side_effect=[Point(x=0, y=0), *[Point(x=100, y=200)] * 3]
+    )
 
-    # base_window 无 hwnd -> get_sys_cursor_client_pos 返回 None -> start=Point(0,0)
     await base_window.smooth_mouse_move(Point(x=100, y=200), steps=10, duration_sec=0.0)
 
-    # bell 步进 10 次；闭环因 hwnd=0 (get_sys_cursor_client_pos=None) 立即 break
+    # bell 步进 10 次 (闭环 err=0 不额外移动)
     assert mock_input.mouse_move.call_count == 10
     last = mock_input.mouse_move.call_args_list[-1].args[0]
     assert last.x == 100
     assert last.y == 200
+
+
+@pytest.mark.anyio
+async def test_bell_move_steps_on_step_retargets(
+    base_window: Window, mock_deps: tuple[MagicMock, ...]
+) -> None:
+    """测试 on_step 返回新目标时，剩余步数重新基准到新目标 (边走边修)。"""
+    mock_input = mock_deps[0]
+    mock_input.reset_mock()
+
+    async def retarget_at_mid(step: int, total: int, cur: Point) -> Point | None:
+        # 第 5 步把目标从 (100,0) 改为 (0,100)
+        if step == 5:
+            return Point(x=0, y=100)
+        return None
+
+    await base_window.bell_move_steps(
+        Point(x=0, y=0),
+        Point(x=100, y=0),
+        steps=10,
+        duration_sec=0.0,
+        on_step=retarget_at_mid,
+    )
+
+    assert mock_input.mouse_move.call_count == 10
+    pts = [(c.args[0].x, c.args[0].y) for c in mock_input.mouse_move.call_args_list]
+    # 第 5 步仍沿原目标到达 (50, 0)
+    assert pts[4] == (50, 0)
+    # 重新基准后末步到达新目标 (0, 100)
+    assert pts[-1] == (0, 100)
+    # 重新基准后轨迹转向: y 开始增长
+    assert pts[5][1] > 0

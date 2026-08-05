@@ -21,6 +21,21 @@ _DEFAULT_POINTER_TEMPLATE_PATH = (
 # 校准容差与 CV 沉淀时间：游戏光标滞后系统光标，测量前需沉淀让其追上
 _TOLERANCE_PX: float = 10.0
 _SETTLE_SEC: float = 0.1
+# 钟形减速段 CV 检查点 (占步数比例)：此处速度低、游戏光标滞后误差小，offset 估计更准
+_CV_CHECKPOINT_FRACTIONS: tuple[float, ...] = (0.85,)
+
+
+def _corrected_aim(abs_target: Point, sys_pos: Point, game: Point) -> Point:
+    """按 offset (game - sys) 反算系统光标目标: aim = target - offset。"""
+    return Point(
+        x=abs_target.x - (game.x - sys_pos.x),
+        y=abs_target.y - (game.y - sys_pos.y),
+    )
+
+
+def _hop_scale(hop_dist: float) -> tuple[int, float]:
+    """按跳距缩放钟形步数与时长: 短跳用更少步数与更短时长。"""
+    return max(8, min(30, int(hop_dist / 20))), max(0.15, min(0.8, hop_dist / 1000))
 
 
 @dataclass
@@ -87,6 +102,28 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         game_cursor, is_pointer = await self._get_game_mouse()
         return sys_pos, game_cursor, is_pointer
 
+    async def _measure_and_plan(
+        self, abs_target: Point
+    ) -> tuple[Point, Point, int, float] | None:
+        """沉淀测量并规划下一步钟形: 返回 (sys_pos, aim, steps, duration)。
+
+        已命中指针模板或落入容差时返回 None (视为到位)。
+        """
+        sys_pos, game_cursor, is_pointer = await self._measure_game_cursor()
+        if game_cursor is None:
+            raise RuntimeError("未匹配到游戏鼠标模板 cursor.png")
+        if is_pointer:
+            return None
+        if (
+            math.hypot(game_cursor.x - abs_target.x, game_cursor.y - abs_target.y)
+            <= _TOLERANCE_PX
+        ):
+            return None
+        aim = _corrected_aim(abs_target, sys_pos, game_cursor)
+        hop_dist = math.hypot(aim.x - sys_pos.x, aim.y - sys_pos.y)
+        steps, duration_sec = _hop_scale(hop_dist)
+        return sys_pos, aim, steps, duration_sec
+
     async def mouse_move(
         self,
         target_point: Point | RelativePoint,
@@ -94,13 +131,14 @@ class BaseScreen(AutoCalibratingScreen, ABC):
     ) -> bool:
         """校准移动鼠标光标至目标点，补偿游戏鼠标与系统光标的位置偏移。
 
-        拥有一整条钟形轨迹：每次迭代沉淀后用 CV 测量游戏鼠标实际位置，按偏移反算
-        系统光标目标 aim，再用一条 ease-in-out 钟形 (按距离缩放步数/时长) 移动过去；
-        首次迭代为主弹道，后续为残差小修正，直至落入容差或命中指针模板。
+        一条钟形 + 减速段中途 CV: 初始测偏移定粗略 aim，钟形行进至减速段检查点时
+        复测 (此处速度低、游戏光标滞后误差小)，用新鲜 offset 重算 aim 并重新基准
+        剩余步数 (边走边修)，避免"先冲到错误目标再二次修正"的机械感。
+        未收敛则进入残差修正循环兜底。
 
         Args:
             target_point: 目标点 (绝对 Point 或相对 RelativePoint)。
-            max_retries: 最大校准迭代次数。
+            max_retries: 残差修正最大迭代次数。
 
         Returns:
             bool: 到位返回 True，达到最大次数仍未收敛返回 False。
@@ -108,28 +146,42 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         abs_target = self.window.resolve_point(target_point)
         assert abs_target is not None
 
-        for _ in range(max_retries):
-            sys_pos, game_cursor, is_pointer = await self._measure_game_cursor()
-            if game_cursor is None:
-                raise RuntimeError("未匹配到游戏鼠标模板 cursor.png")
-            if is_pointer:
-                return True
-            if (
-                math.hypot(game_cursor.x - abs_target.x, game_cursor.y - abs_target.y)
+        planned = await self._measure_and_plan(abs_target)
+        if planned is None:
+            return True
+        sys_pos, aim, steps, duration_sec = planned
+        checkpoints = {int(steps * f) for f in _CV_CHECKPOINT_FRACTIONS}
+        checkpoints.discard(0)
+        converged = False
+
+        async def on_step(step: int, total: int, cur: Point) -> Point | None:
+            nonlocal converged
+            if step not in checkpoints:
+                return None
+            # 减速段检查点: 速度低、滞后误差小，offset 估计更准
+            sys_cur, game, is_pointer = await self._measure_game_cursor()
+            if game is None:
+                return None
+            if is_pointer or (
+                math.hypot(game.x - abs_target.x, game.y - abs_target.y)
                 <= _TOLERANCE_PX
             ):
+                converged = True
+            return _corrected_aim(abs_target, sys_cur, game)
+
+        await self.window.bell_move_steps(
+            sys_pos, aim, steps, duration_sec, on_step=on_step
+        )
+        if converged:
+            return True
+
+        # 残差修正循环 (兼最终确认): on_step 钟形未收敛时兜底
+        for _ in range(max_retries):
+            planned = await self._measure_and_plan(abs_target)
+            if planned is None:
                 return True
-            # 偏移校正：系统光标目标 = 目标点 - (游戏鼠标 - 系统光标)
-            aim = Point(
-                x=abs_target.x - (game_cursor.x - sys_pos.x),
-                y=abs_target.y - (game_cursor.y - sys_pos.y),
-            )
-            # 单条钟形到 aim，按跳距缩放步数/时长：短跳用更少步数与更短时长
-            hop_dist = math.hypot(aim.x - sys_pos.x, aim.y - sys_pos.y)
-            steps = max(8, min(30, int(hop_dist / 20)))
-            duration_sec = max(0.15, min(0.8, hop_dist / 1000))
+            sys_pos, aim, steps, duration_sec = planned
             await self.window.bell_move_steps(sys_pos, aim, steps, duration_sec)
-            # 下一轮迭代开头的 _measure_game_cursor 负责再次沉淀与复测
 
         logger.warning("达到最大校准重试次数")
         return False
