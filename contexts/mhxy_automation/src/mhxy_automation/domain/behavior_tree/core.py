@@ -20,6 +20,7 @@ reset() 由父节点在以下时机调用：
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from tkinter.constants import E
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
@@ -43,9 +44,49 @@ class BaseNode(ABC):
         """
         pass
 
+@dataclass
+class Condition(BaseNode, ABC):
+    """条件节点。"""
+    
 
 @dataclass
-class Selector(BaseNode):
+class Action(BaseNode, ABC):
+    """动作节点。"""
+
+@dataclass
+class Composite(BaseNode, ABC):
+    """复合节点基类。"""
+    children: list[BaseNode]
+    _running_child: BaseNode | None = field(default=None, init=False, repr=False)
+
+    def set_running_child(self, node: BaseNode) -> None:
+        """当节点返回 RUNNING 时调用：
+        
+        若发生优先级抢占（新的 running 节点不同于旧的），则中断重置旧节点。
+        """
+        if self._running_child is not None and self._running_child is not node:
+            self._running_child.reset()
+        self._running_child = node
+
+    def clear_running_child(self, current_node: BaseNode | None = None) -> None:
+        """当节点返回 SUCCESS 或 FAILURE 时调用：
+        
+        传入 current_node，用于豁免该节点（因为它自然结束了，不需要被中断）。
+        只有被当前节点抢占导致跳过的原本处于 RUNNING 的节点，才会被重置。
+        """
+        if self._running_child is not None and self._running_child is not current_node:
+            self._running_child.reset()
+        self._running_child = None
+
+    @override
+    def reset(self) -> None:
+        """当复合节点本身被父节点中断时，级联清理。"""
+        if self._running_child is not None:
+            self._running_child.reset()
+            self._running_child = None
+
+@dataclass
+class Selector(Composite):
     """选择节点（OR 语义 / Fallback）。
 
     从左到右依次 tick 子节点：
@@ -56,42 +97,26 @@ class Selector(BaseNode):
     - 所有子节点均 FAILURE → 返回 FAILURE
     """
 
-    children: list[BaseNode]
-    _running_child: BaseNode | None = field(default=None, init=False, repr=False)
-
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         for child in self.children:
             status = await child.tick(blackboard)
 
             if status == NodeStatus.RUNNING:
-                # 若切换到了不同的子节点处于 RUNNING，先 reset 旧的挂起节点
-                if self._running_child is not None and self._running_child is not child:
-                    self._running_child.reset()
-                self._running_child = child
+                self.set_running_child(child)
                 return NodeStatus.RUNNING
 
             if status == NodeStatus.SUCCESS:
-                # 高优先级子节点成功，若之前有其他节点挂在 RUNNING，通知其 reset
-                if self._running_child is not None and self._running_child is not child:
-                    self._running_child.reset()
-                self._running_child = None
+                self.clear_running_child(child)
                 return NodeStatus.SUCCESS
 
         # 所有子节点均 FAILURE
-        self._running_child = None
+        self.clear_running_child()
         return NodeStatus.FAILURE
-
-    @override
-    def reset(self) -> None:
-        """级联重置挂起的子节点。"""
-        if self._running_child is not None:
-            self._running_child.reset()
-            self._running_child = None
 
 
 @dataclass
-class Sequence(BaseNode):
+class Sequence(Composite):
     """顺序节点（AND 语义）。
 
     从左到右依次 tick 子节点：
@@ -101,28 +126,30 @@ class Sequence(BaseNode):
     - 所有子节点均 SUCCESS → 返回 SUCCESS
     """
 
-    children: list[BaseNode]
-    _running_child: BaseNode | None = field(default=None, init=False, repr=False)
-
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         for child in self.children:
             status = await child.tick(blackboard)
 
             if status == NodeStatus.RUNNING:
-                self._running_child = child
+                self.set_running_child(child)   
                 return NodeStatus.RUNNING
 
             if status == NodeStatus.FAILURE:
-                self._running_child = None
+                self.clear_running_child(child)
                 return NodeStatus.FAILURE
 
-        self._running_child = None
+        self.clear_running_child()
         return NodeStatus.SUCCESS
 
-    @override
-    def reset(self) -> None:
-        """级联重置挂起的子节点。"""
-        if self._running_child is not None:
-            self._running_child.reset()
-            self._running_child = None
+
+@dataclass
+class Ensure(Selector):
+    """确保节点。"""
+
+    condition: Condition
+    action: Action
+    children: list[BaseNode] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.children: list[BaseNode] = [self.condition, self.action]

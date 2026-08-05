@@ -27,15 +27,18 @@ class CheckSectTask(BaseNode):
 
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
+        if blackboard.sect_task.has_task_info():
+            return NodeStatus.SUCCESS
+        
         hud = blackboard.client.main_hud
         try:
             task_info = await hud.check_sect_task()
         except Exception:
             logger.exception("[CheckSectTask] 检查师门任务时发生异常")
-            blackboard.sect_task.task_info = None
+            blackboard.sect_task.set_task_info(None)
             return NodeStatus.SUCCESS
 
-        blackboard.sect_task.task_info = task_info
+        blackboard.sect_task.set_task_info(task_info)
         logger.debug(
             "[CheckSectTask] 任务状态: %s, 描述: %s",
             task_info.status,

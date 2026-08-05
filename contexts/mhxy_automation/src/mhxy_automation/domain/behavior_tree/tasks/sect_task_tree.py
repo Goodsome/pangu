@@ -28,13 +28,16 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     CloseShiFuDialog,
     TriggerGoToShiFu,
 )
+from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
     IsSectTaskInProgress,
     IsShiFuDialogNotVisible,
     IsShiFuDialogVisible,
 )
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Selector, Sequence
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, Selector, Sequence
 
 
 def build_sect_task_tree() -> BaseNode:
@@ -61,11 +64,26 @@ def build_sect_task_tree() -> BaseNode:
             CloseShiFuDialog(),
         ]
     )
+    go_to_target = Ensure(
+        condition=IsTargetDialogVisible(),
+        action=ClickTargetInTaskPanel(),
+    )
+    send_mail = Sequence(
+        children=[
+            IsSendMailTask(),
+            go_to_target,
+        ]
+    )
+    task_selector = Selector(
+        children=[
+            send_mail,
+        ]
+    )
     in_progress_branch = Sequence(
         children=[
             IsSectTaskInProgress(),
             close_dialog_if_needed,
-            # 暂留：后续拓展具体的任务子树 (如送信/买物品)
+            task_selector,
         ]
     )
 

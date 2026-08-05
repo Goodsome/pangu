@@ -36,9 +36,15 @@ class SectTaskInfo:
     ocr_items: list[OcrResult] = field(default_factory=list)
     full_description: str = ""
     task_type: TaskType | None = None
-    task_target: str | None = None
+    _task_target: str | None = None
     task_round: int | None = None
     has_item: bool = False
+
+    @property
+    def task_target(self) -> str:
+        if self._task_target is None:
+            raise ValueError("task_target is not resolved")
+        return self._task_target
 
     def resolve(
         self,
@@ -57,25 +63,25 @@ class SectTaskInfo:
         """解析任务状态。"""
         if self.full_description.startswith("新的一天"):
             self.status = SectTaskStatus.CLAIMABLE
-            self.task_target = "父"
+            self._task_target = "父"
         elif self.full_description.startswith("继续回师门"):
             self.status = SectTaskStatus.CLAIMABLE
-            self.task_target = "师父"
+            self._task_target = "师父"
         elif match := re.match(
             r"帮师父送信给(.+?)，当前第(\d+)次", self.full_description
         ):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL
-            self.task_target = match.group(1)
+            self._task_target = match.group(1)
             self.task_round = int(match.group(2))
         elif self.full_description.startswith("买到布鞋"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING
             if "已拥有" in self.full_description:
                 self.has_item = True
-                self.task_target = "师父"
+                self._task_target = "师父"
             else:
-                self.task_target = "布鞋"
+                self._task_target = "布鞋"
         elif self.full_description.startswith("任务完成"):
             self.status = SectTaskStatus.CLAIMABLE
         else:
@@ -112,7 +118,7 @@ class SectTaskInfo:
         raise ValueError(f"Unknown claim task point: {self.full_description}")
 
     def _resove_in_progress_point(self) -> Point:
-        assert self.task_target is not None
+        assert self._task_target is not None
         match self.task_type:
             case TaskType.SEND_MAIL:
                 return self.resolve_point_by_targets(
@@ -120,7 +126,7 @@ class SectTaskInfo:
                 )
             case TaskType.SHOPPING:
                 return self.resolve_point_by_targets(
-                    search_targets=(self.task_target,),
+                    search_targets=(self._task_target,),
                 )
             case _:
                 raise NotImplementedError

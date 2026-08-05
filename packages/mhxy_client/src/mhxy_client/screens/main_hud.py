@@ -5,6 +5,7 @@ import logging
 from typing import override
 
 from mhxy_client.models.npcs.npc import Npc
+from mhxy_client.screens.dialogs.base import NpcDialog
 from mhxy_client.screens.inventory import InventoryPanel
 from sys_input import VirtualKeyCode
 from client_core import OcrResult, RelativeRegion
@@ -151,3 +152,16 @@ class MainHUD(BaseScreen):
     async def go_to_shi_fu(self):
         action_point = self.sect_task_info.resolve_point_by_targets(("师父",))
         await self.mouse_click(action_point)
+
+    async def check_dialog_visible(self, npc_name: str) -> bool:
+        element = await self.locate_element(
+            element_key=f"dialog:{npc_name}",
+            target_text=npc_name,
+            roi=self.config.dialog_name_roi
+        )
+        return element is not None
+
+    async def click_target_in_task_panel(self, target: str):
+        action_point = self.sect_task_info.resolve_point_by_targets((target,))
+        await self.mouse_click(action_point)
+        
