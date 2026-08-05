@@ -13,6 +13,6 @@ class InventoryPanel(AutoCalibratingScreen):
     screen_name: str = "InventoryScreen"
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """检查当前是否处于背包面板。"""
         return True

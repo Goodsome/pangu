@@ -17,7 +17,7 @@ class SocialPanel(AutoCalibratingScreen):
     screen_name: str = "SocialPanel"
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """检查当前是否处于社交面板。"""
         return True
 

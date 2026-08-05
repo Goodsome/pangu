@@ -24,7 +24,7 @@ class SocialPanel(AutoCalibratingScreen):
     screen_name: str = "SocialScreen"
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """检查当前是否处于社交界面。"""
         add_friend_located = await self.locate_element(
             element_key="add_friend",

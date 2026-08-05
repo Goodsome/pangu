@@ -8,7 +8,7 @@ class NpcDialog(BaseScreen):
     npc_name: str
     
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         element = await self.locate_element(
             element_key="dialog_name",
             target_text=self.npc_name,
@@ -21,7 +21,6 @@ class NpcDialog(BaseScreen):
             element_key="sect_task",
             target_text="师门任务",
             roi=self.config.claim_task_roi,
-            is_element_fixed=True,
         )
         if element is None:
             raise RuntimeError("未能定位到师门任务元素")

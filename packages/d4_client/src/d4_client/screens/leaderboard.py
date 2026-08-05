@@ -63,7 +63,7 @@ class LeaderboardScreen(AutoCalibratingScreen):
     # ------------------------------------------------------------------
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """通过检测"天梯榜"标题文字判断当前是否处于天梯榜页面 (使用新版 layout)。"""
         result = await self.window.find_text(
             target_text=self.layout.title_text,
@@ -168,7 +168,8 @@ class LeaderboardScreen(AutoCalibratingScreen):
         await self.click_element(
             element_key="open_player_config",
             target_text="查看配置",
-            roi=self.layout.row_manu_roi
+            roi=self.layout.row_manu_roi,
+            is_element_fixed=False,
         )
 
         screen = PlayerConfigScreen(

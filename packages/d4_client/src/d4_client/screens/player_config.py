@@ -55,7 +55,7 @@ class PlayerConfigScreen(AutoCalibratingScreen):
     # ------------------------------------------------------------------
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """通过检测"配置查看器"标题文字判断当前是否处于配置查看页。"""
         result = await self.locate_element(
             element_key="title",

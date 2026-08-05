@@ -40,6 +40,21 @@ from client_core.models import (
 
 logger = logging.getLogger(__name__)
 
+def get_random_duration(
+    mean: float, std_dev: float = 0.01, min_val: float = 0.01, max_val: float = 0.1
+) -> float:
+    """生成服从正态分布的随机时长（带有上下限截断）。
+
+    :param mean: 均值（期望的平均时长，秒）
+    :param std_dev: 标准差（控制波动幅度）
+    :param min_val: 允许的最小值，防止出现负数或 0
+    :param max_val: 允许的最大值（可选）
+    """
+    duration = random.gauss(mean, std_dev)
+    duration = max(min_val, duration)
+    duration = min(max_val, duration)
+
+    return duration
 
 def activate_window(hwnd: HWND) -> None:
     """Win32 API 置顶并激活指定 HWND 窗口。"""
@@ -520,10 +535,24 @@ class Window:
         self, vk_code: VirtualKeyCode | int, duration_sec: float = 0.05
     ) -> None:
         """异步模拟按键按下并在指定秒后抬起。"""
+        duration_sec = get_random_duration(mean=duration_sec)
         await self.input_backend.key_down(vk_code)
-        if duration_sec > 0:
-            await asyncio.sleep(duration_sec)
+        await asyncio.sleep(duration_sec)
         await self.input_backend.key_up(vk_code)
+
+    async def hotkey(self, *vk_codes: VirtualKeyCode, duration_sec: float = 0.05, interval_sec: float = 0.02) -> None:
+        """异步模拟热键按下并立即抬起。"""
+        if not vk_codes:
+            return
+        for vk in vk_codes:
+            await self.input_backend.key_down(vk)
+            interval_sec = get_random_duration(mean=interval_sec)
+            await asyncio.sleep(interval_sec)
+        duration_sec = get_random_duration(mean=duration_sec)
+        await asyncio.sleep(duration_sec)
+        for vk in reversed(vk_codes):
+            await self.input_backend.key_up(vk)
+            await asyncio.sleep(interval_sec)
 
     async def scroll(
         self, amount: int, point: Point | RelativePoint | None = None

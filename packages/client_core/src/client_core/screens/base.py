@@ -20,13 +20,14 @@ class AutoCalibratingScreen:
 
     window: Window
     screen_name: str = "BaseScreen"
+    is_visible: bool = False
 
     _element_cache: ClassVar[dict[str, Element]] = {}
 
     def __init_subclass__(cls) -> None:
         cls._element_cache = {}
 
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """判断当前页面/屏幕是否处于可见/激活状态。
 
         子类应重写此方法，通过特征模板或关键文本识别页面状态。
@@ -52,7 +53,8 @@ class AutoCalibratingScreen:
 
         while loop.time() < deadline:
             await self.window.begin_frame()
-            if await self.is_visible():
+            self.is_visible = await self.check_visible()
+            if self.is_visible:
                 return True
             await asyncio.sleep(poll_interval_sec)
 
@@ -64,7 +66,7 @@ class AutoCalibratingScreen:
         element_key: str,
         target_text: str,
         roi: Region | RelativeRegion | None = None,
-        is_element_fixed: bool = False,
+        is_element_fixed: bool = True,
     ) -> Element | None:
         """定位特定 UI 元素。
 

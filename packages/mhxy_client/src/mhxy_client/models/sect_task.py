@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum, auto
 
 from client_core import OcrResult, Point
-from mhxy_client.models.task import calculate_substring_point, resolve_action_point
+from mhxy_client.models.task import calculate_substring_point
 
 
 class SectTaskStatus(StrEnum):

@@ -19,7 +19,7 @@ class MainHUD(AutoCalibratingScreen):
     screen_name: str = "MainHUD"
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """检查当前界面是否为主 HUD 视角。"""
 
         results = await self.window.ocr(roi=_MAP_NAME_ROI)

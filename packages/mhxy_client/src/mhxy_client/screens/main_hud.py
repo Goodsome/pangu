@@ -1,12 +1,13 @@
 """梦幻西游 常驻主界面 (MainHUD) 页面对象模型。"""
 
-import asyncio
 from dataclasses import dataclass, field
 import logging
 from typing import override
 
+from mhxy_client.screens.inventory import InventoryPanel
+from sys_input import VirtualKeyCode
 from client_core import OcrResult, RelativeRegion
-from mhxy_client.models import SectTaskInfo, SectTaskStatus
+from mhxy_client.models import SectTaskInfo
 from mhxy_client.screens.base import BaseScreen
 from mhxy_client.screens.dialogs.dialogs import Dialogs
 
@@ -34,12 +35,15 @@ class MainHUD(BaseScreen):
 
     screen_name: str = "MainHUD"
     dialogs: Dialogs = field(init=False)
+    inventory: InventoryPanel = field(init=False)
 
     def __post_init__(self):
         self.dialogs = Dialogs(window=self.window)
+        self.inventory = InventoryPanel(window=self.window)
+        self.is_visible: bool = True
 
     @override
-    async def is_visible(self) -> bool:
+    async def check_visible(self) -> bool:
         """检查当前界面是否为主 HUD 视角。"""
         roi = (
             self.config.map_name_roi
@@ -106,11 +110,9 @@ class MainHUD(BaseScreen):
             )
             return task_info
 
-        # 3. 从 "师门任务" 下一行开始遍历解析多行描述文本，遇到下一个任务标题则截止
         sect_desc_ocr_items: list[OcrResult] = []
         for res in results[sect_title_idx + 1 :]:
             text = res.text.strip()
-            # 若遇到其他已知任务标题，代表当前师门任务描述结束
             if any(header in text for header in _KNOWN_OTHER_TASKS):
                 break
             sect_desc_ocr_items.append(res)
@@ -119,47 +121,6 @@ class MainHUD(BaseScreen):
         task_info.resolve()
 
         return task_info
-
-
-    async def claim_sect_task(
-        self,
-        delay_before_click_sec: float = 1.0,
-    ) -> bool:
-        """检查并触发师门任务领取/寻路交互。
-
-        Args:
-            move_only: 若为 True，仅将鼠标光标移动至目标位置，不执行点击 (用于调试校准)
-            delay_before_click_sec: 光标移动到位后、执行点击前的等待延时秒数 (默认 1.0s)
-
-        Returns:
-            bool: 成功触发移动/点击返回 True，否则返回 False
-        """
-        task_info = await self.check_sect_task()
-        if (
-            task_info.status != SectTaskStatus.CLAIMABLE
-            or task_info.action_point is None
-        ):
-            logger.warning( "[%s] 无法触发师门任务领取 (当前状态: %s, 坐标: %s)",
-                self.screen_name,
-                task_info.status,
-                task_info.action_point,
-            )
-            return False
-
-        target_point = task_info.action_point
-
-        await self.mouse_move(target_point=target_point)
-
-        if delay_before_click_sec > 0:
-            logger.info(
-                "[%s] ⏳ 暂停等待 %.2f 秒以稳定鼠标焦点...",
-                self.screen_name,
-                delay_before_click_sec,
-            )
-            await asyncio.sleep(delay_before_click_sec)
-
-        await self.window.mouse_click(point=None)
-        return True
 
     async def do_sect_task(self):
         task_info = await self.check_sect_task()
@@ -171,3 +132,9 @@ class MainHUD(BaseScreen):
     async def confirm_give(self):
         await self.mouse_click(self.config.confirm_give_roi.center)
         
+    async def open_inventory(self):
+        if self.inventory.is_visible:
+            return
+        await self.window.hotkey(VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_E)
+        self.inventory = InventoryPanel(window=self.window)
+        await self.inventory.wait_until_visible()
