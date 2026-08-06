@@ -42,7 +42,7 @@ class InventoryPanel(BaseScreen):
         logger.info(f"{grid_roi=}, {unit_grid_roi=}")
         await self.mouse_click(target_roi=unit_grid_roi, button=MouseButton.RIGHT)
 
-    async def use_fei_xing_fu(self, target: Map):
+    async def use_fei_xing_fu(self, target: str):
         if not self.is_visible:
             await self.open()
         

@@ -1,5 +1,5 @@
-from enum import StrEnum, auto
+from enum import StrEnum
 
 
 class Map(StrEnum):
-    CHANG_AN = auto()
+    CHANG_AN = "长安城"

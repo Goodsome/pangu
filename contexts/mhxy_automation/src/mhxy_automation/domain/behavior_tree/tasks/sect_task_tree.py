@@ -30,6 +30,7 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task import (
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_task_in_dialog import ClickTaskInDialog
 from mhxy_automation.domain.behavior_tree.actions.sect_task.confirm_give import ConfirmGive
+from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop_map import GoToShopMap
 from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng import ReturnShiMeng
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
@@ -37,13 +38,30 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsShiFuDialogNotVisible,
     IsShiFuDialogVisible,
 )
-from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_current_map import IsCurrentMap
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_shopping_map import CheckShoppingMap
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_task_type import CheckTaskType
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_current_map import IsInMap
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, Selector, Sequence, Not
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, Selector, Sequence
 from mhxy_client import SectTaskStatus
+from mhxy_client.models.sect_task import TaskType
 
+
+def build_shopping_tree() -> BaseNode:
+    ensure_to_shop_map = Ensure(
+        condition=CheckShoppingMap(),
+        action=GoToShopMap(),
+    )
+    shopping = Sequence(
+        children=[
+            CheckTaskType(TaskType.SHOPPING),
+            ensure_to_shop_map,
+        ]
+    )
+    return shopping
+    
 
 def build_sect_task_tree() -> BaseNode:
     """装配师门任务行为树并返回根节点。"""
@@ -81,21 +99,22 @@ def build_sect_task_tree() -> BaseNode:
             ConfirmGive(),
         ]
     )
-    task_selector = Selector(
+    dispatch_task = Selector(
         children=[
             send_mail,
+            build_shopping_tree(),
         ]
     )
     in_progress_branch = Sequence(
         children=[
             IsSectTaskInProgress(),
             close_dialog_if_needed,
-            task_selector,
+            dispatch_task,
         ]
     )
 
     return_shi_meng = Ensure(
-        condition=IsCurrentMap(["五庄观", "镇元殿"]),
+        condition=IsInMap(["五庄观", "镇元殿"]),
         action=ReturnShiMeng(),
     )
 
