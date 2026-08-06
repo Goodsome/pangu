@@ -24,11 +24,12 @@ async def async_main() -> None:
     async with client:
         client.activate()
         hud = client.main_hud
-        check_result = await hud.check_sect_task()
+        # check_result = await hud.check_sect_task()
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
         # check_result = await hud.lead_to_npc_house(target=FuZhuangDianLaoBan())
         # check_result = await hud.inventory.use_fei_xing_fu(target=FeiXingFuMap.CHANG_AN)
         # check_result = await GivePanel(hud.window).confirm_give()
+        check_result = await hud.panels.shop_panel.check_visible()
         
         logger.info(f"{check_result=}")
 

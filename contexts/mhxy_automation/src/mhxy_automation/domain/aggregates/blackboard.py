@@ -46,3 +46,7 @@ class Blackboard:
 
     client: MhxyClient
     sect_task: SectTaskContext = field(default_factory=SectTaskContext)
+
+    @property
+    def main_hud(self):
+        return self.client.main_hud

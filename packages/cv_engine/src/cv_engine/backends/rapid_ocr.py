@@ -71,7 +71,7 @@ class RapidOcrEngine(BaseOcrEngine):
         scene: MatLike,
         confidence_threshold: float = 0.5,
         roi: Region | None = None,
-        save_debug_img: bool = False,
+        debug: bool = False,
         debug_dir: str = "screenshots",
     ) -> list[OcrResult]:
         """同步识别场景中全部文本内容及其所在位置几何信息。"""
@@ -102,7 +102,7 @@ class RapidOcrEngine(BaseOcrEngine):
             return results
     
         # 3. 保存调试图片逻辑
-        if save_debug_img:
+        if debug:
             save_path = pathlib.Path(debug_dir)
             save_path.mkdir(parents=True, exist_ok=True)
             timestamp = int(time.time() * 1000)
@@ -113,6 +113,8 @@ class RapidOcrEngine(BaseOcrEngine):
     
         # 4. 解析识别结果并还原坐标
         for line in ocr_output:
+            if debug:
+                logger.info(f"line: {line}")
             if not line or len(line) < 3:
                 continue
     

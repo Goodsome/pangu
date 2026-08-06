@@ -27,12 +27,15 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     ClaimSectTask,
     CloseShiFuDialog,
 )
+from mhxy_automation.domain.behavior_tree.actions.sect_task.buy_item import BuyItem
+from mhxy_automation.domain.behavior_tree.actions.sect_task.choose_item import ChooseItem
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_task_in_dialog import ClickTaskInDialog
 from mhxy_automation.domain.behavior_tree.actions.sect_task.confirm_give import ConfirmGive
 from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop import GoToShop
 from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop_map import GoToShopMap
 from mhxy_automation.domain.behavior_tree.actions.sect_task.open_shop_dialog import OpenShopDialog
+from mhxy_automation.domain.behavior_tree.actions.sect_task.open_shop_panel import OpenShopPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng import ReturnShiMeng
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
@@ -45,6 +48,7 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_shop_map im
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_task_type import CheckTaskType
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_current_map import IsInMap
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_dialog_visible import IsShopDialogVisible
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_visible import IsShopPanelVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
@@ -66,12 +70,19 @@ def build_shopping_tree() -> BaseNode:
         condition=IsShopDialogVisible(),
         action=OpenShopDialog(),
     )
+    ensure_open_shop_panel = Ensure(
+        condition=IsShopPanelVisible(),
+        action=OpenShopPanel(),
+    )
     shopping = Sequence(
         children=[
             CheckTaskType(TaskType.SHOPPING),
             ensure_to_shop_map,
             ensure_to_shop,
             ensure_open_shop_dialog,
+            ensure_open_shop_panel,
+            ChooseItem(),
+            BuyItem(),
         ]
     )
     return shopping
