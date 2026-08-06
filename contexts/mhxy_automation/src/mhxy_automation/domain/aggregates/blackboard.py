@@ -37,6 +37,8 @@ class SectTaskContext:
 
 @dataclass
 class MainHudContext:
+    current_map: str | None = None
+    current_house: str | None = None
     target_npc: str | None = None
 
 @dataclass

@@ -85,7 +85,7 @@ def build_shopping_tree() -> BaseNode:
         condition=IsShopPanelVisible(),
         action=OpenShopPanel(),
     )
-    ensure_by_item = Ensure(
+    ensure_buy_item = Ensure(
         condition=IsDialogVisible(),
         action=BuyItem(),
     )
@@ -101,7 +101,7 @@ def build_shopping_tree() -> BaseNode:
             ensure_open_shop_dialog,
             ensure_open_shop_panel,
             ChooseItem(),
-            ensure_by_item,
+            ensure_buy_item,
             ensure_close_dialog,
             ensure_close_shop_panel,
         ]

@@ -3,6 +3,7 @@
 import asyncio
 from dataclasses import dataclass, field
 import logging
+from pathlib import Path
 from typing import override
 
 from sys_input.models import MouseButton
@@ -21,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 # 未标定时的默认兜底选区
 _DEFAULT_MAP_NAME_ROI = RelativeRegion(x=0.8, y=0.0, width=0.2, height=0.15)
-_DEFAULT_TASK_LIST_ROI = RelativeRegion(x=0.75, y=0.15, width=0.25, height=0.5)
 
 # 已知的其他非师门任务标题 (用于分割师门任务多行描述文本)
 _KNOWN_OTHER_TASKS = (
@@ -35,6 +35,9 @@ _KNOWN_OTHER_TASKS = (
     "师门寻路",
 )
 
+_DIALOG_BG_TEMPLATE_PATH = (
+    Path(__file__).resolve().parents[3] / "templates" / "dialog_bg.png"
+)
 
 @dataclass
 class MainHUD(BaseScreen):
@@ -169,12 +172,10 @@ class MainHUD(BaseScreen):
         await self.mouse_click(action_point)
 
     async def check_dialog_visible(self, npc_name: str) -> bool:
-        element = await self.locate_element(
-            element_key=f"dialog:{npc_name}",
-            target_text=npc_name,
-            roi=self.config.dialog_name_roi
+        return not await self.window.abs_diff(
+            roi=self.config.dialog_bg_roi,
+            template_path=_DIALOG_BG_TEMPLATE_PATH
         )
-        return element is not None
 
     async def click_target_in_task_panel(self, target: str):
         action_point = self.sect_task_info.resolve_point_by_targets((target,))
@@ -202,7 +203,11 @@ class MainHUD(BaseScreen):
         roi = DB_CHANGAN_MAP.get(npc_name)
         if roi is None:
             raise ValueError(f"未找到 NPC 位置: {npc_name}")
+        await self.clean_players()
         await self.mouse_click(target_roi=roi)
         
     async def close_dialog(self) -> None:
         await self.window.mouse_click(button=MouseButton.RIGHT)
+
+    async def clean_players(self) -> None:
+        await self.window.key_press(VirtualKeyCode.VK_F9)

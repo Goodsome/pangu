@@ -22,6 +22,7 @@ from cv_engine.interfaces import IOCREngine, ITemplateMatcher
 from cv_engine.models import MatLike, MatchResult, OcrResult, Point, Region
 from cv_engine.ocr_engine import OcrEngine
 from cv_engine.template_matcher import TemplateMatcher
+from cv_engine.utils import abs_diff, load_image
 
 __all__ = [
     # 统一接口契约
@@ -49,4 +50,7 @@ __all__ = [
     "OCRError",
     "OcrInitError",
     "OcrFailedError",
+    # 工具函数
+    "abs_diff",
+    "load_image",
 ]

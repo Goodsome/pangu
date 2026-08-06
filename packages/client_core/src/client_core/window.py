@@ -16,6 +16,8 @@ from cv_engine import (
     IOCREngine,
     ITemplateMatcher,
     MatLike,
+    abs_diff,
+    load_image,
 )
 from sys_input import (
     HWND,
@@ -648,4 +650,18 @@ class Window:
             await self.vision_backend.close()
 
 
-BaseWindow = Window
+    async def abs_diff(
+        self, 
+        roi: Region | RelativeRegion | None,
+        template_path: Path,
+    ) -> bool:
+        """异步计算当前窗口画面与指定 ROI 区域的像素差异。"""
+        
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        template = load_image(template_path)
+        return abs_diff(
+            frame.mat,
+            template,
+        )
+        

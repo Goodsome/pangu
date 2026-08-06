@@ -15,7 +15,6 @@ from client_core.models import (
 )
 from client_core.screens import AutoCalibratingScreen
 from client_core.window import (
-    BaseWindow,
     Window,
     activate_window,
     client_to_screen,
@@ -25,7 +24,6 @@ from client_core.window import (
 __all__ = [
     "AutoCalibratingScreen",
     "BaseRegion",
-    "BaseWindow",
     "Element",
     "ImageFrame",
     "MatchResult",

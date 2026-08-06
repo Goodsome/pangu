@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import override
 
@@ -5,6 +6,8 @@ from mhxy_automation.domain.aggregates.blackboard import Blackboard
 from mhxy_automation.domain.behavior_tree.core import Condition
 from mhxy_automation.domain.enums.node_status import NodeStatus
 
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class IsDialogVisible(Condition):
@@ -17,6 +20,7 @@ class IsDialogVisible(Condition):
         if npc_name is None:
             raise ValueError("npc_name is None")
         visible = await blackboard.main_hud.check_dialog_visible(npc_name=npc_name)
+        logger.info(f"check_dialog_visible: npc_name={npc_name} visible={visible}")
         if visible:
             if self.target_npc:
                 ctx.target_npc = self.target_npc

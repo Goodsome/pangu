@@ -86,21 +86,13 @@ class SectTaskInfo:
             else:
                 self.status = SectTaskStatus.IN_PROGRESS
                 self._task_target = match.group(1)
-        elif self.full_description.startswith("买到布鞋"):
-            self.status = SectTaskStatus.IN_PROGRESS
-            self.task_type = TaskType.SHOPPING
-            if "已拥有" in self.full_description:
-                self.has_item = True
-                self._task_target = "师父"
-            else:
-                self._task_target = "布鞋"
         elif match := re.match(
             r"任务完成，找师父报告去", self.full_description
         ):
             self.status = SectTaskStatus.REPORT
             self._task_target = "师父"
         else:
-            raise ValueError(f"Unknown task status: {self.full_description}")
+            raise ValueError(f"Unresolved {self.full_description=}")
 
     def _resolve_action_point(self) -> None:
         """解析可点击超链接文字的物理中心坐标。"""

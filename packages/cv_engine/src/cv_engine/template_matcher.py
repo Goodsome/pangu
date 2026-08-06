@@ -71,7 +71,7 @@ def _normalize_scene_bgr(scene: np.ndarray) -> np.ndarray:
         if channels == 3:
             return scene
 
-    raise ValueError(f"不支持的场景图像格式类型")
+    raise ValueError("不支持的场景图像格式类型")
 
 @dataclass
 class TemplateMatcher(ITemplateMatcher):
@@ -122,6 +122,10 @@ class TemplateMatcher(ITemplateMatcher):
         template_bgr, mask = load_template_with_mask(template)
         scene_normalized = _normalize_scene_bgr(scene)
         roi_img, offset_x, offset_y = self._crop_roi(scene_normalized, template_bgr, roi)
+        roi_img = roi_img.astype(np.float32)
+        roi_img = np.maximum(roi_img, 1.0)
+        template_bgr = template_bgr.astype(np.float32)
+        mask = mask.astype(np.float32)
         result = self._match_masked_core(
             roi_img=roi_img,
             template_bgr=template_bgr,

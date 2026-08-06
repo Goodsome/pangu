@@ -18,7 +18,11 @@ class CheckShopMap(Condition):
         shop_route: ShopRoute | None = ITEM_KNOWLEDGE_DB.get(task_info.task_target)
         if shop_route is None:
             raise ValueError(f"Unknown shop route for task target: {task_info.task_target}")
-        current_map = await blackboard.client.main_hud.get_current_map()
+        if blackboard.main_ctx.current_map is not None:
+            current_map = blackboard.main_ctx.current_map
+        else:
+            current_map = await blackboard.client.main_hud.get_current_map()
+            blackboard.main_ctx.current_map = current_map
         if current_map == shop_route["shop"]:
             return NodeStatus.SUCCESS
         if current_map == shop_route["city_map"]:

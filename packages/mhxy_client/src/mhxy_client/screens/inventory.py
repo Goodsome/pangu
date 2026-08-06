@@ -31,7 +31,13 @@ class InventoryPanel(BaseScreen):
             return
         await self.window.hotkey([VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_E])
         await self.wait_until_visible()
-        
+
+    async def close(self) -> None:
+        if not self.is_visible:
+            return
+        await self.window.hotkey([VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_E])
+        self.is_visible = False
+
     async def use_item(self, row: int, col: int):
         if not 0 <= row < 4 or not 0 <= col < 5:
             raise ValueError(f"Invalid row/col: {row}/{col}")
@@ -52,3 +58,6 @@ class InventoryPanel(BaseScreen):
                 await self.mouse_click(target_roi=self.config.feixingfu_map_changan_roi)
             case _:
                 raise ValueError(f"Invalid target: {target}")
+
+        await self.wait_until_visible()
+        await self.close()
