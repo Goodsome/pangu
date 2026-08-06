@@ -9,7 +9,7 @@ class ConfirmGive(Action):
     """确认赠送任务"""
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         await blackboard.client.main_hud.panels.given_panel.confirm_give()
         blackboard.sect_task.clear_task_info()
         return NodeStatus.SUCCESS

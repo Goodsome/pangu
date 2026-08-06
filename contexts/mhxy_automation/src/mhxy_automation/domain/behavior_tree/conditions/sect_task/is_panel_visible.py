@@ -11,7 +11,7 @@ class IsPanelVisible(Condition):
     panel_name: str
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         match self.panel_name:
             case "shop":
                 visible = await blackboard.client.main_hud.panels.shop_panel.check_visible()

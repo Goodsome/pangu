@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class RefreshTaskInfo(Action):
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = await blackboard.main_hud.check_sect_task()
         logger.info(f"{task_info=}")
         blackboard.sect_task.set_task_info(task_info)

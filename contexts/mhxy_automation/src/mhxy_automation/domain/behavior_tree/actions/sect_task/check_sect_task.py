@@ -26,7 +26,7 @@ class CheckSectTask(BaseNode):
     """
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if blackboard.sect_task.has_task_info():
             return NodeStatus.SUCCESS
         

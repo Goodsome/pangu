@@ -11,7 +11,7 @@ class IsInMap(Condition):
     map_names: list[str]
     
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         current_map = await blackboard.client.main_hud.get_current_map()
         if current_map in self.map_names:
             return NodeStatus.SUCCESS

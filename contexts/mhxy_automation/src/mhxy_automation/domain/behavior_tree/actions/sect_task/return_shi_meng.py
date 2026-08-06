@@ -14,7 +14,7 @@ class ReturnShiMeng(Action):
     start_time: float = field(default=0, init=False)
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
 
         now = time.monotonic()
         if now - self.start_time < self.running_time:

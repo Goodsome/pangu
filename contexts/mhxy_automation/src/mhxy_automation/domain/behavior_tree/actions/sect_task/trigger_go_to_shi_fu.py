@@ -35,11 +35,11 @@ class TriggerGoToShiFu(BaseNode):
     _has_triggered: bool = field(default=False, init=False, repr=False)
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info
-        if task_info is None or task_info.action_point is None:
+        if task_info.action_point is None:
             logger.warning(
-                "[TriggerGoToShiFu] task_info 或 action_point 为 None，无法点击"
+                "[TriggerGoToShiFu] action_point 为 None，无法点击"
             )
             return NodeStatus.FAILURE
 

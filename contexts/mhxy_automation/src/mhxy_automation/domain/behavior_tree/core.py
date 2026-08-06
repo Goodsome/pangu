@@ -38,14 +38,14 @@ class BaseNode(ABC):
         if not self.name:
             self.name = self.__class__.__name__
 
-    async def tick_with_log(self, blackboard: Blackboard) -> NodeStatus:
+    async def tick(self, blackboard: Blackboard) -> NodeStatus:
         # 1. 检测节点是否刚刚被激活 (从 None 或其他状态进入 RUNNING/执行)
         if self._last_status != NodeStatus.RUNNING:
             # 使用 debug 级别记录进入事件，避免干扰主流程日志
             logger.debug(f"[BT] ➡️ 进入节点: {self.name}")
         
         # 2. 调用真正的业务逻辑
-        status = await self.tick(blackboard)
+        status = await self._tick(blackboard)
         
         # 3. 状态跳变检测 (Edge Detection)
         if status != self._last_status:
@@ -65,7 +65,7 @@ class BaseNode(ABC):
         
 
     @abstractmethod
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         """执行本节点逻辑，返回当前帧的执行状态。"""
         ...
 
@@ -87,7 +87,8 @@ class Not(Condition):
     """否定条件节点。"""
     condition: Condition
 
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    @override
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         result = await self.condition.tick(blackboard)
         return NodeStatus.FAILURE if result == NodeStatus.SUCCESS else NodeStatus.SUCCESS
 
@@ -140,7 +141,7 @@ class Selector(Composite):
     """
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         for child in self.children:
             status = await child.tick(blackboard)
 
@@ -169,7 +170,7 @@ class Sequence(Composite):
     """
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         for child in self.children:
             status = await child.tick(blackboard)
 
@@ -194,7 +195,7 @@ class MemorySequence(Composite):
     _current_index: int = field(default=0, init=False, repr=False)
 
     @override
-    async def tick(self, blackboard: 'Blackboard') -> NodeStatus:
+    async def _tick(self, blackboard: 'Blackboard') -> NodeStatus:
         # 从当前记忆的索引开始执行
         while self._current_index < len(self.children):
             child = self.children[self._current_index]
@@ -234,7 +235,7 @@ class Ensure(Selector):
     children: list[BaseNode] = field(init=False)
 
     def __post_init__(self) -> None:
-        self.children: list[BaseNode] = [self.condition, self.action]
+        self.children = [self.condition, self.action]
 
 @dataclass
 class When(Sequence):
@@ -245,7 +246,7 @@ class When(Sequence):
     children: list[BaseNode] = field(init=False)
 
     def __post_init__(self) -> None:
-        self.children: list[BaseNode] = [self.condition, self.action]
+        self.children = [self.condition, self.action]
         
 @dataclass
 class IfThenElse(BaseNode):
@@ -258,7 +259,7 @@ class IfThenElse(BaseNode):
     _running_child: BaseNode | None = field(default=None, init=False, repr=False)
 
     @override
-    async def tick(self, blackboard: 'Blackboard') -> NodeStatus:
+    async def _tick(self, blackboard: 'Blackboard') -> NodeStatus:
         # 1. 评估条件（每帧仅评估一次）
         cond_status = await self.condition.tick(blackboard)
 

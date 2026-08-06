@@ -11,10 +11,8 @@ from mhxy_client.models.sect_task import TaskType
 class IsSendMailTask(BaseNode):
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info
-        if task_info is None:
-            return NodeStatus.FAILURE
         if task_info.task_type == TaskType.SEND_MAIL:
             return NodeStatus.SUCCESS
         return NodeStatus.FAILURE

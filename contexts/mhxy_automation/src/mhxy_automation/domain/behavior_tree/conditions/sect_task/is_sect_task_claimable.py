@@ -21,7 +21,7 @@ class IsSectTaskClaimable(BaseNode):
     """
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info
         if task_info.status == SectTaskStatus.CLAIMABLE:
             return NodeStatus.SUCCESS

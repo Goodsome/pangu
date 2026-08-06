@@ -13,7 +13,7 @@ class ClickTargetInTaskPanel(Action):
     _has_clicked: bool = field(default=False, init=False, repr=False)
     
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info
 
         if self._has_clicked:

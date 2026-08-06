@@ -14,7 +14,7 @@ class Wait(Action):
     _start_time: float | None = field(default=None, init=False, repr=False)
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         now = time.monotonic()
     
         if self._start_time is None:

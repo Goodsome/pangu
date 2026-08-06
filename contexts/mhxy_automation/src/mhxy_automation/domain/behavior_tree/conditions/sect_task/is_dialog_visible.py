@@ -14,7 +14,7 @@ class IsDialogVisible(Condition):
     target_npc: str | None = None
 
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         ctx = blackboard.main_ctx
         npc_name = self.target_npc or ctx.target_npc 
         if npc_name is None:

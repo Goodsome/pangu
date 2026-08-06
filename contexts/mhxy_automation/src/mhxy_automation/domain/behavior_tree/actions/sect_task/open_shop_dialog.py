@@ -13,7 +13,7 @@ class OpenShopDialog(Action):
     _triggered: bool = False
     
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if self._triggered:
             return NodeStatus.RUNNING
             

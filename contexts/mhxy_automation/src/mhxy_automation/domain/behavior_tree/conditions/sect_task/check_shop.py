@@ -11,7 +11,7 @@ from mhxy_automation.domain.models.shop_route import ITEM_KNOWLEDGE_DB, ShopRout
 class CheckShop(Condition):
     
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info
         shop_route: ShopRoute | None = ITEM_KNOWLEDGE_DB.get(task_info.task_target)
         if shop_route is None:

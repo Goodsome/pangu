@@ -55,7 +55,7 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_vis
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, MemorySequence, Not, Selector, Sequence, When
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, MemorySequence, Not, Selector, Sequence
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
 

@@ -8,7 +8,6 @@ from mhxy_automation.domain.aggregates.blackboard import Blackboard
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree import (
     build_sect_task_tree,
 )
-from mhxy_automation.domain.enums.node_status import NodeStatus
 from mhxy_client.factory import create_mhxy_client_by_index
 
 logger = logging.getLogger(__name__)
