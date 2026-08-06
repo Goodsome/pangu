@@ -22,10 +22,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import override
 
+from contextvars import ContextVar
+
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
 from mhxy_automation.domain.enums.node_status import NodeStatus
 
 logger = logging.getLogger(__name__)
+
+_tree_depth: ContextVar[int] = ContextVar("tree_depth", default=0)
 
 class BaseNode(ABC):
     """行为树节点抽象基类。"""
@@ -37,29 +41,36 @@ class BaseNode(ABC):
         return str(self.__class__.__name__)
 
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
-        # 1. 检测节点是否刚刚被激活 (从 None 或其他状态进入 RUNNING/执行)
-        if self._last_status != NodeStatus.RUNNING:
-            # 使用 debug 级别记录进入事件，避免干扰主流程日志
-            logger.debug(f"[BT] ➡️ 进入节点: {self.name}")
-        
-        # 2. 调用真正的业务逻辑
-        status = await self._tick(blackboard)
-        
-        # 3. 状态跳变检测 (Edge Detection)
-        if status != self._last_status:
-            self._log_status_change(status)
-            self._last_status = status
+        depth = _tree_depth.get()
+        token = _tree_depth.set(depth + 1)
+        try:
+            # 1. 检测节点是否刚刚被激活 (从 None 或其他状态进入 RUNNING/执行)
+            if self._last_status != NodeStatus.RUNNING:
+                # 使用 debug 级别记录进入事件，避免干扰主流程日志
+                indent = "  " * depth
+                logger.debug(f"[BT] {indent}➡️ 进入节点: {self.name}")
+            
+            # 2. 调用真正的业务逻辑
+            status = await self._tick(blackboard)
+            
+            # 3. 状态跳变检测 (Edge Detection)
+            if status != self._last_status:
+                self._log_status_change(status, depth)
+                self._last_status = status
 
-        return status
+            return status
+        finally:
+            _tree_depth.reset(token)
 
-    def _log_status_change(self, status: 'NodeStatus') -> None:
+    def _log_status_change(self, status: 'NodeStatus', depth: int = 0) -> None:
         """根据不同的状态跃迁打印不同级别的日志"""
+        indent = "  " * depth
         if status == NodeStatus.SUCCESS:
-            logger.info(f"[BT] ✅ 成功: {self.name}")
+            logger.info(f"[BT] {indent}✅ 成功: {self.name}")
         elif status == NodeStatus.FAILURE:
-            logger.info(f"[BT] ❌ 失败: {self.name}")
+            logger.info(f"[BT] {indent}❌ 失败: {self.name}")
         elif status == NodeStatus.RUNNING:
-            logger.info(f"[BT] ⏳ 挂起 (跨帧等待): {self.name}")
+            logger.info(f"[BT] {indent}⏳ 挂起 (跨帧等待): {self.name}")
         
 
     @abstractmethod

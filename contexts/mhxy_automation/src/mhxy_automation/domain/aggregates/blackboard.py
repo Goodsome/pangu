@@ -29,9 +29,6 @@ class SectTaskContext:
     def set_task_info(self, task_info: SectTaskInfo | None):
         self._task_info = task_info
         
-    def clear_task_info(self):
-        self._task_info = None
-
     def has_task_info(self) -> bool:
         return self._task_info is not None
 

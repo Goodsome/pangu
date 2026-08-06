@@ -123,11 +123,15 @@ def build_report_tree() -> BaseNode:
         condition=IsPanelVisible("given"),
         action=ClickTaskInDialog(),
     )
+    ensure_give = Ensure(
+        condition=IsDialogVisible(),
+        action=ConfirmGive(),
+    )
     give_item = Sequence(
         children=[
             ensure_given_panel,
-            ConfirmGive(),
-            CloseDialog(),
+            ensure_give,
+            ensure_close_dialog,
         ]
     )
     report_or_give = IfThenElse(
@@ -135,7 +139,7 @@ def build_report_tree() -> BaseNode:
         if_node=give_item,
         else_node=ClickTaskInDialog(default_return=NodeStatus.SUCCESS),
     )
-    return Sequence(
+    return MemorySequence(
         children=[
             IsTaskStatus(status=SectTaskStatus.REPORT),
             ensure_in_shi_meng,
@@ -178,7 +182,7 @@ def build_patrol_task() -> BaseNode:
         condition=IsDialogVisible(),
         action=ClickTargetInTaskPanel(),
     )
-    return Sequence(
+    return MemorySequence(
         children=[
             CheckTaskType(task_type=TaskType.PATROL),
             ensure_win,

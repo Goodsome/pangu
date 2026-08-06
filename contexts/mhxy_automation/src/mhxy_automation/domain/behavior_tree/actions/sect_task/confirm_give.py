@@ -15,7 +15,6 @@ class ConfirmGive(Action):
         if self._triggered:
             return NodeStatus.RUNNING
         await blackboard.client.main_hud.panels.given_panel.confirm_give()
-        blackboard.sect_task.clear_task_info()
         self._triggered = True
         return NodeStatus.RUNNING
         
