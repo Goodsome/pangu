@@ -20,6 +20,12 @@ ITEM_KNOWLEDGE_DB: dict[str, ShopRoute] = {
         "npc_name": "武器店掌柜",
         "item_location": (0, 1),
     },
+    "黄铜圈": {
+        "city_map": "长安城",
+        "shop": "万胜武器店",
+        "npc_name": "武器店掌柜",
+        "item_location": (2, 0),
+    },
     "鬼切草": {
         "city_map": "长安城",
         "shop": "回春堂",

@@ -55,6 +55,7 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_vis
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
 from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, MemorySequence, Not, Selector, Sequence
+from mhxy_automation.domain.enums import NodeStatus
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
 
@@ -116,9 +117,7 @@ def build_shopping_tree() -> BaseNode:
     return shopping
     
 
-def build_report_tree(
-    ensure_shifu_dialog: Ensure,
-) -> BaseNode:
+def build_report_tree() -> BaseNode:
     
     ensure_given_panel = Ensure(
         condition=IsPanelVisible("given"),
@@ -134,7 +133,7 @@ def build_report_tree(
     report_or_give = IfThenElse(
         condition=CheckTaskType(task_type=TaskType.SHOPPING),
         if_node=give_item,
-        else_node=ClickTaskInDialog(),
+        else_node=ClickTaskInDialog(default_return=NodeStatus.SUCCESS),
     )
     return Sequence(
         children=[
@@ -228,7 +227,7 @@ def build_sect_task_tree() -> BaseNode:
                 children=[
                     build_claim_task(),
                     in_progress_branch,
-                    build_report_tree(ensure_shifu_dialog),
+                    build_report_tree(),
                 ]
             ),
         ]

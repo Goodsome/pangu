@@ -11,11 +11,12 @@ class ClickTaskInDialog(Action):
     """点击对话中的任务"""
 
     _triggered: bool = False
+    default_return: NodeStatus = NodeStatus.RUNNING
 
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if self._triggered:
-            return NodeStatus.RUNNING
+            return self.default_return
         
         task_info = blackboard.sect_task.task_info
         if task_info.has_item:
@@ -24,7 +25,7 @@ class ClickTaskInDialog(Action):
             option = "师门任务"
         await blackboard.client.main_hud.choose_option_in_dialog(task_info.task_target, option)
         self._triggered = True
-        return NodeStatus.RUNNING
+        return self.default_return
 
     @override
     def reset(self) -> None:
