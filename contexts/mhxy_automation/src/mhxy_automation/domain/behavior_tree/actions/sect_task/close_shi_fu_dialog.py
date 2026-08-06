@@ -24,6 +24,5 @@ class CloseShiFuDialog(BaseNode):
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         dialog = blackboard.client.main_hud.dialogs.zhen_yuan_da_xian
-        logger.info("[CloseShiFuDialog] 关闭师父对话框")
         await dialog.close_dialog()
         return NodeStatus.SUCCESS

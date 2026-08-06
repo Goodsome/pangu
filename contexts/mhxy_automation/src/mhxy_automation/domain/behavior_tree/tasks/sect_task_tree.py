@@ -22,25 +22,27 @@ Sequence [师门任务总主控]
         └── ClaimSectTask              # Action: 点击「师门任务」选项，领取任务
 """
 
-from _pytest.config import Config
 from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     CheckSectTask,
     ClaimSectTask,
     CloseShiFuDialog,
-    TriggerGoToShiFu,
 )
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_task_in_dialog import ClickTaskInDialog
 from mhxy_automation.domain.behavior_tree.actions.sect_task.confirm_give import ConfirmGive
+from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng import ReturnShiMeng
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
     IsSectTaskInProgress,
     IsShiFuDialogNotVisible,
     IsShiFuDialogVisible,
 )
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_current_map import IsCurrentMap
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, Selector, Sequence
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, Selector, Sequence, Not
+from mhxy_client import SectTaskStatus
 
 
 def build_sect_task_tree() -> BaseNode:
@@ -49,7 +51,7 @@ def build_sect_task_tree() -> BaseNode:
     wait_or_trigger_shifu = Selector(
         children=[
             IsShiFuDialogVisible(),
-            TriggerGoToShiFu(),
+            ClickTargetInTaskPanel(),
         ]
     )
     claim_task_branch = Sequence(
@@ -92,14 +94,30 @@ def build_sect_task_tree() -> BaseNode:
         ]
     )
 
+    return_shi_meng = Ensure(
+        condition=IsCurrentMap(["五庄观", "镇元殿"]),
+        action=ReturnShiMeng(),
+    )
+
+    report_task_branch = Sequence(
+        children=[
+            IsTaskStatus(status=SectTaskStatus.REPORT),
+            # close dialog
+            return_shi_meng,
+            wait_or_trigger_shifu,
+            ClickTaskInDialog(),
+        ]
+    )
+
     # 3. 根节点：每次先刷新状态，再进入分支分发
     return Sequence(
         children=[
             CheckSectTask(),
             Selector(
                 children=[
-                    in_progress_branch,
                     claim_task_branch,
+                    in_progress_branch,
+                    report_task_branch,
                 ]
             ),
         ]

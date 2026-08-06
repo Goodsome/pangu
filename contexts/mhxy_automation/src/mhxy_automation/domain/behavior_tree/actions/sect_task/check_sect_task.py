@@ -39,7 +39,7 @@ class CheckSectTask(BaseNode):
             return NodeStatus.SUCCESS
 
         blackboard.sect_task.set_task_info(task_info)
-        logger.debug(
+        logger.info(
             "[CheckSectTask] 任务状态: %s, 描述: %s",
             task_info.status,
             task_info.full_description,

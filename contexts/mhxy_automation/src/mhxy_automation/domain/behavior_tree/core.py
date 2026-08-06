@@ -47,7 +47,15 @@ class BaseNode(ABC):
 @dataclass
 class Condition(BaseNode, ABC):
     """条件节点。"""
-    
+
+@dataclass
+class Not(Condition):
+    """否定条件节点。"""
+    condition: Condition
+
+    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+        result = await self.condition.tick(blackboard)
+        return NodeStatus.FAILURE if result == NodeStatus.SUCCESS else NodeStatus.SUCCESS
 
 @dataclass
 class Action(BaseNode, ABC):
@@ -61,7 +69,7 @@ class Composite(BaseNode, ABC):
 
     def set_running_child(self, node: BaseNode) -> None:
         """当节点返回 RUNNING 时调用：
-        
+
         若发生优先级抢占（新的 running 节点不同于旧的），则中断重置旧节点。
         """
         if self._running_child is not None and self._running_child is not node:
@@ -70,7 +78,7 @@ class Composite(BaseNode, ABC):
 
     def clear_running_child(self, current_node: BaseNode | None = None) -> None:
         """当节点返回 SUCCESS 或 FAILURE 时调用：
-        
+
         传入 current_node，用于豁免该节点（因为它自然结束了，不需要被中断）。
         只有被当前节点抢占导致跳过的原本处于 RUNNING 的节点，才会被重置。
         """
@@ -132,7 +140,7 @@ class Sequence(Composite):
             status = await child.tick(blackboard)
 
             if status == NodeStatus.RUNNING:
-                self.set_running_child(child)   
+                self.set_running_child(child)
                 return NodeStatus.RUNNING
 
             if status == NodeStatus.FAILURE:
@@ -146,6 +154,17 @@ class Sequence(Composite):
 @dataclass
 class Ensure(Selector):
     """确保节点。"""
+
+    condition: Condition
+    action: Action
+    children: list[BaseNode] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.children: list[BaseNode] = [self.condition, self.action]
+
+@dataclass
+class When(Sequence):
+    """当节点。"""
 
     condition: Condition
     action: Action
