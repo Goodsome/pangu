@@ -1,7 +1,10 @@
+from dataclasses import dataclass
+
 from client_core import RelativeRegion
 from mhxy_client.screens.panels.panel import Panel
 
 
+@dataclass
 class GivePanel(Panel):
     screen_name: str = "给予"
     

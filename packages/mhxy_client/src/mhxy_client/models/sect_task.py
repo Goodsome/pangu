@@ -78,9 +78,14 @@ class SectTaskInfo:
         elif match := re.match(
             r".*?买到(.+?)送给师", self.full_description
         ):
-            self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING
-            self._task_target = match.group(1)
+            if "已拥有" in self.full_description:
+                self.has_item = True
+                self.status = SectTaskStatus.REPORT
+                self._task_target = "师父"
+            else:
+                self.status = SectTaskStatus.IN_PROGRESS
+                self._task_target = match.group(1)
         elif self.full_description.startswith("买到布鞋"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING

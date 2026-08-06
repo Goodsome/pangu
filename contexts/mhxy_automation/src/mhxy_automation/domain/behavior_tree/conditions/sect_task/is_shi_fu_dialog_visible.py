@@ -5,14 +5,14 @@ from dataclasses import dataclass
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
-from mhxy_automation.domain.behavior_tree.core import BaseNode
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Condition
 from mhxy_automation.domain.enums.node_status import NodeStatus
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class IsShiFuDialogVisible(BaseNode):
+class IsShiFuDialogVisible(Condition):
     """检查师父（默认：镇元大仙）的 NPC 对话框是否已在当前帧出现。
 
     通过调用 client.main_hud.dialogs.zhen_yuan_da_xian.check_visible()

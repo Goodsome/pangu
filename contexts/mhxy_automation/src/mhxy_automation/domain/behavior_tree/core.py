@@ -172,3 +172,52 @@ class When(Sequence):
 
     def __post_init__(self) -> None:
         self.children: list[BaseNode] = [self.condition, self.action]
+        
+@dataclass
+class IfThenElse(BaseNode):
+    """标准三元控制流节点。"""
+    
+    condition: Condition
+    if_node: BaseNode
+    else_node: BaseNode
+    
+    _running_child: BaseNode | None = field(default=None, init=False, repr=False)
+
+    @override
+    async def tick(self, blackboard: 'Blackboard') -> NodeStatus:
+        # 1. 评估条件（每帧仅评估一次）
+        cond_status = await self.condition.tick(blackboard)
+
+        if cond_status == NodeStatus.SUCCESS:
+            # 抢占清理：如果上一帧还在执行 else 分支，现在条件满足了，打断 else
+            if self._running_child is self.else_node:
+                self.else_node.reset()
+                
+            # 执行 if 分支
+            status = await self.if_node.tick(blackboard)
+            self._running_child = self.if_node if status == NodeStatus.RUNNING else None
+            return status
+
+        elif cond_status == NodeStatus.FAILURE:
+            # 抢占清理：如果上一帧还在执行 if 分支，现在条件不满足了，打断 if
+            if self._running_child is self.if_node:
+                self.if_node.reset()
+                
+            # 执行 else 分支
+            status = await self.else_node.tick(blackboard)
+            self._running_child = self.else_node if status == NodeStatus.RUNNING else None
+            return status
+            
+        else:
+            # cond_status == NodeStatus.RUNNING (极少数情况 condition 本身需要跨帧)
+            if self._running_child is not None and self._running_child is not self.condition:
+                self._running_child.reset()
+            self._running_child = self.condition
+            return NodeStatus.RUNNING
+
+    @override
+    def reset(self) -> None:
+        if self._running_child is not None:
+            self._running_child.reset()
+            self._running_child = None
+            
