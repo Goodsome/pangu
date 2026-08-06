@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 import logging
 from typing import override
 
+from mhxy_client.config.main_hud import DB_CHANGAN_MAP
 from mhxy_client.models.npcs.npc import Npc
-from mhxy_client.screens.dialogs.base import NpcDialog
 from mhxy_client.screens.inventory import InventoryPanel
 from mhxy_client.screens.panels.panels import Panels
 from sys_input import VirtualKeyCode
@@ -29,6 +29,7 @@ _KNOWN_OTHER_TASKS = (
     "帮派任务",
     "宝图任务",
     "日常任务",
+    "师门寻路",
 )
 
 
@@ -75,19 +76,40 @@ class MainHUD(BaseScreen):
         return result
 
     async def check_sect_task(self) -> SectTaskInfo:
+        try:
+            return await self._check_sect_task_by_task_list()
+        except Exception as e:
+            logger.exception("Failed to check sect task by task list", exc_info=e)
+            return await self.check_sect_task_in_task_panel()
+
+    async def check_sect_task_in_task_panel(self) -> SectTaskInfo:
+        await self.open_task_panel()
+        await self.window.begin_frame()
+        task_info = await self._check_sect_task_by_roi(
+            roi=self.config.task_panel_roi
+        )
+        await self.close_task_panel()
+        return task_info
+
+    async def open_task_panel(self) -> None:
+        await self.window.hotkey([VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_Q])
+        
+    async def close_task_panel(self) -> None:
+        await self.window.hotkey([VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_Q])
+        
+    async def _check_sect_task_by_task_list(self) -> SectTaskInfo:
         roi =  self.config.task_list_roi
+        return await self._check_sect_task_by_roi(roi)
+        
+    async def _check_sect_task_by_roi(self, roi: RelativeRegion) -> SectTaskInfo:
         results = await self.window.ocr(roi=roi)
         task_info = SectTaskInfo()
         if not results:
             return task_info
 
-        for res in results:
-            if "任务追踪" in res.text:
-                task_info.is_tracking_panel_open = True
-                break
-
         sect_title_idx = -1
         for idx, res in enumerate(results):
+            print(res.text)
             if "师门任务" in res.text:
                 sect_title_idx = idx
                 task_info.is_sect_task_active = True
@@ -97,7 +119,7 @@ class MainHUD(BaseScreen):
             logger.info(
                 "[%s] 任务列表中未检测到 '师门任务' 处于追踪状态", self.screen_name
             )
-            return task_info
+            raise ValueError("No sect task found in task list")
 
         sect_desc_ocr_items: list[OcrResult] = []
         for res in results[sect_title_idx + 1 :]:
@@ -164,3 +186,17 @@ class MainHUD(BaseScreen):
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")
         await self.mouse_click(target_roi=element.region)
+
+    async def go_to_shop(self, target: str):
+        await self.open_map()
+        roi = DB_CHANGAN_MAP.get(target)
+        if roi is None:
+            raise ValueError(f"未找到商店位置: {target}")
+        await self.mouse_click(target_roi=roi)
+        await self.close_map()
+
+    async def interact_with_npc(self, npc_name: str):
+        roi = DB_CHANGAN_MAP.get(npc_name)
+        if roi is None:
+            raise ValueError(f"未找到 NPC 位置: {npc_name}")
+        await self.mouse_click(target_roi=roi)

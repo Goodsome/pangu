@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 target_fields = [
     ("map_name_roi", "地图名称与坐标显示区域"),
     ("task_list_roi", "任务追踪列表区域"),
+    ("task_panel_roi", "任务面板区域"),
     ("dialog_name_roi", "对话框名称区域"),
     ("dialog_roi", "对话框区域"),
     ("confirm_give_roi", "确认赠送区域"),
@@ -34,7 +35,7 @@ target_fields = [
     ("feixingfu_map_changan_roi", "飞行符地图长安区域"),
     
     # ("title_roi", ""),
-    # ("confirm_give_roi", ""),
+    ("roi", ""),
     
 ]
 

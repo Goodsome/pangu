@@ -113,7 +113,6 @@ class RapidOcrEngine(BaseOcrEngine):
     
         # 4. 解析识别结果并还原坐标
         for line in ocr_output:
-            logger.info(f"识别结果: {line}")
             if not line or len(line) < 3:
                 continue
     

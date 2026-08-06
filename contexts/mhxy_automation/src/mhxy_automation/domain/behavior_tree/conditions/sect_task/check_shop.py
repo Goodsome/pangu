@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from typing import override
 
@@ -9,7 +8,7 @@ from mhxy_automation.domain.models.shop_route import ITEM_KNOWLEDGE_DB, ShopRout
 
 
 @dataclass
-class CheckShoppingMap(Condition):
+class CheckShop(Condition):
     
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -18,6 +17,6 @@ class CheckShoppingMap(Condition):
         if shop_route is None:
             raise ValueError(f"Unknown shop route for task target: {task_info.task_target}")
         current_map = await blackboard.client.main_hud.get_current_map()
-        if current_map == shop_route["city_map"]:
+        if current_map == shop_route["shop"]:
             return NodeStatus.SUCCESS
         return NodeStatus.FAILURE

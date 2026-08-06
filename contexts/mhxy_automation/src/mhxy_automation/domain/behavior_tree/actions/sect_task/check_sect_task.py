@@ -36,7 +36,7 @@ class CheckSectTask(BaseNode):
         except Exception:
             logger.exception("[CheckSectTask] 检查师门任务时发生异常")
             blackboard.sect_task.set_task_info(None)
-            return NodeStatus.SUCCESS
+            return NodeStatus.FAILURE
 
         blackboard.sect_task.set_task_info(task_info)
         logger.info(

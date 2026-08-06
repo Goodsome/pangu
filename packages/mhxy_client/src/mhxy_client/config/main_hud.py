@@ -15,9 +15,8 @@ class MainHudLayoutConfig:
 
     # map_name_roi: RelativeRegion = RelativeRegion( x=0.0542, y=0.0769, width=0.0603, height=0.0330 )
     map_name_roi: RelativeRegion = RelativeRegion(x=0.0443, y=0.1146, width=0.0788, height=0.0271)
-    task_list_roi: RelativeRegion = RelativeRegion(
-        x=0.7488, y=0.2292, width=0.2414, height=0.4898
-    )
+    task_list_roi: RelativeRegion = RelativeRegion(x=0.7488, y=0.2292, width=0.2414, height=0.4898)
+    task_panel_roi: RelativeRegion = RelativeRegion(x=0.4865, y=0.3801, width=0.2672, height=0.3937)
     dialog_roi: RelativeRegion = RelativeRegion(x=0.0764, y=0.4914, width=0.8485, height=0.2496)
     dialog_name_roi: RelativeRegion = RelativeRegion(x=0.1663, y=0.4630, width=0.1145, height=0.0483)
     confirm_give_roi: RelativeRegion = RelativeRegion(x=0.2771, y=0.7080, width=0.1268, height=0.0392)
@@ -25,4 +24,8 @@ class MainHudLayoutConfig:
     inventory_grid_roi: RelativeRegion = RelativeRegion(x=0.0517, y=0.4962, width=0.3510, height=0.3424)
     feixingfu_map_changan_roi: RelativeRegion = RelativeRegion(x=0.5837, y=0.4314, width=0.1502, height=0.1388)
 
-MAIN_HUD_LAYOUT_CONFIG = MainHudLayoutConfig()
+
+DB_CHANGAN_MAP: dict[str, RelativeRegion] = {
+    "南北杂货店": RelativeRegion(x=0.7389, y=0.5475, width=0.0837, height=0.0241),
+    "杂货店老板": RelativeRegion(x=0.4938, y=0.2474, width=0.0653, height=0.1448),
+}

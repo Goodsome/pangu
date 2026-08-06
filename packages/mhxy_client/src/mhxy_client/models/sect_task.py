@@ -76,12 +76,11 @@ class SectTaskInfo:
             self._task_target = match.group(1)
             self.task_round = int(match.group(2))
         elif match := re.match(
-            r"买到(.+?)送给师父，当前第(\d+)次", self.full_description
+            r".*?买到(.+?)送给师", self.full_description
         ):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING
             self._task_target = match.group(1)
-            self.task_round = int(match.group(2))
         elif self.full_description.startswith("买到布鞋"):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SHOPPING

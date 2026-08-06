@@ -12,6 +12,3 @@ class Item:
         if not hasattr(self.__class__, "__store__"):
             self.__class__.__store__ = {}
         self.__class__.__store__[self.name] = self
-
-
-buxie = Item(name="布鞋")

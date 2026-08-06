@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from typing import override
 
@@ -9,7 +8,7 @@ from mhxy_automation.domain.models.shop_route import ITEM_KNOWLEDGE_DB, ShopRout
 
 
 @dataclass
-class GoToShopMap(Action):
+class GoToShop(Action):
 
     _triggered: bool = False
     
@@ -23,7 +22,7 @@ class GoToShopMap(Action):
         if shop_route is None:
             raise ValueError(f"Unknown shop route for task target: {task_info.task_target}")
 
-        await blackboard.client.main_hud.inventory.use_fei_xing_fu(target=shop_route["city_map"])
+        await blackboard.client.main_hud.go_to_shop(target=shop_route["shop"])
         self._triggered = True
         return NodeStatus.RUNNING
 
