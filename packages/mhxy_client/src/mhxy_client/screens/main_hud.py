@@ -1,8 +1,11 @@
 """梦幻西游 常驻主界面 (MainHUD) 页面对象模型。"""
 
+import asyncio
 from dataclasses import dataclass, field
 import logging
 from typing import override
+
+from sys_input.models import MouseButton
 
 from mhxy_client.config.main_hud import DB_CHANGAN_MAP
 from mhxy_client.models.npcs.npc import Npc
@@ -84,6 +87,7 @@ class MainHUD(BaseScreen):
 
     async def check_sect_task_in_task_panel(self) -> SectTaskInfo:
         await self.open_task_panel()
+        await asyncio.sleep(1)
         await self.window.begin_frame()
         task_info = await self._check_sect_task_by_roi(
             roi=self.config.task_panel_roi
@@ -109,7 +113,6 @@ class MainHUD(BaseScreen):
 
         sect_title_idx = -1
         for idx, res in enumerate(results):
-            print(res.text)
             if "师门任务" in res.text:
                 sect_title_idx = idx
                 task_info.is_sect_task_active = True
@@ -200,3 +203,6 @@ class MainHUD(BaseScreen):
         if roi is None:
             raise ValueError(f"未找到 NPC 位置: {npc_name}")
         await self.mouse_click(target_roi=roi)
+        
+    async def close_dialog(self) -> None:
+        await self.window.mouse_click(button=MouseButton.RIGHT)

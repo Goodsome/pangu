@@ -50,12 +50,6 @@ class RunSectTask:
                 while True:
                     await client.begin_frame()
                     status = await tree.tick(blackboard)
-                    logger.info("[RunSectTask] tick 状态: %s", status)
-
-                    if status == NodeStatus.SUCCESS:
-                        logger.info("[RunSectTask] 任务完成")
-                        break
-
                     await asyncio.sleep(_TICK_INTERVAL_SEC)
             except asyncio.CancelledError:
                 logger.info("[RunSectTask] 任务被取消")

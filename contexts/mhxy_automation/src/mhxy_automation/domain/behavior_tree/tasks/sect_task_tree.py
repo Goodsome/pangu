@@ -25,7 +25,7 @@ Sequence [师门任务总主控]
 from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     CheckSectTask,
     ClaimSectTask,
-    CloseShiFuDialog,
+    CloseDialog,
 )
 from mhxy_automation.domain.behavior_tree.actions.sect_task.buy_item import BuyItem
 from mhxy_automation.domain.behavior_tree.actions.sect_task.choose_item import ChooseItem
@@ -36,27 +36,36 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop import Go
 from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop_map import GoToShopMap
 from mhxy_automation.domain.behavior_tree.actions.sect_task.open_shop_dialog import OpenShopDialog
 from mhxy_automation.domain.behavior_tree.actions.sect_task.open_shop_panel import OpenShopPanel
+from mhxy_automation.domain.behavior_tree.actions.sect_task.refresh_task_info import RefreshTaskInfo
 from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng import ReturnShiMeng
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
     IsSectTaskInProgress,
-    IsShiFuDialogNotVisible,
-    IsShiFuDialogVisible,
 )
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_shop import CheckShop
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_shop_map import CheckShopMap
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_task_type import CheckTaskType
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_current_map import IsInMap
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_dialog_visible import IsDialogVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_panel_visible import IsPanelVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_dialog_visible import IsShopDialogVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_visible import IsShopPanelVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, Selector, Sequence, When
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, Not, Selector, Sequence, When
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
 
+ensure_shifu_dialog = Ensure(
+    condition=IsDialogVisible("镇元大仙"),
+    action=ClickTargetInTaskPanel(),
+)
+
+ensure_close_dialog = Ensure(
+    condition=Not(IsDialogVisible()),
+    action=CloseDialog(),
+)
 
 def build_shopping_tree() -> BaseNode:
     ensure_to_shop_map = Ensure(
@@ -115,58 +124,62 @@ def build_report_tree(
     return Sequence(
         children=[
             IsTaskStatus(status=SectTaskStatus.REPORT),
-            # close dialog
             ensure_in_shi_meng,
             ensure_shifu_dialog,
             ClickTaskInDialog(),
-            report_or_give
+            report_or_give,
+            ensure_close_dialog,
+            RefreshTaskInfo(),
         ]
     )
 
+def build_send_mail_tree() -> BaseNode:
+    
+    ensure_dialog = Ensure(
+        condition=IsTargetDialogVisible(),
+        action=ClickTargetInTaskPanel(),
+    )
+    ensure_given_panel = Ensure(
+        condition=IsPanelVisible("given"),
+        action=ClickTaskInDialog(),
+    )
+    ensure_give = Ensure(
+        condition=IsTargetDialogVisible(),
+        action=ConfirmGive(),
+    )
+    
+    return Sequence(
+        children=[
+            IsSendMailTask(),
+            ensure_dialog,
+            ensure_given_panel,
+            ensure_give,
+            ensure_close_dialog,
+            RefreshTaskInfo(),
+        ]
+    )
+    
 def build_sect_task_tree() -> BaseNode:
     """装配师门任务行为树并返回根节点。"""
     # 1. CLAIMABLE 状态分支：寻路找师父并领取任务
-    ensure_shifu_dialog = Ensure(
-        condition=IsShiFuDialogVisible(),
-        action=ClickTargetInTaskPanel(),
-    )
     claim_task_branch = Sequence(
         children=[
             IsSectTaskClaimable(),
             ensure_shifu_dialog,
             ClaimSectTask(),
-        ]
-    )
-
-    # 2. IN_PROGRESS 状态分支：关对话框 + 执行后续子任务
-    close_dialog_if_needed = Selector(
-        children=[
-            IsShiFuDialogNotVisible(),
-            CloseShiFuDialog(),
-        ]
-    )
-    go_to_target = Ensure(
-        condition=IsTargetDialogVisible(),
-        action=ClickTargetInTaskPanel(),
-    )
-    send_mail = Sequence(
-        children=[
-            IsSendMailTask(),
-            go_to_target,
-            ClickTaskInDialog(),
-            ConfirmGive(),
+            ensure_close_dialog,
+            RefreshTaskInfo(),
         ]
     )
     dispatch_task = Selector(
         children=[
-            send_mail,
+            build_send_mail_tree(),
             build_shopping_tree(),
         ]
     )
     in_progress_branch = Sequence(
         children=[
             IsSectTaskInProgress(),
-            close_dialog_if_needed,
             dispatch_task,
         ]
     )

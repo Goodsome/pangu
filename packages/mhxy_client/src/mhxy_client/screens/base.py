@@ -89,6 +89,8 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         elif pointer_result is not None and cursor_result is None:
             return pointer_result.top_left, True
         else:
+            frame = await self.window.capture(roi)
+            await frame.save(Path("screenshots/match_cursor_failed.png"))
             return None, False
 
     async def _measure_game_cursor(self) -> tuple[Point, Point | None, bool]:

@@ -35,6 +35,9 @@ class SectTaskContext:
     def has_task_info(self) -> bool:
         return self._task_info is not None
 
+@dataclass
+class MainHudContext:
+    target_npc: str | None = None
 
 @dataclass
 class Blackboard:
@@ -46,6 +49,7 @@ class Blackboard:
 
     client: MhxyClient
     sect_task: SectTaskContext = field(default_factory=SectTaskContext)
+    main_ctx: MainHudContext = field(default_factory=MainHudContext)
 
     @property
     def main_hud(self):

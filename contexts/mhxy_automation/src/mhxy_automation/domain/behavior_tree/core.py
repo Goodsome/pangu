@@ -17,18 +17,52 @@ reset() 由父节点在以下时机调用：
 
 节点应在 reset() 中恢复自身内部状态，使其可以被重新 tick()。
 """
-
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from tkinter.constants import E
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
 from mhxy_automation.domain.enums.node_status import NodeStatus
 
+logger = logging.getLogger(__name__)
 
 class BaseNode(ABC):
     """行为树节点抽象基类。"""
+    
+    name: str = field(default="")
+    
+    _last_status: NodeStatus | None = field(default=None, init=False, repr=False)
+    
+    def __post_init__(self):
+        if not self.name:
+            self.name = self.__class__.__name__
+
+    async def tick_with_log(self, blackboard: Blackboard) -> NodeStatus:
+        # 1. 检测节点是否刚刚被激活 (从 None 或其他状态进入 RUNNING/执行)
+        if self._last_status != NodeStatus.RUNNING:
+            # 使用 debug 级别记录进入事件，避免干扰主流程日志
+            logger.debug(f"[BT] ➡️ 进入节点: {self.name}")
+        
+        # 2. 调用真正的业务逻辑
+        status = await self.tick(blackboard)
+        
+        # 3. 状态跳变检测 (Edge Detection)
+        if status != self._last_status:
+            self._log_status_change(status)
+            self._last_status = status
+
+        return status
+
+    def _log_status_change(self, status: 'NodeStatus') -> None:
+        """根据不同的状态跃迁打印不同级别的日志"""
+        if status == NodeStatus.SUCCESS:
+            logger.info(f"[BT] ✅ 成功: {self.name}")
+        elif status == NodeStatus.FAILURE:
+            logger.debug(f"[BT] ❌ 失败: {self.name}")
+        elif status == NodeStatus.RUNNING:
+            logger.info(f"[BT] ⏳ 挂起 (跨帧等待): {self.name}")
+        
 
     @abstractmethod
     async def tick(self, blackboard: Blackboard) -> NodeStatus:

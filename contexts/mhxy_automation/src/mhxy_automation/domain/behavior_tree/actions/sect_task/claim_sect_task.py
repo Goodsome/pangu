@@ -30,5 +30,4 @@ class ClaimSectTask(BaseNode):
         dialog = blackboard.client.main_hud.dialogs.zhen_yuan_da_xian
         logger.info("[ClaimSectTask] 点击「师门任务」选项，领取任务")
         await dialog.claim_task()
-        blackboard.sect_task.clear_task_info()
         return NodeStatus.SUCCESS

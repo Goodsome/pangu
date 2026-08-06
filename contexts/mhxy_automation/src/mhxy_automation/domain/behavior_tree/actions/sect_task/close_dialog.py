@@ -5,24 +5,16 @@ from dataclasses import dataclass
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
-from mhxy_automation.domain.behavior_tree.core import BaseNode
+from mhxy_automation.domain.behavior_tree.core import Action, BaseNode
 from mhxy_automation.domain.enums.node_status import NodeStatus
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class CloseShiFuDialog(BaseNode):
-    """右键关闭师父（镇元大仙）NPC 对话框。
-
-    关闭操作是瞬时的，直接返回 SUCCESS。
-
-    返回值：
-        SUCCESS : 关闭指令已发出
-    """
+class CloseDialog(Action):
 
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
-        dialog = blackboard.client.main_hud.dialogs.zhen_yuan_da_xian
-        await dialog.close_dialog()
+        await blackboard.client.main_hud.close_dialog()
         return NodeStatus.SUCCESS
