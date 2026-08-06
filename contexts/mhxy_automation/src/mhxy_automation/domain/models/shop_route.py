@@ -14,4 +14,10 @@ ITEM_KNOWLEDGE_DB: dict[str, ShopRoute] = {
         "npc_name": "杂货店老板",
         "item_location": (0, 4),
     },
+    "红缨枪": {
+        "city_map": "长安城",
+        "shop": "万胜武器店",
+        "npc_name": "武器店掌柜",
+        "item_location": (0, 1),
+    },
 }

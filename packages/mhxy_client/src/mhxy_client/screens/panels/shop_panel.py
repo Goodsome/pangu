@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from client_core import RelativeRegion
 from mhxy_client.screens.panels.panel import Panel
+from sys_input.models import MouseButton
 
 
 @dataclass
@@ -23,3 +24,6 @@ class ShopPanel(Panel):
 
     async def buy(self):
         await self.mouse_click(target_roi=self.buy_roi)
+
+    async def close(self):
+        await self.mouse_click(target_roi=self.title_roi, button=MouseButton.RIGHT)

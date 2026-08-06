@@ -28,4 +28,7 @@ class MainHudLayoutConfig:
 DB_CHANGAN_MAP: dict[str, RelativeRegion] = {
     "南北杂货店": RelativeRegion(x=0.7389, y=0.5475, width=0.0837, height=0.0241),
     "杂货店老板": RelativeRegion(x=0.4938, y=0.2474, width=0.0653, height=0.1448),
+    
+    "万胜武器店": RelativeRegion(x=0.7266, y=0.6516, width=0.0800, height=0.0226),
+    "武器店掌柜": RelativeRegion(x=0.1330, y=0.4193, width=0.0616, height=0.1433),
 }

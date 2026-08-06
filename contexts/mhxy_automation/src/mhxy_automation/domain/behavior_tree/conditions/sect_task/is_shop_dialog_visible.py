@@ -16,6 +16,7 @@ class IsShopDialogVisible(Condition):
             raise ValueError(f"Unknown shop route for task target: {task_info.task_target}")
         visible = await blackboard.client.main_hud.check_dialog_visible(shop_route['npc_name'])
         if visible:
+            blackboard.main_ctx.target_npc = shop_route['npc_name']
             return NodeStatus.SUCCESS
         else:
             return NodeStatus.FAILURE

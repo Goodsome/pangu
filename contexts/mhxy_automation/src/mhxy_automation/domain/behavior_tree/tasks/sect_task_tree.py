@@ -31,6 +31,7 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.buy_item import BuyI
 from mhxy_automation.domain.behavior_tree.actions.sect_task.choose_item import ChooseItem
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_task_in_dialog import ClickTaskInDialog
+from mhxy_automation.domain.behavior_tree.actions.sect_task.close_shop_panel import CloseShopPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.confirm_give import ConfirmGive
 from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop import GoToShop
 from mhxy_automation.domain.behavior_tree.actions.sect_task.go_to_shop_map import GoToShopMap
@@ -84,6 +85,14 @@ def build_shopping_tree() -> BaseNode:
         condition=IsShopPanelVisible(),
         action=OpenShopPanel(),
     )
+    ensure_by_item = Ensure(
+        condition=IsDialogVisible(),
+        action=BuyItem(),
+    )
+    ensure_close_shop_panel = Ensure(
+        condition=Not(IsShopPanelVisible()),
+        action=CloseShopPanel(),
+    )
     shopping = Sequence(
         children=[
             CheckTaskType(TaskType.SHOPPING),
@@ -92,7 +101,9 @@ def build_shopping_tree() -> BaseNode:
             ensure_open_shop_dialog,
             ensure_open_shop_panel,
             ChooseItem(),
-            BuyItem(),
+            ensure_by_item,
+            ensure_close_dialog,
+            ensure_close_shop_panel,
         ]
     )
     return shopping

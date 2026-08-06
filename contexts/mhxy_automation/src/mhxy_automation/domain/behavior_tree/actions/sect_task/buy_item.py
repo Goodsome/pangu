@@ -15,7 +15,7 @@ class BuyItem(Action):
     @override
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         if self._triggered:
-            return NodeStatus.SUCCESS
+            return NodeStatus.RUNNING
             
         task_info = blackboard.sect_task.task_info
         shop_route = ITEM_KNOWLEDGE_DB.get(task_info.task_target)
@@ -24,7 +24,7 @@ class BuyItem(Action):
 
         await blackboard.main_hud.panels.shop_panel.buy()
         self._triggered = True
-        return NodeStatus.SUCCESS
+        return NodeStatus.RUNNING
 
     @override
     def reset(self) -> None:
