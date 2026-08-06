@@ -184,6 +184,46 @@ class Sequence(Composite):
         self.clear_running_child()
         return NodeStatus.SUCCESS
 
+@dataclass
+class MemorySequence(Composite):
+    """记忆顺序节点 (Sequence*)。
+    
+    一旦子节点返回 SUCCESS，就会推进内部游标。
+    下一帧 tick 时，直接从游标指向的节点开始执行，不再重新评估之前的节点。
+    """
+    _current_index: int = field(default=0, init=False, repr=False)
+
+    @override
+    async def tick(self, blackboard: 'Blackboard') -> NodeStatus:
+        # 从当前记忆的索引开始执行
+        while self._current_index < len(self.children):
+            child = self.children[self._current_index]
+            status = await child.tick(blackboard)
+
+            if status == NodeStatus.RUNNING:
+                self.set_running_child(child)
+                return NodeStatus.RUNNING
+
+            if status == NodeStatus.FAILURE:
+                # 关键：一旦失败，流水线断裂，重置游标，并向上返回失败
+                self.clear_running_child(child)
+                self._current_index = 0
+                return NodeStatus.FAILURE
+
+            if status == NodeStatus.SUCCESS:
+                # 节点成功，推进游标，并继续 while 循环执行下一个节点
+                self.clear_running_child(child)
+                self._current_index += 1
+
+        # 所有子节点都成功执行完毕，重置游标，为下一次整树执行做准备
+        self._current_index = 0
+        return NodeStatus.SUCCESS
+
+    @override
+    def reset(self) -> None:
+        """重置状态与游标"""
+        super().reset()
+        self._current_index = 0
 
 @dataclass
 class Ensure(Selector):

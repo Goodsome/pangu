@@ -25,6 +25,7 @@ class GoToShopMap(Action):
 
         await blackboard.client.main_hud.inventory.use_fei_xing_fu(target=shop_route["city_map"])
         self._triggered = True
+        blackboard.main_ctx.current_map = shop_route["city_map"]
         return NodeStatus.RUNNING
 
     @override

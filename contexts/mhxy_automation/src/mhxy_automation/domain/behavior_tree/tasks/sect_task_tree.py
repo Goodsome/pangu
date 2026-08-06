@@ -39,6 +39,7 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.open_shop_dialog imp
 from mhxy_automation.domain.behavior_tree.actions.sect_task.open_shop_panel import OpenShopPanel
 from mhxy_automation.domain.behavior_tree.actions.sect_task.refresh_task_info import RefreshTaskInfo
 from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng import ReturnShiMeng
+from mhxy_automation.domain.behavior_tree.actions.wait import Wait
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
     IsSectTaskClaimable,
     IsSectTaskInProgress,
@@ -54,7 +55,7 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_vis
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, Not, Selector, Sequence, When
+from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, MemorySequence, Not, Selector, Sequence, When
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
 
@@ -93,7 +94,7 @@ def build_shopping_tree() -> BaseNode:
         condition=Not(IsShopPanelVisible()),
         action=CloseShopPanel(),
     )
-    shopping = Sequence(
+    shopping = MemorySequence(
         children=[
             CheckTaskType(TaskType.SHOPPING),
             ensure_to_shop_map,
@@ -139,6 +140,7 @@ def build_report_tree(
             ensure_shifu_dialog,
             ClickTaskInDialog(),
             report_or_give,
+            Wait(),
             ensure_close_dialog,
             RefreshTaskInfo(),
         ]

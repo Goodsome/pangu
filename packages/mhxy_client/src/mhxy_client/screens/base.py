@@ -238,5 +238,6 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         self,
         point: Point | RelativePoint | None = None,
         target_roi: Region | RelativeRegion | None = None,
+        button: MouseButton = MouseButton.LEFT,
     ) -> None:
-        await self.mouse_click(point, target_roi=target_roi)
+        await self.mouse_click(point, target_roi=target_roi, button=button)

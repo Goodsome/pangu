@@ -207,7 +207,10 @@ class MainHUD(BaseScreen):
         await self.mouse_click(target_roi=roi)
         
     async def close_dialog(self) -> None:
-        await self.window.mouse_click(button=MouseButton.RIGHT)
+        await self.click(
+            target_roi=self.config.dialog_roi,
+            button=MouseButton.RIGHT
+        )
 
     async def clean_players(self) -> None:
         await self.window.key_press(VirtualKeyCode.VK_F9)
