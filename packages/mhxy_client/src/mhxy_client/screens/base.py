@@ -27,7 +27,7 @@ _DEFAULT_POINTER_TEMPLATE_PATH = (
 
 # 校准容差与 CV 沉淀时间：游戏光标滞后系统光标，测量前需沉淀让其追上
 _TOLERANCE_PX: float = 10.0
-_SETTLE_SEC: float = 0.1
+_SETTLE_SEC: float = 0.2
 # 钟形减速段 CV 检查点 (占步数比例)：此处速度低、游戏光标滞后误差小，offset 估计更准
 _CV_CHECKPOINT_FRACTIONS: tuple[float, ...] = (0.8,)
 

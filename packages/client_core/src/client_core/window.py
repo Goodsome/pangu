@@ -289,6 +289,20 @@ class Window:
             else None
         )
 
+    async def get_text(
+        self,
+        confidence_threshold: float = 0.5,
+        roi: Region | RelativeRegion | None = None,
+    ) -> str | None:
+        """同步获取场景中的全部文本内容。"""
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        text = self.ocr_engine.get_text(
+            scene=frame.mat,
+            confidence_threshold=confidence_threshold,
+        )
+        return text
+
     # ---------------------------------------------------------------------------
     # 组合交互操作 (Match & Click / Find Text & Click)
     # ---------------------------------------------------------------------------

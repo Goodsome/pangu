@@ -65,27 +65,14 @@ class MainHUD(BaseScreen):
                 return True
         return False
 
-    async def get_current_map(self) -> str:
+    async def get_current_map(self) -> str | None:
         """获取当前所在的地图/场景名称 (如 '建邺城', '长安城')。
 
         根据配置的 map_name_roi 识别地图区域 OCR 文本，自动剥离坐标后缀。
         """
-        roi = (
-            self.config.map_name_roi
-            if self.config.map_name_roi.width > 0
-            and self.config.map_name_roi.height > 0
-            else _DEFAULT_MAP_NAME_ROI
-        )
-        results = await self.window.ocr(roi=roi)
-        for result in results:
-            text = result.text.strip()
-            if not text:
-                continue
-            # 过滤并清洗末尾坐标，例如 "建邺城 [105, 42]" / "建邺城 (105, 42)" -> "建邺城"
-            clean_map = text.split("[")[0].split("(")[0].strip()
-            if clean_map:
-                return clean_map
-        return ""
+        roi =  self.config.map_name_roi
+        result = await self.window.get_text(roi=roi)
+        return result
 
     async def check_sect_task(self) -> SectTaskInfo:
         roi =  self.config.task_list_roi

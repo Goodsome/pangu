@@ -13,16 +13,11 @@ class MainHudLayoutConfig:
     供 calibrate_main_hud_roi.py 辅助脚本进行交互式框选标定后填入。
     """
 
-    map_name_roi: RelativeRegion = RelativeRegion(
-        x=0.0542, y=0.0769, width=0.0603, height=0.0330
-    )
+    # map_name_roi: RelativeRegion = RelativeRegion( x=0.0542, y=0.0769, width=0.0603, height=0.0330 )
+    map_name_roi: RelativeRegion = RelativeRegion(x=0.0443, y=0.1146, width=0.0788, height=0.0271)
     task_list_roi: RelativeRegion = RelativeRegion(
         x=0.7488, y=0.2292, width=0.2414, height=0.4898
     )
-    fu_roi: RelativeRegion = RelativeRegion(
-        x=0.7562, y=0.3501, width=0.0246, height=0.0330
-    )
-    claim_task_roi: RelativeRegion = RelativeRegion(x=0.5025, y=0.5495, width=0.0948, height=0.0377)
     dialog_roi: RelativeRegion = RelativeRegion(x=0.0764, y=0.4914, width=0.8485, height=0.2496)
     dialog_name_roi: RelativeRegion = RelativeRegion(x=0.1663, y=0.4630, width=0.1145, height=0.0483)
     confirm_give_roi: RelativeRegion = RelativeRegion(x=0.2771, y=0.7080, width=0.1268, height=0.0392)

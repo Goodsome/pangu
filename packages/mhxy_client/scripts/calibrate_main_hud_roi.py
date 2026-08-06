@@ -26,9 +26,7 @@ logger = logging.getLogger(__name__)
 target_fields = [
     ("map_name_roi", "地图名称与坐标显示区域"),
     ("task_list_roi", "任务追踪列表区域"),
-    ("fu_roi", "任务追踪列表区域"),
     ("dialog_name_roi", "对话框名称区域"),
-    ("claim_task_roi", "师门任务区域"),
     ("dialog_roi", "对话框区域"),
     ("confirm_give_roi", "确认赠送区域"),
     ("inventory_title_roi", "背包标题区域"),
