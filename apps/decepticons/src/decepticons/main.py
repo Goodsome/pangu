@@ -13,15 +13,18 @@
 
 import asyncio
 import logging
+from pathlib import Path
 from typing import Annotated
 
 import typer
-
+from foundation.logging_setup import configure_logging
 from mhxy_automation.application.use_cases.run_sect_task import RunSectTask
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+configure_logging(
+    app_name="decepticons",
+    log_dir=Path.cwd() / "logs",
+    log_level=logging.INFO,
+    console_output=True,
 )
 
 app = typer.Typer(

@@ -186,6 +186,7 @@ class MainHUD(BaseScreen):
             element_key=f"dialog:{dialog_name}:{option}",
             target_text=option,
             roi=self.config.dialog_roi,
+            is_element_fixed=False,
         )
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")

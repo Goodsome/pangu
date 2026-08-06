@@ -57,7 +57,7 @@ class BaseNode(ABC):
         if status == NodeStatus.SUCCESS:
             logger.info(f"[BT] ✅ 成功: {self.name}")
         elif status == NodeStatus.FAILURE:
-            logger.debug(f"[BT] ❌ 失败: {self.name}")
+            logger.info(f"[BT] ❌ 失败: {self.name}")
         elif status == NodeStatus.RUNNING:
             logger.info(f"[BT] ⏳ 挂起 (跨帧等待): {self.name}")
         

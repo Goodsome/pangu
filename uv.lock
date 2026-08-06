@@ -488,12 +488,14 @@ name = "decepticons"
 version = "0.1.0"
 source = { editable = "apps/decepticons" }
 dependencies = [
+    { name = "foundation" },
     { name = "mhxy-automation" },
     { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "foundation", editable = "foundation" },
     { name = "mhxy-automation", editable = "contexts/mhxy_automation" },
     { name = "typer", specifier = ">=0.26.7" },
 ]

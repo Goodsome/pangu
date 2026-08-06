@@ -25,5 +25,17 @@ ITEM_KNOWLEDGE_DB: dict[str, ShopRoute] = {
         "shop": "回春堂",
         "npc_name": "药店老板",
         "item_location": (0, 3),
-    }
+    },
+    "佛手": {
+        "city_map": "长安城",
+        "shop": "回春堂",
+        "npc_name": "药店老板",
+        "item_location": (0, 4),
+    },
+    "布鞋": {
+        "city_map": "长安城",
+        "shop": "张记布庄",
+        "npc_name": "服装店老板",
+        "item_location": (0, 2),
+    },
 }

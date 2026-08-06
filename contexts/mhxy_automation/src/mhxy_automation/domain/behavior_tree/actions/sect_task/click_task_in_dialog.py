@@ -15,7 +15,7 @@ class ClickTaskInDialog(Action):
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if self._triggered:
-            return NodeStatus.SUCCESS
+            return NodeStatus.RUNNING
         
         task_info = blackboard.sect_task.task_info
         if task_info.has_item:
@@ -24,7 +24,7 @@ class ClickTaskInDialog(Action):
             option = "师门任务"
         await blackboard.client.main_hud.choose_option_in_dialog(task_info.task_target, option)
         self._triggered = True
-        return NodeStatus.SUCCESS
+        return NodeStatus.RUNNING
 
     @override
     def reset(self) -> None:

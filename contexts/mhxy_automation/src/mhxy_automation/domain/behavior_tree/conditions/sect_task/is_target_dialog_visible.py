@@ -10,10 +10,8 @@ class IsTargetDialogVisible(Condition):
 
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
-        task_info = blackboard.sect_task.task_info
-        visible = await blackboard.client.main_hud.check_dialog_visible(task_info.task_target)
+        visible = await blackboard.client.main_hud.check_dialog_visible()
         if visible:
-            blackboard.main_ctx.target_npc = task_info.task_target
             return NodeStatus.SUCCESS
         else:
             return NodeStatus.FAILURE

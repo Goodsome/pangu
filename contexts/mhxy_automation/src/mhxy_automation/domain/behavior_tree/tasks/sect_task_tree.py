@@ -22,6 +22,7 @@ Sequence [师门任务总主控]
         └── ClaimSectTask              # Action: 点击「师门任务」选项，领取任务
 """
 
+from mhxy_automation.domain.behavior_tree.actions.raise_error import RaiseError
 from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     CheckSectTask,
     ClaimSectTask,
@@ -52,7 +53,6 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_panel_visible 
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_dialog_visible import IsShopDialogVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_visible import IsShopPanelVisible
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
-from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_send_mail_task import IsSendMailTask
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import IsTargetDialogVisible
 from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, MemorySequence, Not, Selector, Sequence
 from mhxy_client import SectTaskStatus
@@ -103,6 +103,7 @@ def build_shopping_tree() -> BaseNode:
             CheckTaskType(TaskType.SHOPPING),
             ensure_to_shop_map,
             ensure_to_shop,
+            Wait(),
             ensure_open_shop_dialog,
             ensure_open_shop_panel,
             ChooseItem(),
@@ -140,8 +141,8 @@ def build_report_tree(
             IsTaskStatus(status=SectTaskStatus.REPORT),
             ensure_in_shi_meng,
             ensure_shifu_dialog,
-            ClickTaskInDialog(),
             report_or_give,
+            Wait(),
             RefreshTaskInfo(),
         ]
     )
@@ -161,16 +162,32 @@ def build_send_mail_tree() -> BaseNode:
         action=ConfirmGive(),
     )
     
-    return Sequence(
+    return MemorySequence(
         children=[
-            IsSendMailTask(),
+            CheckTaskType(task_type=TaskType.SEND_MAIL),
             ensure_dialog,
             ensure_given_panel,
             ensure_give,
             ensure_close_dialog,
+            Wait(),
             RefreshTaskInfo(),
         ]
     )
+
+def build_patrol_task() -> BaseNode:
+    ensure_win = Ensure(
+        condition=IsDialogVisible(),
+        action=ClickTargetInTaskPanel(),
+    )
+    return Sequence(
+        children=[
+            CheckTaskType(task_type=TaskType.PATROL),
+            ensure_win,
+            ensure_close_dialog,
+            ensure_win,
+        ]
+    )
+    
 
 def build_claim_task() -> BaseNode:
     return MemorySequence(
@@ -181,17 +198,19 @@ def build_claim_task() -> BaseNode:
             ensure_shifu_dialog,
             ClaimSectTask(),
             ensure_close_dialog,
+            Wait(),
             RefreshTaskInfo(),
         ]
     )
     
 def build_sect_task_tree() -> BaseNode:
     """装配师门任务行为树并返回根节点。"""
-    # 1. CLAIMABLE 状态分支：寻路找师父并领取任务
     dispatch_task = Selector(
         children=[
             build_send_mail_tree(),
             build_shopping_tree(),
+            build_patrol_task(),
+            RaiseError(message="un processed task type")
         ]
     )
     in_progress_branch = Sequence(

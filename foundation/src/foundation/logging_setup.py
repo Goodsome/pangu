@@ -53,9 +53,9 @@ def configure_logging(
         root_logger.handlers.clear()
 
     if log_format is None:
-        log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        log_format = "%(asctime)s [%(levelname)s] %(module)s: %(message)s"
     if date_format is None:
-        date_format = "%Y-%m-%d %H:%M:%S"
+        date_format = "%H:%M:%S"
     formatter = logging.Formatter(log_format, datefmt=date_format)
 
     # 2. 配置文件输出，文件名自动加上应用名 (如 cli.log, mcp.log)

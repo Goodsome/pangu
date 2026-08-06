@@ -22,6 +22,7 @@ class TaskType(StrEnum):
 
     SEND_MAIL = auto()
     SHOPPING = auto()
+    PATROL = auto()
 
 
 @dataclass
@@ -68,7 +69,7 @@ class SectTaskInfo:
         elif self.full_description.startswith("继续回师门"):
             self.status = SectTaskStatus.CLAIMABLE
             self._task_target = "师父"
-        elif match := re.match(
+        elif match := re.search(
             r"帮师父送信给(.+?)，当前第(\d+)次", self.full_description
         ):
             self.status = SectTaskStatus.IN_PROGRESS
@@ -86,6 +87,13 @@ class SectTaskInfo:
             else:
                 self.status = SectTaskStatus.IN_PROGRESS
                 self._task_target = match.group(1)
+        elif match := re.search(
+            r"在师门附近(.+?)当前", self.full_description
+        ):
+            self.status = SectTaskStatus.IN_PROGRESS
+            self.task_type = TaskType.PATROL
+            self._task_target = match.group(1)
+            
         elif match := re.match(
             r"任务完成，找师父报告去", self.full_description
         ):
@@ -130,14 +138,6 @@ class SectTaskInfo:
 
     def _resove_in_progress_point(self) -> Point:
         assert self._task_target is not None
-        match self.task_type:
-            case TaskType.SEND_MAIL:
-                return self.resolve_point_by_targets(
-                    search_targets=("送信给",), get_next_word=True
-                )
-            case TaskType.SHOPPING:
-                return self.resolve_point_by_targets(
-                    search_targets=(self._task_target,),
-                )
-            case _:
-                raise NotImplementedError
+        return self.resolve_point_by_targets(
+            search_targets=(self._task_target,),
+        )

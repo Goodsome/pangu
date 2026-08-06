@@ -10,10 +10,5 @@ class Panel(BaseScreen):
     
     @override
     async def check_visible(self) -> bool:
-        element = await self.locate_element(
-            element_key=self.screen_name,
-            target_text=self.screen_name,
-            roi=self.title_roi,
-        )
-        return element is not None
-        
+        result = await self.window.get_text(roi=self.title_roi)
+        return result == self.screen_name
