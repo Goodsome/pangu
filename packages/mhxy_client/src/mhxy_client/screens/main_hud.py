@@ -171,7 +171,7 @@ class MainHUD(BaseScreen):
         action_point = self.sect_task_info.resolve_point_by_targets(("师父",))
         await self.mouse_click(action_point)
 
-    async def check_dialog_visible(self, npc_name: str) -> bool:
+    async def check_dialog_visible(self, npc_name: str="") -> bool:
         return not await self.window.abs_diff(
             roi=self.config.dialog_bg_roi,
             template_path=_DIALOG_BG_TEMPLATE_PATH

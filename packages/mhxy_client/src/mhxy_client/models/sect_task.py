@@ -75,8 +75,8 @@ class SectTaskInfo:
             self.task_type = TaskType.SEND_MAIL
             self._task_target = match.group(1)
             self.task_round = int(match.group(2))
-        elif match := re.match(
-            r".*?买到(.+?)送给师", self.full_description
+        elif match := re.search(
+            r"买到(.+?)送给师", self.full_description
         ):
             self.task_type = TaskType.SHOPPING
             if "已拥有" in self.full_description:

@@ -30,13 +30,11 @@ logger = logging.getLogger(__name__)
 class BaseNode(ABC):
     """行为树节点抽象基类。"""
     
-    name: str = field(default="")
-    
     _last_status: NodeStatus | None = field(default=None, init=False, repr=False)
     
-    def __post_init__(self):
-        if not self.name:
-            self.name = self.__class__.__name__
+    @property
+    def name(self) -> str:
+        return str(self.__class__.__name__)
 
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         # 1. 检测节点是否刚刚被激活 (从 None 或其他状态进入 RUNNING/执行)

@@ -41,7 +41,6 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.refresh_task_info im
 from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng import ReturnShiMeng
 from mhxy_automation.domain.behavior_tree.actions.wait import Wait
 from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
-    IsSectTaskClaimable,
     IsSectTaskInProgress,
 )
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_shop import CheckShop
@@ -58,6 +57,11 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_
 from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, IfThenElse, MemorySequence, Not, Selector, Sequence
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
+
+ensure_in_shi_meng = Ensure(
+    condition=IsInMap(["五庄观", "乾坤殿"]),
+    action=ReturnShiMeng(),
+)
 
 ensure_shifu_dialog = Ensure(
     condition=IsDialogVisible("镇元大仙"),
@@ -105,6 +109,7 @@ def build_shopping_tree() -> BaseNode:
             ensure_buy_item,
             ensure_close_dialog,
             ensure_close_shop_panel,
+            RefreshTaskInfo(),
         ]
     )
     return shopping
@@ -114,10 +119,6 @@ def build_report_tree(
     ensure_shifu_dialog: Ensure,
 ) -> BaseNode:
     
-    ensure_in_shi_meng = Ensure(
-        condition=IsInMap(["五庄观", "乾坤殿"]),
-        action=ReturnShiMeng(),
-    )
     ensure_given_panel = Ensure(
         condition=IsPanelVisible("given"),
         action=ClickTaskInDialog(),
@@ -125,7 +126,8 @@ def build_report_tree(
     give_item = Sequence(
         children=[
             ensure_given_panel,
-            ConfirmGive()
+            ConfirmGive(),
+            CloseDialog(),
         ]
     )
     report_or_give = IfThenElse(
@@ -140,8 +142,6 @@ def build_report_tree(
             ensure_shifu_dialog,
             ClickTaskInDialog(),
             report_or_give,
-            Wait(),
-            ensure_close_dialog,
             RefreshTaskInfo(),
         ]
     )
@@ -153,7 +153,7 @@ def build_send_mail_tree() -> BaseNode:
         action=ClickTargetInTaskPanel(),
     )
     ensure_given_panel = Ensure(
-        condition=IsPanelVisible("given"),
+        condition=IsPanelVisible(panel_name="given"),
         action=ClickTaskInDialog(),
     )
     ensure_give = Ensure(
@@ -171,19 +171,23 @@ def build_send_mail_tree() -> BaseNode:
             RefreshTaskInfo(),
         ]
     )
-    
-def build_sect_task_tree() -> BaseNode:
-    """装配师门任务行为树并返回根节点。"""
-    # 1. CLAIMABLE 状态分支：寻路找师父并领取任务
-    claim_task_branch = Sequence(
+
+def build_claim_task() -> BaseNode:
+    return MemorySequence(
         children=[
-            IsSectTaskClaimable(),
+            IsTaskStatus(status=SectTaskStatus.CLAIMABLE),
+            ensure_close_dialog,
+            ensure_in_shi_meng,
             ensure_shifu_dialog,
             ClaimSectTask(),
             ensure_close_dialog,
             RefreshTaskInfo(),
         ]
     )
+    
+def build_sect_task_tree() -> BaseNode:
+    """装配师门任务行为树并返回根节点。"""
+    # 1. CLAIMABLE 状态分支：寻路找师父并领取任务
     dispatch_task = Selector(
         children=[
             build_send_mail_tree(),
@@ -203,7 +207,7 @@ def build_sect_task_tree() -> BaseNode:
             CheckSectTask(),
             Selector(
                 children=[
-                    claim_task_branch,
+                    build_claim_task(),
                     in_progress_branch,
                     build_report_tree(ensure_shifu_dialog),
                 ]
