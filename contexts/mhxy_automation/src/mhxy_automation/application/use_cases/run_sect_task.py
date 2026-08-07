@@ -13,7 +13,7 @@ from mhxy_client.factory import create_mhxy_client_by_index
 logger = logging.getLogger(__name__)
 
 # 持续循环模式下每帧之间的间隔时间
-_TICK_INTERVAL_SEC: float = 1
+_TICK_INTERVAL_SEC: float = 0.5
 
 
 @dataclass
@@ -48,11 +48,10 @@ class RunSectTask:
             try:
                 while True:
                     async with self.input_lock:
-                        # client.activate()
+                        client.activate()
                         await client.begin_frame()
                         status = await tree.tick(blackboard)
-                        
-                    await asyncio.sleep(_TICK_INTERVAL_SEC)
+                        await asyncio.sleep(_TICK_INTERVAL_SEC)
             except asyncio.CancelledError:
                 logger.info("[RunSectTask] 任务被取消")
 
@@ -73,6 +72,6 @@ class RunSectTask:
                         name=f"WindowTask-{index}"
                     )
             logger.info("[RunSectTask] 所有窗口任务已安全结束。")
-        except* Exception as e:
+        except* Exception:
             # TaskGroup 会收集所有抛出的异常，可以使用 except* 语法处理 ExceptionGroup
-            logger.error("[RunSectTask] 批量执行中发生异常: %s", e)
+            logger.exception("[RunSectTask] 批量执行中发生异常")

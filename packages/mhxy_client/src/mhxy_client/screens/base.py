@@ -233,6 +233,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
             _ = await self.mouse_move(point, target_roi=target_roi)
             await asyncio.sleep(0.1)
         await self.window.mouse_click(button=button)
+        await asyncio.sleep(0.1)
 
     async def click(
         self,

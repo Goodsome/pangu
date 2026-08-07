@@ -11,7 +11,7 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 class ReportTaskInDialog(Action):
     """点击对话中的任务"""
 
-    running_time: float = 1
+    running_time: float = 10
     start_time: float = field(default=0, init=False)
 
     @override
