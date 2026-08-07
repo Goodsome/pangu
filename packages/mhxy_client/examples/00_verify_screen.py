@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from pathlib import Path
-from client_core import RelativeRegion
+from client_core import Point, RelativeRegion
 from foundation import configure_logging 
 from mhxy_client import create_mhxy_client_by_index
 from mhxy_client.models.npcs.fu_zhuang_dian_lao_ban import FuZhuangDianLaoBan
@@ -25,7 +25,7 @@ async def async_main() -> None:
     async with client:
         client.activate()
         hud = client.main_hud
-        check_result = await hud.check_sect_task()
+        # check_result = await hud.check_sect_task()
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
         # check_result = await hud.lead_to_npc_house(target=FuZhuangDianLaoBan())
         # check_result = await hud.inventory.use_fei_xing_fu(target=FeiXingFuMap.CHANG_AN)
@@ -33,6 +33,7 @@ async def async_main() -> None:
         # check_result = await hud.panels.shop_panel.choose_item(0, 3)
         # check_result = await hud.panels.given_panel.check_visible()
         # check_result = await hud.window.get_text()
+        check_result = await hud.choose_option_in_dialog("ads", "购买")
         
         logger.info(f"{check_result=}")
 

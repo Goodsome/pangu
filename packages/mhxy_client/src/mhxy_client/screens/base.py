@@ -107,7 +107,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         win_h = self.window.height
         if not (0 <= sys_pos.x <= win_w and 0 <= sys_pos.y <= win_h):
             return sys_pos, sys_pos, False
-        await asyncio.sleep(_SETTLE_SEC)
+        # await asyncio.sleep(_SETTLE_SEC)
         game_cursor, is_pointer = await self._get_game_mouse()
         return sys_pos, game_cursor, is_pointer
 
