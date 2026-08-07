@@ -43,7 +43,7 @@ def _corrected_aim(abs_target: Point, sys_pos: Point, game: Point) -> Point:
 def _hop_scale(hop_dist: float) -> tuple[int, float]:
     """按跳距缩放钟形步数与时长: 短跳用更少步数与更短时长。"""
     steps = max(5, min(30, int(hop_dist / 20)))
-    duration = max(0.4, min(1.2, hop_dist / 200))
+    duration = max(0.4, min(2, hop_dist / 200))
     return steps, duration
 
 

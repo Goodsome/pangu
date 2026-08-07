@@ -11,8 +11,8 @@ from mhxy_client import SectTaskStatus
 class IsTaskStatus(Condition):
     status: SectTaskStatus
 
-    @override
     @property
+    @override
     def name(self) -> str:
         return f"IsTaskStatus({self.status.name})"
 

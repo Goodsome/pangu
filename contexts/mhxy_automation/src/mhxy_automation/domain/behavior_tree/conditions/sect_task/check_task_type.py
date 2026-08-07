@@ -12,6 +12,7 @@ class CheckTaskType(Condition):
     task_type: TaskType
 
     @property
+    @override
     def name(self) -> str:
         return f"CheckTaskType({self.task_type})"
     

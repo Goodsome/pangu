@@ -552,7 +552,9 @@ class Window:
         await self.input_backend.mouse_up(point=ipt, button=button)
 
     async def key_press(
-        self, vk_code: VirtualKeyCode | int, duration_sec: float = 0.05
+        self,
+        vk_code: VirtualKeyCode | int,
+        duration_sec: float = 0.05,
     ) -> None:
         """异步模拟按键按下并在指定秒后抬起。"""
         duration_sec = get_random_duration(mean=duration_sec)

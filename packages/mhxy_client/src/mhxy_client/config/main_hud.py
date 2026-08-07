@@ -27,6 +27,8 @@ class MainHudLayoutConfig:
     
     task_list_roi_v2: RelativeRegion = RelativeRegion(x=0.7537, y=0.3544, width=0.2217, height=0.026)
     task_panel_roi_v2: RelativeRegion = RelativeRegion(x=0.5111, y=0.4178, width=0.2414, height=0.0382)
+    
+    coordinate_roi: RelativeRegion = RelativeRegion(x=0.0382, y=0.1991, width=0.1158, height=0.0287)
 
 
 DB_CHANGAN_MAP: dict[str, RelativeRegion] = {

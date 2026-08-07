@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 from typing import override
 
+from cv_engine import abs_diff
 from sys_input.models import MouseButton
 
 from mhxy_client.config.main_hud import DB_CHANGAN_MAP
@@ -13,7 +14,7 @@ from mhxy_client.models.npcs.npc import Npc
 from mhxy_client.screens.inventory import InventoryPanel
 from mhxy_client.screens.panels.panels import Panels
 from sys_input import VirtualKeyCode
-from client_core import OcrResult, RelativeRegion
+from client_core import ImageFrame, OcrResult, RelativeRegion
 from mhxy_client.models import SectTaskInfo
 from mhxy_client.screens.base import BaseScreen
 from mhxy_client.screens.dialogs.dialogs import Dialogs
@@ -49,6 +50,8 @@ class MainHUD(BaseScreen):
     inventory: InventoryPanel = field(init=False)
     
     sect_task_info: SectTaskInfo = field(init=False)
+    
+    _last_coordinate: ImageFrame | None = field(init=False, default=None)
 
     def __post_init__(self):
         self.dialogs = Dialogs(window=self.window)
@@ -56,6 +59,7 @@ class MainHUD(BaseScreen):
         self.inventory = InventoryPanel(window=self.window)
         self.sect_task_info = SectTaskInfo()
         self.is_visible: bool = True
+        self._last_coordinate = None
 
     @override
     async def check_visible(self) -> bool:
@@ -246,3 +250,16 @@ class MainHUD(BaseScreen):
 
     async def clean_players(self) -> None:
         await self.window.key_press(VirtualKeyCode.VK_F9)
+
+    async def is_moving(self) -> bool:
+        # await self.window.begin_frame()
+        current = await self.window.capture(self.config.coordinate_roi)
+        if self._last_coordinate is None:
+            self._last_coordinate = current
+            return True
+        result = abs_diff(
+            current.mat,
+            self._last_coordinate.mat,
+        )
+        self._last_coordinate = current
+        return result

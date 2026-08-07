@@ -20,6 +20,7 @@ reset() 由父节点在以下时机调用：
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import time
 from typing import override
 
 from contextvars import ContextVar
@@ -53,7 +54,7 @@ class BaseNode(ABC):
                 short_name = self.name
                 if len(short_name) > 30:
                     short_name = short_name[:30] + "..."
-                logger.debug(f"[BT] {indent}➡️ 进入节点: {short_name}")
+                logger.info(f"[BT] {indent}➡️ 进入节点: {short_name}")
             
             # 2. 调用真正的业务逻辑
             status = await self._tick(blackboard)
@@ -111,8 +112,8 @@ class Not(Condition):
     """否定条件节点。"""
     condition: Condition
 
-    @override
     @property
+    @override
     def name(self) -> str:
         return f"Not({self.condition.name})"
 
@@ -124,6 +125,67 @@ class Not(Condition):
 @dataclass
 class Action(BaseNode, ABC):
     """动作节点。"""
+
+@dataclass
+class RunningAction(BaseNode, ABC):
+    
+    expire_time: float | None = field(default=None)
+    _start_time: float = field(default=0.0, init=False, repr=False)
+    _is_active: bool = field(default=False, init=False, repr=False)
+
+    @override
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
+        now = time.monotonic()
+        
+        if not self._is_active:
+            self._start_time = now
+            self._is_active = True
+            await self.on_start(blackboard)
+            return NodeStatus.RUNNING
+        
+        # 2. 超时检测
+        if self.expire_time is not None:
+            if now - self._start_time > self.expire_time:
+                logger.warning(f"[Timeout] 动作 {self.name} 已超过 {self.expire_time} 秒，强制失败")
+                return NodeStatus.FAILURE
+        
+        # 3. 运行状态反馈检测（核心：指令还在生效吗？）
+        status = await self.on_update(blackboard)
+        
+        # 如果动作自然结束（成功或失败），重置活跃状态以便下次重新触发
+        if status != NodeStatus.RUNNING:
+            self._is_active = False
+            
+        return status
+
+    @override
+    def _reset(self) -> None:
+        self._is_active = False
+        self.on_reset()
+
+    @abstractmethod
+    async def on_start(self, blackboard: Blackboard) -> None:
+        """
+        动作首次执行时调用。
+        【职责】：发送游戏指令（如：鼠标点击目标坐标、按下快捷键）。
+        """
+        pass
+
+    @abstractmethod
+    async def on_update(self, blackboard: Blackboard) -> NodeStatus:
+        """
+        动作持续期间每帧调用。
+        【职责】：校验物理状态（如：检测角色是否在移动、读条是否还在继续）。
+        【返回】：
+            - RUNNING: 动作还在健康地持续中。
+            - SUCCESS: 动作已完成（例如：角色物理上停下来了）。
+            - FAILURE: 发现异常中断（例如：预期在移动，但发现并未移动）。
+        """
+        pass
+
+    def on_reset(self) -> None:
+        """子类可选实现：被打断时的清理逻辑（如：发送停止移动的指令）。"""
+        pass
 
 @dataclass
 class Composite(BaseNode, ABC):
@@ -260,7 +322,7 @@ class Ensure(Selector):
     """确保节点。"""
 
     condition: Condition
-    action: Action
+    action: Action | RunningAction
     children: list[BaseNode] = field(init=False)
 
     def __post_init__(self) -> None:
@@ -277,8 +339,8 @@ class When(Sequence):
     def __post_init__(self) -> None:
         self.children = [self.condition, self.action]
 
-    @override
     @property
+    @override
     def name(self) -> str:
         return f"When({self.condition.name}, {self.action.name})"
         

@@ -33,11 +33,10 @@ from mhxy_automation.domain.behavior_tree.core import (
     MemorySequence,
 )
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
-    EnsureInShiMeng,
-    EnsureShiFuDialog,
     ensure_close_dialog,
+    ensure_in_shi_meng,
+    ensure_shifu_dialog,
 )
-from mhxy_automation.domain.enums import NodeStatus
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
 
@@ -70,8 +69,8 @@ def build_report_tree() -> BaseNode:
     return MemorySequence(
         children=[
             IsTaskStatus(status=SectTaskStatus.REPORT),
-            EnsureInShiMeng(),
-            EnsureShiFuDialog(),
+            ensure_in_shi_meng,
+            ensure_shifu_dialog,
             ReportOrGive(),
             Wait(),
             RefreshTaskInfo(),

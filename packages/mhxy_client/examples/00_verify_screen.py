@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 async def async_main() -> None:
-    client = create_mhxy_client_by_index(2, init_cv_engines=True)
+    client = create_mhxy_client_by_index(0, init_cv_engines=True)
     logger.info("=" * 70)
     logger.info(f"  * 目标窗口 HWND : {client.hwnd} ({hex(client.hwnd)})")
     logger.info(f"  * 目标窗口标题 : {client.title}")
@@ -27,7 +27,7 @@ async def async_main() -> None:
     async with client:
         client.activate()
         hud = client.main_hud
-        check_result = await hud.check_sect_task()
+        # check_result = await hud.check_sect_task()
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
         # check_result = await hud.lead_to_npc_house(target=FuZhuangDianLaoBan())
         # check_result = await hud.inventory.use_fei_xing_fu(target=FeiXingFuMap.CHANG_AN)
@@ -36,8 +36,11 @@ async def async_main() -> None:
         # check_result = await hud.panels.given_panel.check_visible()
         # check_result = await hud.window.get_text()
         # check_result = await hud.choose_option_in_dialog("ads", "购买")
-        
-        logger.info(f"{check_result=}")
+        # 
+        for i in range(100):
+            check_result = await hud.is_moving()
+            logger.info(f"{check_result=}")
+            await asyncio.sleep(1)
 
 
     logger.info("=" * 70)

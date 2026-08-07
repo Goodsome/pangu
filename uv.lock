@@ -1018,12 +1018,14 @@ name = "mhxy-automation"
 version = "0.1.0"
 source = { editable = "contexts/mhxy_automation" }
 dependencies = [
+    { name = "foundation" },
     { name = "mhxy-client" },
     { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "foundation", editable = "foundation" },
     { name = "mhxy-client", editable = "packages/mhxy_client" },
     { name = "typer", specifier = ">=0.26.7" },
 ]

@@ -20,7 +20,6 @@ class ChooseItem(Action):
         task_info = blackboard.sect_task.task_info
         shop_route = ShopRoute.from_item_name(task_info.task_target)
 
-        print(shop_route)
         await blackboard.main_hud.panels.shop_panel.choose_item(
             row=shop_route.item_location[0],
             col=shop_route.item_location[1],
