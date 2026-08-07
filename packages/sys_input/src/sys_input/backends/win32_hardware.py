@@ -140,11 +140,7 @@ class Win32HardwareBackend:
 
     async def mouse_move(self, point: Point) -> None:
         """全局移动鼠标光标位置。"""
-        if (
-            sys.platform != "win32"
-            or _SetCursorPos is None
-            or _SendInput is None
-        ):
+        if sys.platform != "win32" or _SetCursorPos is None or _SendInput is None:
             raise UnsupportedPlatformError("Win32HardwareBackend 仅支持 Windows 系统")
 
         res = bool(_SetCursorPos(point.x, point.y))

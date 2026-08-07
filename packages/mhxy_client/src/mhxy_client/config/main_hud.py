@@ -46,4 +46,7 @@ DB_CHANGAN_MAP: dict[str, RelativeRegion] = {
 
     "平安福寿店": RelativeRegion(x=0.7365, y=0.3590, width=0.0825, height=0.0196),
     "福寿店老板": RelativeRegion(x=0.6022, y=0.4118, width=0.0468, height=0.1282),
+
+    "锦绣饰品店": RelativeRegion(x=0.5837, y=0.7270, width=0.0813, height=0.0226),
+    "饰品店老板": RelativeRegion(x=0.3744, y=0.3258, width=0.0419, height=0.1237),
 }

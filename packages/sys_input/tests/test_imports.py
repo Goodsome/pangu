@@ -10,8 +10,15 @@ from sys_input import (
     VirtualKeyCode,
     Win32HardwareBackend,
     Win32MessageBackend,
+    is_key_pressed,
 )
 from sys_input.exceptions import UnsupportedPlatformError
+
+
+def test_is_key_pressed() -> None:
+    # 验证 is_key_pressed 可正常调用并返回 bool
+    pressed = is_key_pressed(VirtualKeyCode.VK_F12)
+    assert isinstance(pressed, bool)
 
 
 def test_dataclass_models() -> None:

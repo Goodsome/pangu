@@ -13,6 +13,7 @@ from sys_input.exceptions import (
     WindowNotFoundError,
 )
 from sys_input.interfaces import InputBackend
+from sys_input.keyboard import is_key_pressed
 from sys_input.models import (
     HWND,
     KeyEvent,
@@ -26,6 +27,8 @@ from sys_input.models import (
 __all__ = [
     # 统一接口契约
     "InputBackend",
+    # 键盘查询
+    "is_key_pressed",
     # 数据模型与类型
     "Point",
     "MouseEvent",

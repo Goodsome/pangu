@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import logging
 from pathlib import Path
@@ -15,8 +16,22 @@ configure_logging(app_name="mhxy_client", log_dir=log_dir, log_level=logging.INF
 logger = logging.getLogger(__name__)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--idx",
+        type=int,
+        default=0,
+        help=""
+    )
+    
+    return parser.parse_args()
+
+
 async def async_main() -> None:
-    client = create_mhxy_client_by_index(0, init_cv_engines=True)
+    args = parse_args()
+    window_index = args.idx
+    client = create_mhxy_client_by_index(window_index, init_cv_engines=True)
     logger.info("=" * 70)
     logger.info(f"  * 目标窗口 HWND : {client.hwnd} ({hex(client.hwnd)})")
     logger.info(f"  * 目标窗口标题 : {client.title}")

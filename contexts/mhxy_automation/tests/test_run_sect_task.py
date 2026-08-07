@@ -48,3 +48,29 @@ def test_execute_batch_logs_to_different_files(tmp_path: Path) -> None:
         assert "[Client-0]" not in content_1
 
     asyncio.run(_test())
+
+
+def test_execute_f12_key_exit() -> None:
+    async def _test() -> None:
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+        mock_client.begin_frame = AsyncMock()
+
+        use_case = RunSectTask()
+
+        with (
+            patch(
+                "mhxy_automation.application.use_cases.run_sect_task.create_mhxy_client_by_index",
+                return_value=mock_client,
+            ),
+            patch(
+                "mhxy_automation.application.use_cases.run_sect_task.is_key_pressed",
+                return_value=True,
+            ),
+        ):
+            await use_case.execute(window_index=0, one_tick=False)
+
+        assert use_case.stop_event.is_set()
+
+    asyncio.run(_test())

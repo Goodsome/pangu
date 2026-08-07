@@ -12,11 +12,12 @@ from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree import (
     build_sect_task_tree,
 )
 from mhxy_client.factory import create_mhxy_client_by_index
+from sys_input import VirtualKeyCode, is_key_pressed
 
 logger = logging.getLogger(__name__)
 
 # 持续循环模式下每帧之间的间隔时间
-_TICK_INTERVAL_SEC: float = 1
+_TICK_INTERVAL_SEC: float = 1.0
 
 
 @dataclass
@@ -26,10 +27,11 @@ class RunSectTask:
     支持两种执行模式：
 
     one_tick=True  : 执行单帧，输出本帧状态后退出（调试用）。
-    one_tick=False : 持续循环驱动行为树，直到任务完成或被中断。
+    one_tick=False : 持续循环驱动行为树，直到任务完成或按 F12 触发退出。
     """
 
     input_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    stop_event: asyncio.Event = field(default_factory=asyncio.Event)
 
     async def execute(
         self,
@@ -50,14 +52,34 @@ class RunSectTask:
                 logger.info("[RunSectTask] 单帧执行完毕，状态: %s", status)
                 return
 
+            logger.info(
+                "[RunSectTask] [Client-%d] 任务循环开始，提示：随时按 F12 可主动停止运行",
+                window_index,
+            )
+
             try:
-                while True:
+                while not self.stop_event.is_set():
+                    if is_key_pressed(VirtualKeyCode.VK_F12):
+                        logger.info("[RunSectTask] 检测到 F12 按键，主动退出任务")
+                        self.stop_event.set()
+                        break
+
                     async with self.input_lock:
                         client.activate()
                         await client.begin_frame()
                         status = await tree.tick(blackboard)
                         await asyncio.sleep(0.1)
-                    await asyncio.sleep(_TICK_INTERVAL_SEC)
+
+                    # 分步 sleep 响应按键退出
+                    sleep_remaining = _TICK_INTERVAL_SEC
+                    step_interval = 0.05
+                    while sleep_remaining > 0 and not self.stop_event.is_set():
+                        if is_key_pressed(VirtualKeyCode.VK_F12):
+                            logger.info("[RunSectTask] 检测到 F12 按键，主动退出任务")
+                            self.stop_event.set()
+                            break
+                        await asyncio.sleep(step_interval)
+                        sleep_remaining -= step_interval
             except asyncio.CancelledError:
                 logger.info("[RunSectTask] 任务被取消")
 
@@ -68,12 +90,15 @@ class RunSectTask:
         log_dir: Path | str = "logs",
     ) -> None:
         """批量运行多个窗口的师门任务，并将每个 client 的日志分别写入各自的 log 文件中。"""
+        self.stop_event.clear()
         with client_file_logging(window_indices, log_dir=log_dir):
             logger.info(
                 "[RunSectTask] 开始批量执行窗口任务: %s，日志目录: %s",
                 window_indices,
                 log_dir,
             )
+            if not one_tick:
+                logger.info("[RunSectTask] 提示：随时按 F12 可主动停止任务")
             try:
                 # 使用 Python 3.11+ 推荐的 TaskGroup 管理并发
                 async with asyncio.TaskGroup() as tg:

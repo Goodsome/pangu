@@ -156,6 +156,7 @@ class RunningAction(BaseNode, ABC):
                 logger.warning(
                     f"[Timeout] 动作 {self.name} 已超过 {self.expire_time} 秒，强制失败"
                 )
+                self._is_active = False
                 return NodeStatus.FAILURE
 
         # 3. 运行状态反馈检测（核心：指令还在生效吗？）
@@ -361,7 +362,7 @@ class Ensure(Selector):
         if action_status == NodeStatus.RUNNING:
             self._running_child = self.action
         else:
-            self._running_child = None
+            self.clear_running_child(self.action)
 
         return NodeStatus.RUNNING
 

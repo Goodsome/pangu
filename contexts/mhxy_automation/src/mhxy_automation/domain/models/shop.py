@@ -79,4 +79,12 @@ SHOP_DB = [
             "布衣",
         ],
     ),
+    Shop(
+        name="饰品店老板",
+        city=CityName.CHANG_AN,
+        house="锦绣饰品店",
+        items=[
+            "银腰带", "珍珠链", "腰带", "护身符"
+        ],
+    )
 ]
