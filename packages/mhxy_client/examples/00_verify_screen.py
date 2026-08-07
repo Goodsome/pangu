@@ -10,6 +10,7 @@ from mhxy_client.screens.dialogs.zhen_yuan_da_xian import ZhenYuanDaXianDialog
 from mhxy_client.screens.panels.give_panel import GivePanel
 from mhxy_client.screens.panels.shop_panel import ShopPanel
 from mhxy_client.screens.scenes.zhang_ji_bu_zhuang import ZhangJiBuZhuangScene
+from numpy import log
 
 log_dir = Path(__file__).resolve().parent.parent.parent.parent / "logs"
 configure_logging(app_name="mhxy_client", log_dir=log_dir, log_level=logging.INFO)
@@ -42,7 +43,7 @@ async def async_main() -> None:
     async with client:
         client.activate()
         hud = client.main_hud
-        # check_result = await hud.check_sect_task()
+        check_result = await hud.check_sect_task()
         # check_result = await hud.dialogs.zhen_yuan_da_xian.claim_task()
         # check_result = await hud.lead_to_npc_house(target=FuZhuangDianLaoBan())
         # check_result = await hud.inventory.use_fei_xing_fu(target=FeiXingFuMap.CHANG_AN)
@@ -51,11 +52,8 @@ async def async_main() -> None:
         # check_result = await hud.panels.given_panel.check_visible()
         # check_result = await hud.window.get_text()
         # check_result = await hud.choose_option_in_dialog("ads", "购买")
-        # 
-        for i in range(100):
-            check_result = await hud.is_moving()
-            logger.info(f"{check_result=}")
-            await asyncio.sleep(1)
+
+        logger.info(f"{check_result=}")
 
 
     logger.info("=" * 70)

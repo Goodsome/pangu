@@ -67,6 +67,12 @@ class RapidOcrEngine(BaseOcrEngine):
         """同步获取场景中的全部文本内容。"""
         img_bgr, offset_x, offset_y = self._prepare_image_and_offset(scene, roi)
         app = self._get_ocr_app()
+        
+        h, w = img_bgr.shape[:2]
+        if h < 30:
+            scale = 4
+            img_bgr = cv2.resize(img_bgr, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+            
         ocr_output, _ = app(img_bgr, use_det=False)
         if debug:
             self._debug(img_bgr)

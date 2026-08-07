@@ -88,6 +88,8 @@ class SectTaskInfo:
             else:
                 self.status = SectTaskStatus.IN_PROGRESS
                 self._task_target = match.group(1)
+                if self._task_target == "子":
+                    raise ValueError(f"Unresolved {self.full_description=}")
         elif match := re.search(
             r"在师门附近(.+?)当前", self.full_description
         ):
