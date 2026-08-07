@@ -1,5 +1,7 @@
 """买物师门任务分支树构建。"""
 
+from dataclasses import dataclass, field
+
 from mhxy_automation.domain.behavior_tree.actions.sect_task.buy_item import BuyItem
 from mhxy_automation.domain.behavior_tree.actions.sect_task.choose_item import (
     ChooseItem,
@@ -40,10 +42,13 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_vis
     IsShopPanelVisible,
 )
 from mhxy_automation.domain.behavior_tree.core import (
+    Action,
     BaseNode,
+    Condition,
     Ensure,
     MemorySequence,
     Not,
+    RunningAction,
 )
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
     EnsureCloseDialog,
@@ -51,44 +56,56 @@ from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
 from mhxy_client.models.sect_task import TaskType
 
 
+@dataclass
+class EnsureToShopMap(Ensure):
+    condition: Condition = field(default_factory=lambda: CheckShopMap())
+    action: RunningAction | Action = field(default_factory=lambda: GoToShopMap())
+
+
+@dataclass
+class EnsureToShop(Ensure):
+    condition: Condition = field(default_factory=lambda: CheckShop())
+    action: RunningAction | Action = field(default_factory=lambda: GoToShop())
+
+
+@dataclass
+class EnsureOpenShopDialog(Ensure):
+    condition: Condition = field(default_factory=lambda: IsShopDialogVisible())
+    action: RunningAction | Action = field(default_factory=lambda: OpenShopDialog())
+
+
+@dataclass
+class EnsureOpenShopPanel(Ensure):
+    condition: Condition = field(default_factory=lambda: IsShopPanelVisible())
+    action: RunningAction | Action = field(default_factory=lambda: OpenShopPanel())
+
+
+@dataclass
+class EnsureBuyItem(Ensure):
+    condition: Condition = field(default_factory=lambda: IsDialogVisible())
+    action: RunningAction | Action = field(default_factory=lambda: BuyItem())
+
+
+@dataclass
+class EnsureCloseShopPanel(Ensure):
+    condition: Condition = field(default_factory=lambda: Not(IsShopPanelVisible()))
+    action: RunningAction | Action = field(default_factory=lambda: CloseShopPanel())
+
+
 def build_shopping_tree() -> BaseNode:
     """构建买物师门任务分支树。"""
-    ensure_to_shop_map = Ensure(
-        condition=CheckShopMap(),
-        action=GoToShopMap(),
-    )
-    ensure_to_shop = Ensure(
-        condition=CheckShop(),
-        action=GoToShop(),
-    )
-    ensure_open_shop_dialog = Ensure(
-        condition=IsShopDialogVisible(),
-        action=OpenShopDialog(),
-    )
-    ensure_open_shop_panel = Ensure(
-        condition=IsShopPanelVisible(),
-        action=OpenShopPanel(),
-    )
-    ensure_buy_item = Ensure(
-        condition=IsDialogVisible(),
-        action=BuyItem(),
-    )
-    ensure_close_shop_panel = Ensure(
-        condition=Not(IsShopPanelVisible()),
-        action=CloseShopPanel(),
-    )
     return MemorySequence(
         children=[
             CheckTaskType(TaskType.SHOPPING),
-            ensure_to_shop_map,
-            ensure_to_shop,
+            EnsureToShopMap(),
+            EnsureToShop(),
             Wait(duration=3),
-            ensure_open_shop_dialog,
-            ensure_open_shop_panel,
+            EnsureOpenShopDialog(),
+            EnsureOpenShopPanel(),
             ChooseItem(),
-            ensure_buy_item,
+            EnsureBuyItem(),
             EnsureCloseDialog(),
-            ensure_close_shop_panel,
+            EnsureCloseShopPanel(),
             RefreshTaskInfo(),
         ]
     )

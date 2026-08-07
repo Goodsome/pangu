@@ -1,5 +1,7 @@
 """送信师门任务分支树构建。"""
 
+from dataclasses import dataclass, field
+
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import (
     ClickTargetInTaskPanel,
 )
@@ -22,34 +24,50 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_panel_visible 
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_visible import (
     IsTargetDialogVisible,
 )
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, MemorySequence
+from mhxy_automation.domain.behavior_tree.core import (
+    Action,
+    BaseNode,
+    Condition,
+    Ensure,
+    MemorySequence,
+    RunningAction,
+)
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
     EnsureCloseDialog,
 )
 from mhxy_client.models.sect_task import TaskType
 
 
-def build_send_mail_tree() -> BaseNode:
-    """构建送信师门任务分支树。"""
-    ensure_dialog = Ensure(
-        condition=IsTargetDialogVisible(),
-        action=ClickTargetInTaskPanel(),
-    )
-    ensure_given_panel = Ensure(
-        condition=IsPanelVisible(panel_name="given"),
-        action=ClickTaskInDialog(),
-    )
-    ensure_give = Ensure(
-        condition=IsTargetDialogVisible(),
-        action=ConfirmGive(),
+@dataclass
+class EnsureTargetDialog(Ensure):
+    condition: Condition = field(default_factory=lambda: IsTargetDialogVisible())
+    action: RunningAction | Action = field(
+        default_factory=lambda: ClickTargetInTaskPanel()
     )
 
+
+@dataclass
+class EnsureGivenPanel(Ensure):
+    condition: Condition = field(
+        default_factory=lambda: IsPanelVisible(panel_name="given")
+    )
+    action: RunningAction | Action = field(default_factory=lambda: ClickTaskInDialog())
+
+
+@dataclass
+class EnsureGive(Ensure):
+    condition: Condition = field(default_factory=lambda: IsTargetDialogVisible())
+    action: RunningAction | Action = field(default_factory=lambda: ConfirmGive())
+
+
+def build_send_mail_tree() -> BaseNode:
+    """构建送信师门任务分支树。"""
     return MemorySequence(
         children=[
             CheckTaskType(task_type=TaskType.SEND_MAIL),
-            ensure_dialog,
-            ensure_given_panel,
-            ensure_give,
+            EnsureTargetDialog(),
+            EnsureGivenPanel(),
+            EnsureGive(),
             EnsureCloseDialog(),
             Wait(),
             RefreshTaskInfo(),
