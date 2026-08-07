@@ -354,7 +354,7 @@ class OcrResult:
     text: str
     confidence: float
     rect: Region
-    box_points: tuple[Point, Point, Point, Point]
+    box_points: tuple[Point, Point, Point, Point] | None = None
     center: Point = field(init=False)
 
     def __post_init__(self) -> None:

@@ -59,6 +59,8 @@ class SectTaskInfo:
 
     def _resolve_full_description(self) -> None:
         """解析完整的师门任务描述文本。"""
+        if self.full_description:
+            return
         self.full_description = "".join(i.text for i in self.ocr_items)
 
     def _resolve_status(self) -> None:
@@ -70,12 +72,11 @@ class SectTaskInfo:
             self.status = SectTaskStatus.CLAIMABLE
             self._task_target = "师父"
         elif match := re.search(
-            r"帮师父送信给(.+?)，当前第(\d+)次", self.full_description
+            r"帮师父送信给(.+?)，当", self.full_description
         ):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL
             self._task_target = match.group(1)
-            self.task_round = int(match.group(2))
         elif match := re.search(
             r"买到(.+?)送给师", self.full_description
         ):

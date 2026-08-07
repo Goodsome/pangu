@@ -49,6 +49,7 @@ def build_sect_task_tree() -> BaseNode:
                     build_claim_task(),
                     in_progress_branch,
                     build_report_tree(),
+                    RaiseError(message="task status error")
                 ]
             ),
         ]

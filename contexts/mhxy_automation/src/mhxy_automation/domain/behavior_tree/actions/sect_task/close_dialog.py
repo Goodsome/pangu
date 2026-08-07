@@ -17,4 +17,4 @@ class CloseDialog(Action):
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         await blackboard.client.main_hud.close_dialog()
-        return NodeStatus.SUCCESS
+        return NodeStatus.RUNNING

@@ -15,13 +15,17 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_dialog_visible
 )
 from mhxy_automation.domain.behavior_tree.core import Ensure, Not
 
+
+wuzhuang = ["五庄观", "乾坤殿"]
+putuo = ["普陀山", "潮音洞"]
+
 ensure_in_shi_meng = Ensure(
-    condition=IsInMap(["五庄观", "乾坤殿"]),
+    condition=IsInMap(putuo),
     action=ReturnShiMeng(),
 )
 
 ensure_shifu_dialog = Ensure(
-    condition=IsDialogVisible("镇元大仙"),
+    condition=IsDialogVisible(),
     action=ClickTargetInTaskPanel(),
 )
 

@@ -24,6 +24,9 @@ class MainHudLayoutConfig:
     inventory_title_roi: RelativeRegion = RelativeRegion(x=0.1564, y=0.1554, width=0.1429, height=0.0543)
     inventory_grid_roi: RelativeRegion = RelativeRegion(x=0.0517, y=0.4962, width=0.3510, height=0.3424)
     feixingfu_map_changan_roi: RelativeRegion = RelativeRegion(x=0.5837, y=0.4314, width=0.1502, height=0.1388)
+    
+    task_list_roi_v2: RelativeRegion = RelativeRegion(x=0.7537, y=0.3544, width=0.2217, height=0.026)
+    task_panel_roi_v2: RelativeRegion = RelativeRegion(x=0.5111, y=0.4178, width=0.2414, height=0.0382)
 
 
 DB_CHANGAN_MAP: dict[str, RelativeRegion] = {

@@ -93,7 +93,7 @@ class MainHUD(BaseScreen):
         await asyncio.sleep(1)
         await self.window.begin_frame()
         task_info = await self._check_sect_task_by_roi(
-            roi=self.config.task_panel_roi
+            roi=self.config.task_panel_roi_v2
         )
         await self.close_task_panel()
         return task_info
@@ -105,8 +105,34 @@ class MainHUD(BaseScreen):
         await self.window.hotkey([VirtualKeyCode.VK_MENU, VirtualKeyCode.VK_Q])
         
     async def _check_sect_task_by_task_list(self) -> SectTaskInfo:
-        roi =  self.config.task_list_roi
-        return await self._check_sect_task_by_roi(roi)
+        # roi =  self.config.task_list_roi
+        # return await self._check_sect_task_by_roi(roi)
+        return await self._check_sect_task_one_line(self.config.task_list_roi_v2)
+        
+    async def _check_sect_task_one_line(self, roi: RelativeRegion) -> SectTaskInfo:
+        row_1 = await self.window.get_text(roi=roi)
+        if not row_1:
+            raise ValueError("No text found in the given ROI")
+        row_2_roi = RelativeRegion(x=roi.x, y=roi.y + roi.height, width=roi.width, height=roi.height)
+        row_2 = await self.window.get_text(roi=row_2_roi)
+        if not row_2:
+            raise ValueError("No text found in the given ROI")
+        full_description = row_1 + row_2
+            
+        task_info = SectTaskInfo(
+            full_description=full_description,
+            ocr_items=[OcrResult(
+                text=row_1,
+                confidence=1.0,
+                rect=self.config.task_list_roi_v2.to_absolute(self.window.width, self.window.height),
+            ), OcrResult(
+                text=row_2,
+                confidence=1.0,
+                rect=row_2_roi.to_absolute(self.window.width, self.window.height),
+            )]
+        )
+        task_info.resolve()
+        return task_info
         
     async def _check_sect_task_by_roi(self, roi: RelativeRegion) -> SectTaskInfo:
         results = await self.window.ocr(roi=roi)

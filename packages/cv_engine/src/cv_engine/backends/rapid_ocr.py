@@ -2,11 +2,14 @@
 
 from dataclasses import dataclass, field
 import logging
+import pathlib
+import time
 from typing import Any, override
 
 from cv_engine.backends.base import BaseOcrEngine
 from cv_engine.exceptions import OcrFailedError, OcrInitError
 from cv_engine.models import MatLike, OcrResult, Point, Region
+from rapidocr_onnxruntime.ch_ppocr_rec.text_recognize import cv2
 
 logger = logging.getLogger(__name__)
 
@@ -47,23 +50,31 @@ class RapidOcrEngine(BaseOcrEngine):
         except Exception as e:
             raise OcrInitError(f"初始化 RapidOCR 引擎失败: {e}") from e
 
+    def _debug(self, img: MatLike):
+        save_path = pathlib.Path("screenshots")
+        save_path.mkdir(parents=True, exist_ok=True)
+        timestamp = int(time.time() * 1000)
+        cv2.imwrite(str(save_path / f"ocr_{timestamp}_input.png"), img)
+    
     @override
     def get_text(
         self,
         scene: MatLike,
         confidence_threshold: float = 0.5,
         roi: Region | None = None,
+        debug: bool = False,
     ) -> str | None:
         """同步获取场景中的全部文本内容。"""
         img_bgr, offset_x, offset_y = self._prepare_image_and_offset(scene, roi)
         app = self._get_ocr_app()
         ocr_output, _ = app(img_bgr, use_det=False)
+        if debug:
+            self._debug(img_bgr)
         
         if not ocr_output:
             return None
         
         return ocr_output[0][0]
-
     
     @override
     def ocr(
@@ -75,9 +86,6 @@ class RapidOcrEngine(BaseOcrEngine):
         debug_dir: str = "screenshots",
     ) -> list[OcrResult]:
         """同步识别场景中全部文本内容及其所在位置几何信息。"""
-        import cv2
-        import pathlib
-        import time
         img_bgr, offset_x, offset_y = self._prepare_image_and_offset(scene, roi)
         app = self._get_ocr_app()
     
@@ -103,12 +111,7 @@ class RapidOcrEngine(BaseOcrEngine):
     
         # 3. 保存调试图片逻辑
         if debug:
-            save_path = pathlib.Path(debug_dir)
-            save_path.mkdir(parents=True, exist_ok=True)
-            timestamp = int(time.time() * 1000)
-    
-            # 保存送入模型前的图像（包含放大后的结果）
-            cv2.imwrite(str(save_path / f"ocr_{timestamp}_input.png"), processed_img)
+            self._debug(processed_img)
     
     
         # 4. 解析识别结果并还原坐标
