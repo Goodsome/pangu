@@ -77,7 +77,7 @@ def build_shopping_tree() -> BaseNode:
             CheckTaskType(TaskType.SHOPPING),
             ensure_to_shop_map,
             ensure_to_shop,
-            Wait(),
+            Wait(duration=3),
             ensure_open_shop_dialog,
             ensure_open_shop_panel,
             ChooseItem(),

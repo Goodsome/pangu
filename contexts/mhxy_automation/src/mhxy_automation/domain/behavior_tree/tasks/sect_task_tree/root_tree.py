@@ -2,9 +2,7 @@
 
 from mhxy_automation.domain.behavior_tree.actions.raise_error import RaiseError
 from mhxy_automation.domain.behavior_tree.actions.sect_task import CheckSectTask
-from mhxy_automation.domain.behavior_tree.conditions.sect_task import (
-    IsSectTaskInProgress,
-)
+from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status import IsTaskStatus
 from mhxy_automation.domain.behavior_tree.core import BaseNode, Selector, Sequence
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.claim_task import (
     build_claim_task,
@@ -21,6 +19,7 @@ from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.send_mail_task im
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.shopping_task import (
     build_shopping_tree,
 )
+from mhxy_client.models.sect_task import SectTaskStatus
 
 
 def build_sect_task_tree() -> BaseNode:
@@ -35,7 +34,7 @@ def build_sect_task_tree() -> BaseNode:
     )
     in_progress_branch = Sequence(
         children=[
-            IsSectTaskInProgress(),
+            IsTaskStatus(SectTaskStatus.IN_PROGRESS),
             dispatch_task,
         ]
     )

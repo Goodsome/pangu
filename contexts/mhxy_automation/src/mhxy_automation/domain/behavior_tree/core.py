@@ -31,24 +31,29 @@ logger = logging.getLogger(__name__)
 
 _tree_depth: ContextVar[int] = ContextVar("tree_depth", default=0)
 
+@dataclass
 class BaseNode(ABC):
     """行为树节点抽象基类。"""
     
+    node_name: str = field(default="", init=False, repr=False)
     _last_status: NodeStatus | None = field(default=None, init=False, repr=False)
     
     @property
     def name(self) -> str:
+        if self.node_name:
+            return self.node_name
         return str(self.__class__.__name__)
 
     async def tick(self, blackboard: Blackboard) -> NodeStatus:
         depth = _tree_depth.get()
         token = _tree_depth.set(depth + 1)
         try:
-            # 1. 检测节点是否刚刚被激活 (从 None 或其他状态进入 RUNNING/执行)
             if self._last_status != NodeStatus.RUNNING:
-                # 使用 debug 级别记录进入事件，避免干扰主流程日志
                 indent = "  " * depth
-                logger.debug(f"[BT] {indent}➡️ 进入节点: {self.name}")
+                short_name = self.name
+                if len(short_name) > 30:
+                    short_name = short_name[:30] + "..."
+                logger.debug(f"[BT] {indent}➡️ 进入节点: {short_name}")
             
             # 2. 调用真正的业务逻辑
             status = await self._tick(blackboard)
@@ -65,12 +70,15 @@ class BaseNode(ABC):
     def _log_status_change(self, status: 'NodeStatus', depth: int = 0) -> None:
         """根据不同的状态跃迁打印不同级别的日志"""
         indent = "  " * depth
+        short_name = self.name
+        if len(short_name) > 30:
+            short_name = short_name[:30] + "..."
         if status == NodeStatus.SUCCESS:
-            logger.info(f"[BT] {indent}✅ 成功: {self.name}")
+            logger.info(f"[BT] {indent}✅ 成功: {short_name}")
         elif status == NodeStatus.FAILURE:
-            logger.info(f"[BT] {indent}❌ 失败: {self.name}")
+            logger.info(f"[BT] {indent}❌ 失败: {short_name}")
         elif status == NodeStatus.RUNNING:
-            logger.info(f"[BT] {indent}⏳ 挂起 (跨帧等待): {self.name}")
+            logger.info(f"[BT] {indent}⏳ 挂起: {short_name}")
         
 
     @abstractmethod
@@ -79,6 +87,13 @@ class BaseNode(ABC):
         ...
 
     def reset(self) -> None:
+        """【框架级方法】重置状态并调用子类清理逻辑。"""
+        if self._last_status is not None:
+            logger.debug(f"[BT] 🔄 中断/重置: {self.name}")
+            self._last_status = None
+        self._reset()
+        
+    def _reset(self) -> None:
         """框架生命周期钩子：重置节点内部状态。
 
         当节点被父节点中断（例如 Selector 中更高优先级的条件节点成功）
@@ -95,6 +110,11 @@ class Condition(BaseNode, ABC):
 class Not(Condition):
     """否定条件节点。"""
     condition: Condition
+
+    @override
+    @property
+    def name(self) -> str:
+        return f"Not({self.condition.name})"
 
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -131,7 +151,7 @@ class Composite(BaseNode, ABC):
         self._running_child = None
 
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         """当复合节点本身被父节点中断时，级联清理。"""
         if self._running_child is not None:
             self._running_child.reset()
@@ -230,9 +250,9 @@ class MemorySequence(Composite):
         return NodeStatus.SUCCESS
 
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         """重置状态与游标"""
-        super().reset()
+        super()._reset()
         self._current_index = 0
 
 @dataclass
@@ -256,6 +276,11 @@ class When(Sequence):
 
     def __post_init__(self) -> None:
         self.children = [self.condition, self.action]
+
+    @override
+    @property
+    def name(self) -> str:
+        return f"When({self.condition.name}, {self.action.name})"
         
 @dataclass
 class IfThenElse(BaseNode):
@@ -300,7 +325,7 @@ class IfThenElse(BaseNode):
             return NodeStatus.RUNNING
 
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         if self._running_child is not None:
             self._running_child.reset()
             self._running_child = None

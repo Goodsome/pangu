@@ -29,5 +29,5 @@ class ChooseItem(Action):
         return NodeStatus.SUCCESS
 
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         self._triggered = False

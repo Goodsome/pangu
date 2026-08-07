@@ -3,6 +3,8 @@
 from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import (
     ClickTargetInTaskPanel,
 )
+from mhxy_automation.domain.behavior_tree.actions.sect_task.refresh_task_info import RefreshTaskInfo
+from mhxy_automation.domain.behavior_tree.actions.wait import Wait
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_task_type import (
     CheckTaskType,
 )
@@ -28,5 +30,8 @@ def build_patrol_task() -> BaseNode:
             ensure_win,
             ensure_close_dialog,
             ensure_win,
+            ensure_close_dialog,
+            Wait(),
+            RefreshTaskInfo()
         ]
     )

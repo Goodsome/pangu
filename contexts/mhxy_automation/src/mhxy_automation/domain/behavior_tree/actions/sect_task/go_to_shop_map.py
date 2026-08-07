@@ -22,9 +22,10 @@ class GoToShopMap(Action):
         shop_route = ShopRoute.from_item_name(task_info.task_target)
 
         await blackboard.client.main_hud.inventory.use_fei_xing_fu(target=shop_route.city_map)
+        blackboard.main_ctx.current_map = shop_route.city_map
         self._triggered = True
         return NodeStatus.RUNNING
 
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         self._triggered = False

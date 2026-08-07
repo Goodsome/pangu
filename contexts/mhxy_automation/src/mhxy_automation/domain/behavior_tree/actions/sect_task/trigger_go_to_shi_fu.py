@@ -56,7 +56,5 @@ class TriggerGoToShiFu(BaseNode):
         return NodeStatus.RUNNING
 
     @override
-    def reset(self) -> None:
-        """框架回调：寻路任务完成或被中断时，重置内部触发状态。"""
-        logger.debug("[TriggerGoToShiFu] reset() 被调用，清除触发标志")
+    def _reset(self) -> None:
         self._has_triggered = False

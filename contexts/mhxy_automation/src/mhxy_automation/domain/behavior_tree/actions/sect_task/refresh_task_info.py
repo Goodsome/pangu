@@ -14,6 +14,6 @@ class RefreshTaskInfo(Action):
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = await blackboard.main_hud.check_sect_task()
-        logger.info(f"{task_info=}")
+        logger.info(f"{task_info.full_description=}")
         blackboard.sect_task.set_task_info(task_info)
         return NodeStatus.SUCCESS

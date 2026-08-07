@@ -19,5 +19,5 @@ class ConfirmGive(Action):
         return NodeStatus.RUNNING
         
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         self._triggered = False

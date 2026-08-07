@@ -10,7 +10,12 @@ from mhxy_client import SectTaskStatus
 @dataclass
 class IsTaskStatus(Condition):
     status: SectTaskStatus
-    
+
+    @override
+    @property
+    def name(self) -> str:
+        return f"IsTaskStatus({self.status.name})"
+
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info

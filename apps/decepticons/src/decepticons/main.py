@@ -31,6 +31,7 @@ app = typer.Typer(
     name="decepticons",
     help="Decepticons — 梦幻西游自动化机器人",
     add_completion=False,
+    pretty_exceptions_enable=False,
 )
 
 
@@ -54,10 +55,11 @@ def run_task(
 
 
 def main() -> None:
+    logger = logging.getLogger(__name__)
     try:
         app()
-    except Exception:
-        raise typer.Exit(code=1)
+    except Exception as e:
+        logger.error(e)
 
 
 if __name__ == "__main__":

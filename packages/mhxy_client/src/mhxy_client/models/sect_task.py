@@ -96,7 +96,7 @@ class SectTaskInfo:
             self._task_target = match.group(1)
             
         elif match := re.match(
-            r"任务完成，找师父报告去", self.full_description
+            r"任务完成", self.full_description
         ):
             self.status = SectTaskStatus.REPORT
             self._task_target = "师父"
@@ -114,7 +114,7 @@ class SectTaskInfo:
                 self.action_point = self._resove_in_progress_point()
             case SectTaskStatus.REPORT:
                 self.action_point = self.resolve_point_by_targets(
-                    search_targets=("师父",)
+                    search_targets=("师父", "父", "师")
                 )
             case _:
                 raise NotImplementedError
@@ -135,7 +135,7 @@ class SectTaskInfo:
                     )
                     if sub_point is not None:
                         return sub_point
-        raise ValueError(f"Unknown claim task point: {self.full_description}")
+        raise ValueError(f"Unknown claim task point: {self.full_description}, {search_targets=}")
 
     def _resove_in_progress_point(self) -> Point:
         assert self._task_target is not None

@@ -8,7 +8,7 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 
 @dataclass
 class ClickTargetInTaskPanel(Action):
-    """点击任务面板中的目标<[fim-middle]>"""
+    """点击任务面板中的目标"""
     
     _has_clicked: bool = field(default=False, init=False, repr=False)
     
@@ -24,5 +24,5 @@ class ClickTargetInTaskPanel(Action):
         return NodeStatus.RUNNING
 
     @override
-    def reset(self) -> None:
+    def _reset(self) -> None:
         self._has_clicked = False

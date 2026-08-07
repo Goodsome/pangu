@@ -10,6 +10,10 @@ from mhxy_client.models.sect_task import TaskType
 @dataclass
 class CheckTaskType(Condition):
     task_type: TaskType
+
+    @property
+    def name(self) -> str:
+        return f"CheckTaskType({self.task_type})"
     
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:

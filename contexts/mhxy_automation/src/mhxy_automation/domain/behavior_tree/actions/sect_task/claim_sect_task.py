@@ -27,6 +27,7 @@ class ClaimSectTask(BaseNode):
 
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
-        dialog = blackboard.client.main_hud.dialogs.zhen_yuan_da_xian
-        await dialog.claim_task()
+        target = "师父"
+        option = "师门任务"
+        await blackboard.client.main_hud.choose_option_in_dialog(target, option)
         return NodeStatus.SUCCESS

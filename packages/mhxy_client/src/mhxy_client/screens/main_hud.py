@@ -92,7 +92,7 @@ class MainHUD(BaseScreen):
         await self.open_task_panel()
         await asyncio.sleep(1)
         await self.window.begin_frame()
-        task_info = await self._check_sect_task_by_roi(
+        task_info = await self._check_sect_task_one_line(
             roi=self.config.task_panel_roi_v2
         )
         await self.close_task_panel()
@@ -197,7 +197,7 @@ class MainHUD(BaseScreen):
         await self.window.key_press(VirtualKeyCode.VK_F8)
 
     async def go_to_shi_fu(self):
-        action_point = self.sect_task_info.resolve_point_by_targets(("师父",))
+        action_point = self.sect_task_info.resolve_point_by_targets(("师父", "父", "师"))
         await self.mouse_click(action_point)
 
     async def check_dialog_visible(self, npc_name: str="") -> bool:
@@ -207,7 +207,8 @@ class MainHUD(BaseScreen):
         )
 
     async def click_target_in_task_panel(self, target: str):
-        action_point = self.sect_task_info.resolve_point_by_targets((target,))
+        targets = (target, *[i for i in target])
+        action_point = self.sect_task_info.resolve_point_by_targets(targets)
         await self.mouse_click(action_point)
         
     async def choose_option_in_dialog(self, dialog_name: str, option: str):
@@ -219,6 +220,7 @@ class MainHUD(BaseScreen):
         )
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")
+        logger.info(f"点击选项: {option} in dialog: {dialog_name}, region-center: {element.region.center}")
         await self.mouse_click(target_roi=element.region)
 
     async def go_to_shop(self, target: str):
