@@ -11,7 +11,7 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.return_shi_meng impo
     ReturnShiMeng,
 )
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_current_map import (
-    IsInMap,
+    IsInShiMengMap,
 )
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_dialog_visible import (
     IsDialogVisible,
@@ -19,11 +19,8 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_dialog_visible
 from mhxy_automation.domain.behavior_tree.core import Action, Ensure, Not
 
 
-wuzhuang = ["五庄观", "乾坤殿"]
-putuo = ["普陀山", "潮音洞"]
-
 ensure_in_shi_meng = Ensure(
-    condition=IsInMap(putuo),
+    condition=IsInShiMengMap(),
     action=ReturnShiMeng(),
 )
 
@@ -40,7 +37,7 @@ ensure_close_dialog = Ensure(
 
 @dataclass
 class EnsureInShiMeng(Ensure):
-    condition: Condition = field(default_factory=lambda: IsInMap(putuo))
+    condition: Condition = field(default_factory=lambda: IsInShiMengMap())
     action: Action = field(default_factory=lambda: ReturnShiMeng())
     
 

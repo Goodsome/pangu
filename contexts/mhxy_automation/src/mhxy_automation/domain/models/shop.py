@@ -30,5 +30,9 @@ SHOP_DB = [
     Shop(name="药店老板", city=CityName.CHANG_AN, house="回春堂", items=[
         "香叶", "百色花", "草果", "鬼切草", "佛手",
         "山药" ,"月见草", "九香虫", "七叶莲"
+    ]),
+    Shop(name="服装店老板", city=CityName.CHANG_AN, house="张记布庄", items=[
+        "面具", "簪子", "布鞋", "布裙", "梅花簪子",
+        "五彩裙", "鳞甲", "马靴", "方巾", "布衣",
     ])
 ]

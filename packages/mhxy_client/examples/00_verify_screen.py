@@ -21,6 +21,8 @@ async def async_main() -> None:
     logger.info(f"  * 目标窗口 HWND : {client.hwnd} ({hex(client.hwnd)})")
     logger.info(f"  * 目标窗口标题 : {client.title}")
     logger.info(f"  * 窗口分辨率   : {client.window.width} x {client.window.height}")
+    logger.info(f"  * 角色名称     : {client.role_name}")
+    logger.info(f"  * 角色 ID     : {client.role_id}")
     logger.info("=" * 70)
     async with client:
         client.activate()
@@ -33,9 +35,9 @@ async def async_main() -> None:
         # check_result = await hud.panels.shop_panel.choose_item(0, 3)
         # check_result = await hud.panels.given_panel.check_visible()
         # check_result = await hud.window.get_text()
-        check_result = await hud.choose_option_in_dialog("ads", "购买")
+        # check_result = await hud.choose_option_in_dialog("ads", "购买")
         
-        logger.info(f"{check_result=}")
+        # logger.info(f"{check_result=}")
 
 
     logger.info("=" * 70)
