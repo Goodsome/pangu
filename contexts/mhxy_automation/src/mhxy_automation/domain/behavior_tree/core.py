@@ -17,6 +17,7 @@ reset() 由父节点在以下时机调用：
 
 节点应在 reset() 中恢复自身内部状态，使其可以被重新 tick()。
 """
+
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -32,13 +33,14 @@ logger = logging.getLogger(__name__)
 
 _tree_depth: ContextVar[int] = ContextVar("tree_depth", default=0)
 
+
 @dataclass
 class BaseNode(ABC):
     """行为树节点抽象基类。"""
-    
+
     node_name: str = field(default="", init=False, repr=False)
     _last_status: NodeStatus | None = field(default=None, init=False, repr=False)
-    
+
     @property
     def name(self) -> str:
         if self.node_name:
@@ -55,10 +57,10 @@ class BaseNode(ABC):
                 if len(short_name) > 30:
                     short_name = short_name[:30] + "..."
                 logger.info(f"[BT] {indent}➡️ 进入节点: {short_name}")
-            
+
             # 2. 调用真正的业务逻辑
             status = await self._tick(blackboard)
-            
+
             # 3. 状态跳变检测 (Edge Detection)
             if status != self._last_status:
                 self._log_status_change(status, depth)
@@ -68,7 +70,7 @@ class BaseNode(ABC):
         finally:
             _tree_depth.reset(token)
 
-    def _log_status_change(self, status: 'NodeStatus', depth: int = 0) -> None:
+    def _log_status_change(self, status: "NodeStatus", depth: int = 0) -> None:
         """根据不同的状态跃迁打印不同级别的日志"""
         indent = "  " * depth
         short_name = self.name
@@ -80,7 +82,6 @@ class BaseNode(ABC):
             logger.info(f"[BT] {indent}❌ 失败: {short_name}")
         elif status == NodeStatus.RUNNING:
             logger.info(f"[BT] {indent}⏳ 挂起: {short_name}")
-        
 
     @abstractmethod
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
@@ -93,7 +94,7 @@ class BaseNode(ABC):
             logger.debug(f"[BT] 🔄 中断/重置: {self.name}")
             self._last_status = None
         self._reset()
-        
+
     def _reset(self) -> None:
         """框架生命周期钩子：重置节点内部状态。
 
@@ -103,13 +104,16 @@ class BaseNode(ABC):
         """
         pass
 
+
 @dataclass
 class Condition(BaseNode, ABC):
     """条件节点。"""
 
+
 @dataclass
 class Not(Condition):
     """否定条件节点。"""
+
     condition: Condition
 
     @property
@@ -120,42 +124,47 @@ class Not(Condition):
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         result = await self.condition.tick(blackboard)
-        return NodeStatus.FAILURE if result == NodeStatus.SUCCESS else NodeStatus.SUCCESS
+        return (
+            NodeStatus.FAILURE if result == NodeStatus.SUCCESS else NodeStatus.SUCCESS
+        )
+
 
 @dataclass
 class Action(BaseNode, ABC):
     """动作节点。"""
 
+
 @dataclass
 class RunningAction(BaseNode, ABC):
-    
-    expire_time: float | None = field(default=None)
+    expire_time: float = field(default=0.0)
     _start_time: float = field(default=0.0, init=False, repr=False)
     _is_active: bool = field(default=False, init=False, repr=False)
 
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         now = time.monotonic()
-        
+
         if not self._is_active:
             self._start_time = now
             self._is_active = True
             await self.on_start(blackboard)
             return NodeStatus.RUNNING
-        
+
         # 2. 超时检测
-        if self.expire_time is not None:
+        if self.expire_time > 0:
             if now - self._start_time > self.expire_time:
-                logger.warning(f"[Timeout] 动作 {self.name} 已超过 {self.expire_time} 秒，强制失败")
+                logger.warning(
+                    f"[Timeout] 动作 {self.name} 已超过 {self.expire_time} 秒，强制失败"
+                )
                 return NodeStatus.FAILURE
-        
+
         # 3. 运行状态反馈检测（核心：指令还在生效吗？）
         status = await self.on_update(blackboard)
-        
+
         # 如果动作自然结束（成功或失败），重置活跃状态以便下次重新触发
         if status != NodeStatus.RUNNING:
             self._is_active = False
-            
+
         return status
 
     @override
@@ -187,9 +196,11 @@ class RunningAction(BaseNode, ABC):
         """子类可选实现：被打断时的清理逻辑（如：发送停止移动的指令）。"""
         pass
 
+
 @dataclass
 class Composite(BaseNode, ABC):
     """复合节点基类。"""
+
     children: list[BaseNode]
     _running_child: BaseNode | None = field(default=None, init=False, repr=False)
 
@@ -218,6 +229,7 @@ class Composite(BaseNode, ABC):
         if self._running_child is not None:
             self._running_child.reset()
             self._running_child = None
+
 
 @dataclass
 class Selector(Composite):
@@ -276,17 +288,19 @@ class Sequence(Composite):
         self.clear_running_child()
         return NodeStatus.SUCCESS
 
+
 @dataclass
 class MemorySequence(Composite):
     """记忆顺序节点 (Sequence*)。
-    
+
     一旦子节点返回 SUCCESS，就会推进内部游标。
     下一帧 tick 时，直接从游标指向的节点开始执行，不再重新评估之前的节点。
     """
+
     _current_index: int = field(default=0, init=False, repr=False)
 
     @override
-    async def _tick(self, blackboard: 'Blackboard') -> NodeStatus:
+    async def _tick(self, blackboard: "Blackboard") -> NodeStatus:
         # 从当前记忆的索引开始执行
         while self._current_index < len(self.children):
             child = self.children[self._current_index]
@@ -317,6 +331,7 @@ class MemorySequence(Composite):
         super()._reset()
         self._current_index = 0
 
+
 @dataclass
 class Ensure(Selector):
     """确保节点。"""
@@ -327,6 +342,29 @@ class Ensure(Selector):
 
     def __post_init__(self) -> None:
         self.children = [self.condition, self.action]
+
+    @override
+    async def _tick(self, blackboard: Blackboard) -> NodeStatus:
+        # 1. 优先评估条件
+        cond_status = await self.condition.tick(blackboard)
+
+        if cond_status == NodeStatus.SUCCESS:
+            # 目标已达成！如果 action 还在挂起，立刻打断它
+            if self._running_child is self.action:
+                self.action.reset()
+                self._running_child = None
+            return NodeStatus.SUCCESS
+
+        # 2. 目标未达成，执行动作
+        action_status = await self.action.tick(blackboard)
+
+        if action_status == NodeStatus.RUNNING:
+            self._running_child = self.action
+        else:
+            self._running_child = None
+
+        return NodeStatus.RUNNING
+
 
 @dataclass
 class When(Sequence):
@@ -343,19 +381,20 @@ class When(Sequence):
     @override
     def name(self) -> str:
         return f"When({self.condition.name}, {self.action.name})"
-        
+
+
 @dataclass
 class IfThenElse(BaseNode):
     """标准三元控制流节点。"""
-    
+
     condition: Condition
     if_node: BaseNode
     else_node: BaseNode
-    
+
     _running_child: BaseNode | None = field(default=None, init=False, repr=False)
 
     @override
-    async def _tick(self, blackboard: 'Blackboard') -> NodeStatus:
+    async def _tick(self, blackboard: "Blackboard") -> NodeStatus:
         # 1. 评估条件（每帧仅评估一次）
         cond_status = await self.condition.tick(blackboard)
 
@@ -363,7 +402,7 @@ class IfThenElse(BaseNode):
             # 抢占清理：如果上一帧还在执行 else 分支，现在条件满足了，打断 else
             if self._running_child is self.else_node:
                 self.else_node.reset()
-                
+
             # 执行 if 分支
             status = await self.if_node.tick(blackboard)
             self._running_child = self.if_node if status == NodeStatus.RUNNING else None
@@ -373,15 +412,20 @@ class IfThenElse(BaseNode):
             # 抢占清理：如果上一帧还在执行 if 分支，现在条件不满足了，打断 if
             if self._running_child is self.if_node:
                 self.if_node.reset()
-                
+
             # 执行 else 分支
             status = await self.else_node.tick(blackboard)
-            self._running_child = self.else_node if status == NodeStatus.RUNNING else None
+            self._running_child = (
+                self.else_node if status == NodeStatus.RUNNING else None
+            )
             return status
-            
+
         else:
             # cond_status == NodeStatus.RUNNING (极少数情况 condition 本身需要跨帧)
-            if self._running_child is not None and self._running_child is not self.condition:
+            if (
+                self._running_child is not None
+                and self._running_child is not self.condition
+            ):
                 self._running_child.reset()
             self._running_child = self.condition
             return NodeStatus.RUNNING
@@ -391,4 +435,3 @@ class IfThenElse(BaseNode):
         if self._running_child is not None:
             self._running_child.reset()
             self._running_child = None
-            

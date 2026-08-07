@@ -22,6 +22,7 @@ class ShopRoute:
                 )
         raise ValueError(f"Item {item_name} not found in any shop")
 
+
 ITEM_KNOWLEDGE_DB: dict[str, ShopRoute] = {}
 #     "高级宠物口粮": {
 #         "city_map": "长安城",

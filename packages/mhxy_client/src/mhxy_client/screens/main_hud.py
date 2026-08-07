@@ -224,7 +224,7 @@ class MainHUD(BaseScreen):
         )
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")
-        logger.info(f"点击选项: {option} in dialog: {dialog_name}, region-center: {element.region.center}")
+        # logger.info(f"点击选项: {option} in dialog: {dialog_name}, region-center: {element.region.center}")
         await self.mouse_click(target_roi=element.region)
 
     async def go_to_shop(self, target: str):
@@ -252,7 +252,6 @@ class MainHUD(BaseScreen):
         await self.window.key_press(VirtualKeyCode.VK_F9)
 
     async def is_moving(self) -> bool:
-        # await self.window.begin_frame()
         current = await self.window.capture(self.config.coordinate_roi)
         if self._last_coordinate is None:
             self._last_coordinate = current

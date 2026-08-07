@@ -29,7 +29,7 @@ class CheckSectTask(BaseNode):
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if blackboard.sect_task.has_task_info():
             return NodeStatus.SUCCESS
-        
+
         hud = blackboard.client.main_hud
         try:
             task_info = await hud.check_sect_task()

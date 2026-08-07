@@ -8,9 +8,9 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 wuzhuang = ["五庄观", "乾坤殿"]
 putuo = ["普陀山", "潮音洞"]
 
+
 @dataclass
 class IsInShiMengMap(Condition):
-    
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         current_map = await blackboard.client.main_hud.get_current_map()

@@ -8,9 +8,8 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 
 @dataclass
 class BuyItem(Action):
-
     _triggered: bool = False
-    
+
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if self._triggered:

@@ -57,6 +57,4 @@ def abs_diff(
     total_pixels = diff_gray.size
     ratio = changed_pixels / total_pixels
 
-    print(f"{ratio=}, {changed_pixels=}, {total_pixels=}")
-
     return ratio > diff_ratio_threshold

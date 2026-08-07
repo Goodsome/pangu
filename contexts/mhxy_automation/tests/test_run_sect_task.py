@@ -28,7 +28,9 @@ def test_execute_batch_logs_to_different_files(tmp_path: Path) -> None:
             "mhxy_automation.application.use_cases.run_sect_task.create_mhxy_client_by_index",
             side_effect=mock_factory,
         ):
-            await use_case.execute_batch(window_indices=[0, 1], one_tick=True, log_dir=tmp_path)
+            await use_case.execute_batch(
+                window_indices=[0, 1], one_tick=True, log_dir=tmp_path
+            )
 
         log_0 = tmp_path / "client_0.log"
         log_1 = tmp_path / "client_1.log"

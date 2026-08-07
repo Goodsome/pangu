@@ -9,9 +9,9 @@ from mhxy_automation.domain.models.shop_route import ShopRoute
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CheckShopMap(Condition):
-    
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info

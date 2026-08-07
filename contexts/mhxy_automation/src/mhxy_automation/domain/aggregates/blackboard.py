@@ -28,15 +28,17 @@ class SectTaskContext:
 
     def set_task_info(self, task_info: SectTaskInfo | None):
         self._task_info = task_info
-        
+
     def has_task_info(self) -> bool:
         return self._task_info is not None
+
 
 @dataclass
 class MainHudContext:
     current_map: str | None = None
     current_house: str | None = None
     target_npc: str | None = None
+
 
 @dataclass
 class Blackboard:

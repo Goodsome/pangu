@@ -14,9 +14,13 @@ class IsPanelVisible(Condition):
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         match self.panel_name:
             case "shop":
-                visible = await blackboard.client.main_hud.panels.shop_panel.check_visible()
+                visible = (
+                    await blackboard.client.main_hud.panels.shop_panel.check_visible()
+                )
             case "given":
-                visible = await blackboard.client.main_hud.panels.given_panel.check_visible()
+                visible = (
+                    await blackboard.client.main_hud.panels.given_panel.check_visible()
+                )
             case _:
                 visible = False
         if visible:

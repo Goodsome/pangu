@@ -9,7 +9,6 @@ from mhxy_client.models.sect_task import TaskType
 
 @dataclass
 class IsSendMailTask(BaseNode):
-
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info

@@ -15,7 +15,7 @@ class CheckTaskType(Condition):
     @override
     def name(self) -> str:
         return f"CheckTaskType({self.task_type})"
-    
+
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         task_info = blackboard.sect_task.task_info

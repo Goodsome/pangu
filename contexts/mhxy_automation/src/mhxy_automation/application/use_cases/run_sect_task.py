@@ -69,7 +69,11 @@ class RunSectTask:
     ) -> None:
         """批量运行多个窗口的师门任务，并将每个 client 的日志分别写入各自的 log 文件中。"""
         with client_file_logging(window_indices, log_dir=log_dir):
-            logger.info("[RunSectTask] 开始批量执行窗口任务: %s，日志目录: %s", window_indices, log_dir)
+            logger.info(
+                "[RunSectTask] 开始批量执行窗口任务: %s，日志目录: %s",
+                window_indices,
+                log_dir,
+            )
             try:
                 # 使用 Python 3.11+ 推荐的 TaskGroup 管理并发
                 async with asyncio.TaskGroup() as tg:
@@ -89,4 +93,3 @@ class RunSectTask:
         await blackboard.client.begin_frame()
         await tree.tick(blackboard)
         await asyncio.sleep(_TICK_INTERVAL_SEC)
-        

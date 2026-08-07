@@ -15,5 +15,3 @@ class IsTargetDialogVisible(Condition):
             return NodeStatus.SUCCESS
         else:
             return NodeStatus.FAILURE
-
-    

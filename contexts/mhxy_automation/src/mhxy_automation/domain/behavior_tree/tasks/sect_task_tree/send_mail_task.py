@@ -24,7 +24,7 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_target_dialog_
 )
 from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, MemorySequence
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
-    ensure_close_dialog,
+    EnsureCloseDialog,
 )
 from mhxy_client.models.sect_task import TaskType
 
@@ -50,7 +50,7 @@ def build_send_mail_tree() -> BaseNode:
             ensure_dialog,
             ensure_given_panel,
             ensure_give,
-            ensure_close_dialog,
+            EnsureCloseDialog(),
             Wait(),
             RefreshTaskInfo(),
         ]

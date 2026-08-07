@@ -17,7 +17,9 @@ class ClickTaskInDialog(RunningAction):
             option = "给予"
         else:
             option = "师门任务"
-        await blackboard.client.main_hud.choose_option_in_dialog(task_info.task_target, option)
+        await blackboard.client.main_hud.choose_option_in_dialog(
+            task_info.task_target, option
+        )
 
     @override
     async def on_update(self, blackboard: Blackboard) -> NodeStatus:

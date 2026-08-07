@@ -10,9 +10,9 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status im
 )
 from mhxy_automation.domain.behavior_tree.core import BaseNode, MemorySequence
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
-    ensure_close_dialog,
-    ensure_in_shi_meng,
-    ensure_shifu_dialog,
+    EnsureCloseDialog,
+    EnsureInShiMeng,
+    EnsureShifuDialog,
 )
 from mhxy_client import SectTaskStatus
 
@@ -22,11 +22,11 @@ def build_claim_task() -> BaseNode:
     return MemorySequence(
         children=[
             IsTaskStatus(status=SectTaskStatus.CLAIMABLE),
-            ensure_close_dialog,
-            ensure_in_shi_meng,
-            ensure_shifu_dialog,
+            EnsureCloseDialog(),
+            EnsureInShiMeng(),
+            EnsureShifuDialog(),
             ClaimSectTask(),
-            ensure_close_dialog,
+            EnsureCloseDialog(),
             Wait(),
             RefreshTaskInfo(),
         ]

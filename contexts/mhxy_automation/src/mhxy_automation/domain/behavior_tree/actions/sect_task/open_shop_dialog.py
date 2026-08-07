@@ -9,14 +9,13 @@ from mhxy_automation.domain.models.shop_route import ShopRoute
 
 @dataclass
 class OpenShopDialog(Action):
-
     _triggered: bool = False
-    
+
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         if self._triggered:
             return NodeStatus.RUNNING
-            
+
         task_info = blackboard.sect_task.task_info
         shop_route = ShopRoute.from_item_name(task_info.task_target)
         await blackboard.client.main_hud.interact_with_npc(shop_route.npc_name)

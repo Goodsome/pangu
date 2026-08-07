@@ -8,7 +8,6 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 
 @dataclass
 class ReturnShiMeng(RunningAction):
-
     @override
     async def on_start(self, blackboard: Blackboard) -> None:
         await blackboard.client.main_hud.return_shi_meng()

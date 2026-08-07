@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CloseShopPanel(Action):
-
     @override
     async def _tick(self, blackboard: Blackboard) -> NodeStatus:
         await blackboard.client.main_hud.panels.shop_panel.close()

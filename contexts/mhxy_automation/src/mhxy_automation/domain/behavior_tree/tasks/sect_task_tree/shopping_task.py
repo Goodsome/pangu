@@ -39,9 +39,14 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_dialog_vi
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_shop_panel_visible import (
     IsShopPanelVisible,
 )
-from mhxy_automation.domain.behavior_tree.core import BaseNode, Ensure, MemorySequence, Not
+from mhxy_automation.domain.behavior_tree.core import (
+    BaseNode,
+    Ensure,
+    MemorySequence,
+    Not,
+)
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
-    ensure_close_dialog,
+    EnsureCloseDialog,
 )
 from mhxy_client.models.sect_task import TaskType
 
@@ -82,7 +87,7 @@ def build_shopping_tree() -> BaseNode:
             ensure_open_shop_panel,
             ChooseItem(),
             ensure_buy_item,
-            ensure_close_dialog,
+            EnsureCloseDialog(),
             ensure_close_shop_panel,
             RefreshTaskInfo(),
         ]

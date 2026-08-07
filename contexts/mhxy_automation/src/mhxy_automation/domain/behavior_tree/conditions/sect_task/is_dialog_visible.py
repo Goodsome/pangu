@@ -9,6 +9,7 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class IsDialogVisible(Condition):
     target_npc: str | None = None

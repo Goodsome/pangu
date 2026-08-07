@@ -11,7 +11,9 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.confirm_give import 
 from mhxy_automation.domain.behavior_tree.actions.sect_task.refresh_task_info import (
     RefreshTaskInfo,
 )
-from mhxy_automation.domain.behavior_tree.actions.sect_task.report_task_in_dialog import ReportTaskInDialog
+from mhxy_automation.domain.behavior_tree.actions.sect_task.report_task_in_dialog import (
+    ReportTaskInDialog,
+)
 from mhxy_automation.domain.behavior_tree.actions.wait import Wait
 from mhxy_automation.domain.behavior_tree.conditions.sect_task.check_task_type import (
     CheckTaskType,
@@ -33,34 +35,34 @@ from mhxy_automation.domain.behavior_tree.core import (
     MemorySequence,
 )
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
-    ensure_close_dialog,
-    ensure_in_shi_meng,
-    ensure_shifu_dialog,
+    EnsureCloseDialog,
+    EnsureInShiMeng,
+    EnsureShifuDialog,
 )
 from mhxy_client import SectTaskStatus
 from mhxy_client.models.sect_task import TaskType
 
-ensure_given_panel = Ensure(
-    condition=IsPanelVisible("given"),
-    action=ClickTaskInDialog(),
-)
-ensure_give = Ensure(
-    condition=IsDialogVisible(),
-    action=ConfirmGive(),
-)
-
-give_item = MemorySequence(
-    children=[
-        ensure_given_panel,
-        ensure_give,
-        ensure_close_dialog,
-    ]
-)
 
 @dataclass
 class ReportOrGive(IfThenElse):
-    condition: Condition = field(default_factory=lambda: CheckTaskType(TaskType.SHOPPING))
-    if_node: BaseNode = field(default_factory=lambda: give_item)
+    condition: Condition = field(
+        default_factory=lambda: CheckTaskType(TaskType.SHOPPING)
+    )
+    if_node: BaseNode = field(
+        default_factory=lambda: MemorySequence(
+            children=[
+                Ensure(
+                    condition=IsPanelVisible("given"),
+                    action=ClickTaskInDialog(),
+                ),
+                Ensure(
+                    condition=IsDialogVisible(),
+                    action=ConfirmGive(),
+                ),
+                EnsureCloseDialog(),
+            ]
+        )
+    )
     else_node: BaseNode = field(default_factory=lambda: ReportTaskInDialog())
 
 
@@ -69,8 +71,8 @@ def build_report_tree() -> BaseNode:
     return MemorySequence(
         children=[
             IsTaskStatus(status=SectTaskStatus.REPORT),
-            ensure_in_shi_meng,
-            ensure_shifu_dialog,
+            EnsureInShiMeng(),
+            EnsureShifuDialog(),
             ReportOrGive(),
             Wait(),
             RefreshTaskInfo(),
