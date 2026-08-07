@@ -25,5 +25,4 @@ class CheckShopMap(Condition):
             return NodeStatus.SUCCESS
         if current_map == shop_route.city_map:
             return NodeStatus.SUCCESS
-        logger.info(f"Current map: {current_map}, shop route: {shop_route}")
         return NodeStatus.FAILURE

@@ -43,9 +43,6 @@ class InventoryPanel(BaseScreen):
             raise ValueError(f"Invalid row/col: {row}/{col}")
         grid_roi = self.config.inventory_grid_roi
         unit_grid_roi = grid_roi.split(n=4, mode=SplitMode.HORIZONTAL)[row].split(n=5, mode=SplitMode.VERTICAL)[col]
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"{grid_roi=}, {unit_grid_roi=}")
         await self.mouse_click(target_roi=unit_grid_roi, button=MouseButton.RIGHT)
 
     async def use_fei_xing_fu(self, target: str):

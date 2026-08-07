@@ -19,7 +19,7 @@ class GoToShopMap(RunningAction):
         await blackboard.client.main_hud.inventory.use_fei_xing_fu(
             target=shop_route.city_map
         )
-        blackboard.main_ctx.current_map = shop_route.city_map
+        blackboard.main_ctx.current_map = None
 
     @override
     async def on_update(self, blackboard: Blackboard) -> NodeStatus:
