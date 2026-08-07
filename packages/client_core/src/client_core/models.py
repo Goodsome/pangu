@@ -63,6 +63,10 @@ class BaseRegion:
         """
         return self.x <= pt.x <= self.right and self.y <= pt.y <= self.bottom
 
+    def move(self, dx: int | float = 0, dy: int | float = 0) -> Self:
+        """移动矩形区域。"""
+        return self.__class__(x=self.x + dx, y=self.y + dy, width=self.width, height=self.height)
+
     def split(
         self,
         n: int,

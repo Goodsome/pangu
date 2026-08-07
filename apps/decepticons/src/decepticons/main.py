@@ -54,7 +54,10 @@ def run_task(
 
 
 def main() -> None:
-    app()
+    try:
+        app()
+    except Exception:
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

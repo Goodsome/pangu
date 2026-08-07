@@ -113,25 +113,28 @@ class MainHUD(BaseScreen):
         row_1 = await self.window.get_text(roi=roi)
         if not row_1:
             raise ValueError("No text found in the given ROI")
-        row_2_roi = RelativeRegion(x=roi.x, y=roi.y + roi.height, width=roi.width, height=roi.height)
+        row_2_roi = roi.move(0, roi.height)
         row_2 = await self.window.get_text(roi=row_2_roi)
         if not row_2:
             raise ValueError("No text found in the given ROI")
         full_description = row_1 + row_2
             
+        row_1_rect = self.config.task_list_roi_v2.to_absolute(self.window.width, self.window.height)
+        row_2_rect = row_1_rect.move(0, row_1_rect.height)
         task_info = SectTaskInfo(
             full_description=full_description,
             ocr_items=[OcrResult(
                 text=row_1,
                 confidence=1.0,
-                rect=self.config.task_list_roi_v2.to_absolute(self.window.width, self.window.height),
+                rect=row_1_rect,
             ), OcrResult(
                 text=row_2,
                 confidence=1.0,
-                rect=row_2_roi.to_absolute(self.window.width, self.window.height),
+                rect=row_2_rect,
             )]
         )
         task_info.resolve()
+        self.sect_task_info = task_info
         return task_info
         
     async def _check_sect_task_by_roi(self, roi: RelativeRegion) -> SectTaskInfo:

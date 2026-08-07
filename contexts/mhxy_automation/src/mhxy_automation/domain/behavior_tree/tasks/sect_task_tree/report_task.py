@@ -49,7 +49,7 @@ def build_report_tree() -> BaseNode:
         condition=IsDialogVisible(),
         action=ConfirmGive(),
     )
-    give_item = Sequence(
+    give_item = MemorySequence(
         children=[
             ensure_given_panel,
             ensure_give,
