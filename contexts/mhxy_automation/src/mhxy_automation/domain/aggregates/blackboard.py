@@ -3,6 +3,7 @@
 Blackboard 是行为树各节点之间共享状态的载体，每帧 tick 时传递给根节点。
 """
 
+import asyncio
 from dataclasses import dataclass, field
 
 from mhxy_client import MhxyClient
@@ -49,9 +50,26 @@ class Blackboard:
     """
 
     client: MhxyClient
+    input_lock: asyncio.Lock
     sect_task: SectTaskContext = field(default_factory=SectTaskContext)
     main_ctx: MainHudContext = field(default_factory=MainHudContext)
+
+    _holds_input_lock: bool = False
 
     @property
     def main_hud(self):
         return self.client.main_hud
+
+    async def acquire_input_lock(self):
+        if self._holds_input_lock:
+            return
+        await self.input_lock.acquire()
+        self._holds_input_lock = True
+
+        self.client.activate()
+
+    async def release_input_lock(self):
+        if not self._holds_input_lock:
+            return
+        self.input_lock.release()
+        self._holds_input_lock = False

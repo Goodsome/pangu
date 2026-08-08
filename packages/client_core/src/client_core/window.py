@@ -365,17 +365,14 @@ class Window:
             y=sys_screen_pos.y - client_origin_screen.y,
         )
 
-    async def ensure_cursor_in_window(self) -> Point:
+    async def ensure_cursor_in_window(self):
         """检查系统物理鼠标是否在窗口客户区内。若不在，先将其平滑/直接移动至窗口中心。"""
-        win_w = getattr(self, "width", 800)
-        win_h = getattr(self, "height", 600)
-        win_w = win_w if isinstance(win_w, int) and win_w > 0 else 800
-        win_h = win_h if isinstance(win_h, int) and win_h > 0 else 600
+        win_w = self.width
+        win_h = self.height
 
         sys_client_pos = self.get_sys_cursor_client_pos()
         if (
-            sys_client_pos is not None
-            and 0 <= sys_client_pos.x <= win_w
+            0 <= sys_client_pos.x <= win_w
             and 0 <= sys_client_pos.y <= win_h
         ):
             return sys_client_pos
@@ -387,9 +384,6 @@ class Window:
             center_point,
         )
         await self.mouse_move(point=center_point)
-        await asyncio.sleep(0.1)
-        new_pos = self.get_sys_cursor_client_pos()
-        return new_pos if new_pos is not None else center_point
 
     async def mouse_move(self, point: Point | RelativePoint) -> None:
         """异步移动光标到相对窗口的指定像素或相对比例位置。"""

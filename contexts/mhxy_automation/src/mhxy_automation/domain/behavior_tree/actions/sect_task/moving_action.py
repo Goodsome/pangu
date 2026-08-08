@@ -18,12 +18,18 @@ class MovingAction(RunningAction, ABC):
 
         self._stationary_start_time = None
         await self._on_start(blackboard)
+        await blackboard.release_input_lock()
 
     @abstractmethod
     async def _on_start(self, blackboard: Blackboard) -> None: ...
 
     @override
     async def on_update(self, blackboard: Blackboard) -> NodeStatus:
+        status = await self._on_update(blackboard)
+        await blackboard.release_input_lock()
+        return status
+
+    async def _on_update(self, blackboard: Blackboard) -> NodeStatus:
         is_moving = await blackboard.client.main_hud.is_moving()
         now = time.monotonic()
         if is_moving:

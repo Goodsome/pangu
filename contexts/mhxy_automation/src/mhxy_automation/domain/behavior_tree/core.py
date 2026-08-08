@@ -62,9 +62,9 @@ class BaseNode(ABC):
             status = await self._tick(blackboard)
 
             # 3. 状态跳变检测 (Edge Detection)
-            if status != self._last_status:
-                self._log_status_change(status, depth)
-                self._last_status = status
+            # if status != self._last_status:
+            self._log_status_change(status, depth)
+            self._last_status = status
 
             return status
         finally:

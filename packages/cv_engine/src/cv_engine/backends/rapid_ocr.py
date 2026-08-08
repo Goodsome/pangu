@@ -80,7 +80,8 @@ class RapidOcrEngine(BaseOcrEngine):
         if not ocr_output:
             return None
         
-        return ocr_output[0][0]
+        result: str = ocr_output[0][0]
+        return result.strip()
     
     @override
     def ocr(

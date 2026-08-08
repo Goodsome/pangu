@@ -1,5 +1,7 @@
 """领取师门任务分支树构建。"""
 
+from dataclasses import dataclass, field
+
 from mhxy_automation.domain.behavior_tree.actions.sect_task import ClaimSectTask
 from mhxy_automation.domain.behavior_tree.actions.sect_task.refresh_task_info import (
     RefreshTaskInfo,
@@ -17,6 +19,24 @@ from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.common import (
 from mhxy_client import SectTaskStatus
 
 
+@dataclass
+class ClaimTask(MemorySequence):
+    children: list[BaseNode] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.children = [
+            IsTaskStatus(status=SectTaskStatus.CLAIMABLE),
+            EnsureCloseDialog(),
+            EnsureInShiMeng(),
+            EnsureShifuDialog(),
+            ClaimSectTask(),
+            Wait(),
+            EnsureCloseDialog(),
+            RefreshTaskInfo(),
+        ]
+    
+    
+
 def build_claim_task() -> BaseNode:
     """构建领取师门任务分支树。"""
     return MemorySequence(
@@ -26,8 +46,8 @@ def build_claim_task() -> BaseNode:
             EnsureInShiMeng(),
             EnsureShifuDialog(),
             ClaimSectTask(),
-            EnsureCloseDialog(),
             Wait(),
+            EnsureCloseDialog(),
             RefreshTaskInfo(),
         ]
     )

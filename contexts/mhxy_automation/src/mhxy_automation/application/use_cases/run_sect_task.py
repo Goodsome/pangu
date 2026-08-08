@@ -11,13 +11,14 @@ from mhxy_automation.domain.behavior_tree.core import BaseNode
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree import (
     build_sect_task_tree,
 )
+from mhxy_automation.domain.enums.node_status import NodeStatus
 from mhxy_client.factory import create_mhxy_client_by_index
 from sys_input import VirtualKeyCode, is_key_pressed
 
 logger = logging.getLogger(__name__)
 
 # 持续循环模式下每帧之间的间隔时间
-_TICK_INTERVAL_SEC: float = 1.0
+_TICK_INTERVAL_SEC: float = 0.2
 
 
 @dataclass
@@ -42,19 +43,8 @@ class RunSectTask:
         client = create_mhxy_client_by_index(window_index)
 
         async with client:
-            blackboard = Blackboard(client=client)
+            blackboard = Blackboard(client=client, input_lock=self.input_lock)
             tree = build_sect_task_tree()
-
-            if one_tick:
-                await client.begin_frame()
-                status = await tree.tick(blackboard)
-                logger.info("[RunSectTask] 单帧执行完毕，状态: %s", status)
-                return
-
-            logger.info(
-                "[RunSectTask] [Client-%d] 任务循环开始，提示：随时按 F12 可主动停止运行",
-                window_index,
-            )
 
             try:
                 while not self.stop_event.is_set():
@@ -66,21 +56,55 @@ class RunSectTask:
                     async with self.input_lock:
                         client.activate()
                         await client.begin_frame()
-                        status = await tree.tick(blackboard)
+                        await tree.tick(blackboard)
                         await asyncio.sleep(0.1)
 
-                    # 分步 sleep 响应按键退出
-                    sleep_remaining = _TICK_INTERVAL_SEC
-                    step_interval = 0.05
-                    while sleep_remaining > 0 and not self.stop_event.is_set():
-                        if is_key_pressed(VirtualKeyCode.VK_F12):
-                            logger.info("[RunSectTask] 检测到 F12 按键，主动退出任务")
-                            self.stop_event.set()
-                            break
-                        await asyncio.sleep(step_interval)
-                        sleep_remaining -= step_interval
+                    await self.sleep()
+
             except asyncio.CancelledError:
                 logger.info("[RunSectTask] 任务被取消")
+                
+    async def execute_v2(
+        self,
+        window_index: int = 0,
+    ) -> None:
+        set_current_client_index(window_index)
+        client = create_mhxy_client_by_index(window_index)
+
+        async with client:
+            blackboard = Blackboard(client=client, input_lock=self.input_lock)
+            tree = build_sect_task_tree()
+
+            try:
+                while not self.stop_event.is_set():
+                    if is_key_pressed(VirtualKeyCode.VK_F12):
+                        logger.info("[RunSectTask] 检测到 F12 按键，主动退出任务")
+                        self.stop_event.set()
+                        break
+
+                    await client.begin_frame()
+                    await blackboard.acquire_input_lock()
+                    
+                    status = await tree.tick(blackboard)
+                    
+                    # if status != NodeStatus.RUNNING:
+                        # await blackboard.release_input_lock()
+                    
+                    await self.sleep()
+
+            except asyncio.CancelledError:
+                logger.info("[RunSectTask] 任务被取消")
+
+    async def sleep(self) -> None:
+        sleep_remaining = _TICK_INTERVAL_SEC
+        step_interval = 0.05
+        while sleep_remaining > 0 and not self.stop_event.is_set():
+            if is_key_pressed(VirtualKeyCode.VK_F12):
+                logger.info("[RunSectTask] 检测到 F12 按键，主动退出任务")
+                self.stop_event.set()
+                break
+            await asyncio.sleep(step_interval)
+            sleep_remaining -= step_interval
 
     async def execute_batch(
         self,
@@ -104,7 +128,7 @@ class RunSectTask:
                     for index in window_indices:
                         # 为每个窗口创建一个独立的并发任务
                         _ = tg.create_task(
-                            self.execute(window_index=index, one_tick=one_tick),
+                            self.execute_v2(window_index=index),
                             name=f"WindowTask-{index}",
                         )
                 logger.info("[RunSectTask] 所有窗口任务已安全结束。")

@@ -56,8 +56,8 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         win_w = self.window.width
         win_h = self.window.height
         if not (0 <= sys_client_pos.x <= win_w and 0 <= sys_client_pos.y <= win_h):
-            # 系统光标不在窗口客户区内时才挪进来 (不再无条件重置到中心)
-            sys_client_pos = await self.window.ensure_cursor_in_window()
+            await self.window.ensure_cursor_in_window()
+            sys_client_pos = self.window.get_sys_cursor_client_pos()
         radius = 100
         roi_x = max(0, sys_client_pos.x - radius)
         roi_y = max(0, sys_client_pos.y - radius)
@@ -165,6 +165,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         Returns:
             bool: 到位返回 True，达到最大次数仍未收敛返回 False。
         """
+        # await self.window.ensure_cursor_in_window()
         abs_target_roi = self.window.resolve_region(target_roi)
         if target_point is not None:
             abs_target = self.window.resolve_point(target_point)
