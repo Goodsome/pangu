@@ -11,6 +11,7 @@ class ReturnShiMeng(RunningAction):
     @override
     async def on_start(self, blackboard: Blackboard) -> None:
         await blackboard.client.main_hud.return_shi_meng()
+        blackboard.main_ctx.current_map = None
 
     @override
     async def on_update(self, blackboard: Blackboard) -> NodeStatus:

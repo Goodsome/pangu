@@ -215,16 +215,23 @@ class MainHUD(BaseScreen):
         action_point = self.sect_task_info.resolve_point_by_targets(targets)
         await self.mouse_click(action_point)
         
-    async def choose_option_in_dialog(self, dialog_name: str, option: str):
+    async def choose_option_in_dialog(self, dialog_name: str, option: str, retry: bool=True):
         element = await self.locate_element(
             element_key=f"dialog:{dialog_name}:{option}",
             target_text=option,
             roi=self.config.dialog_roi,
             is_element_fixed=False,
         )
+        if element is None and retry:
+            await self.mouse_move(target_roi=self.config.dialog_roi)
+            element = await self.locate_element(
+                element_key=f"dialog:{dialog_name}:{option}",
+                target_text=option,
+                roi=self.config.dialog_roi,
+                is_element_fixed=False,
+            )
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")
-        # logger.info(f"点击选项: {option} in dialog: {dialog_name}, region-center: {element.region.center}")
         await self.mouse_click(target_roi=element.region)
 
     async def go_to_shop(self, target: str):
@@ -233,6 +240,7 @@ class MainHUD(BaseScreen):
         if roi is None:
             raise ValueError(f"未找到商店位置: {target}")
         await self.mouse_click(target_roi=roi)
+        await asyncio.sleep(0.1)
         await self.close_map()
 
     async def interact_with_npc(self, npc_name: str):

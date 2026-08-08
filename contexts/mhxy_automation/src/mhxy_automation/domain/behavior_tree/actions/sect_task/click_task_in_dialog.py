@@ -9,6 +9,7 @@ from mhxy_automation.domain.enums.node_status import NodeStatus
 @dataclass
 class ClickTaskInDialog(RunningAction):
     """点击对话中的任务"""
+    expire_time: float = 5
 
     @override
     async def on_start(self, blackboard: Blackboard) -> None:

@@ -17,7 +17,7 @@ class MainHudLayoutConfig:
     map_name_roi: RelativeRegion = RelativeRegion(x=0.0443, y=0.1146, width=0.0788, height=0.0271)
     task_list_roi: RelativeRegion = RelativeRegion(x=0.7488, y=0.2292, width=0.2414, height=0.4898)
     task_panel_roi: RelativeRegion = RelativeRegion(x=0.4865, y=0.3801, width=0.2672, height=0.3937)
-    dialog_roi: RelativeRegion = RelativeRegion(x=0.0764, y=0.4914, width=0.8485, height=0.2496)
+    dialog_roi: RelativeRegion = RelativeRegion(x=0.0764, y=0.4914, width=0.7, height=0.2496)
     dialog_name_roi: RelativeRegion = RelativeRegion(x=0.1663, y=0.4630, width=0.1145, height=0.0483)
     dialog_bg_roi: RelativeRegion = RelativeRegion(x=0.7549, y=0.7089, width=0.1515, height=0.1041)
     confirm_give_roi: RelativeRegion = RelativeRegion(x=0.2771, y=0.7080, width=0.1268, height=0.0392)
