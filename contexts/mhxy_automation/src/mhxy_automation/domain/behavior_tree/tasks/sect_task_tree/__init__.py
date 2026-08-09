@@ -1,8 +1,5 @@
 """师门任务行为树装配模块。"""
 
-from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.claim_task import (
-    build_claim_task,
-)
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.patrol_task import (
     build_patrol_task,
 )
@@ -20,7 +17,6 @@ from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.shopping_task imp
 )
 
 __all__ = [
-    "build_claim_task",
     "build_patrol_task",
     "build_report_tree",
     "build_sect_task_tree",

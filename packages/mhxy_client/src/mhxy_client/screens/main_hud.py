@@ -204,7 +204,7 @@ class MainHUD(BaseScreen):
         action_point = self.sect_task_info.resolve_point_by_targets(("师父", "父", "师"))
         await self.mouse_click(action_point)
 
-    async def check_dialog_visible(self, npc_name: str="") -> bool:
+    async def check_dialog_visible(self) -> bool:
         return not await self.window.abs_diff(
             roi=self.config.dialog_bg_roi,
             template_path=_DIALOG_BG_TEMPLATE_PATH
@@ -223,7 +223,7 @@ class MainHUD(BaseScreen):
             is_element_fixed=False,
         )
         if element is None and retry:
-            await self.mouse_move(target_roi=self.config.dialog_roi)
+            await self.mouse_move(target_roi=self.config.dialog_bg_roi)
             element = await self.locate_element(
                 element_key=f"dialog:{dialog_name}:{option}",
                 target_text=option,
@@ -232,7 +232,7 @@ class MainHUD(BaseScreen):
             )
         if element is None:
             raise RuntimeError(f"未能定位到选项元素: {option} in dialog: {dialog_name}")
-        await self.mouse_click(target_roi=element.region)
+        await self.mouse_click(target_roi=element.region.scale(0.8))
 
     async def go_to_shop(self, target: str):
         await self.open_map()

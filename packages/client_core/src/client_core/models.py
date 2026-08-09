@@ -67,6 +67,15 @@ class BaseRegion:
         """移动矩形区域。"""
         return self.__class__(x=self.x + dx, y=self.y + dy, width=self.width, height=self.height)
 
+    def scale(self, scale: float) -> Self:
+        """缩放矩形区域。"""
+        width = self.width * scale
+        height = self.height * scale
+        x = self.x + (self.width - width) / 2
+        y = self.y + (self.height - height) / 2
+        
+        return self.__class__(x=x, y=y, width=width, height=height)
+
     def split(
         self,
         n: int,

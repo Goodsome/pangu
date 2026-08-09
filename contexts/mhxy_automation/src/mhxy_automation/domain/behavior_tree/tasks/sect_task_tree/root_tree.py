@@ -8,7 +8,6 @@ from mhxy_automation.domain.behavior_tree.conditions.sect_task.is_task_status im
 from mhxy_automation.domain.behavior_tree.core import BaseNode, Selector, Sequence
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.claim_task import (
     ClaimTask,
-    build_claim_task,
 )
 from mhxy_automation.domain.behavior_tree.tasks.sect_task_tree.patrol_task import (
     build_patrol_task,

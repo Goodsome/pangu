@@ -19,7 +19,7 @@ class SectTaskContext:
     """
 
     _task_info: SectTaskInfo | None = None
-    """最近一次 check_sect_task 的解析结果，None 表示尚未检查。"""
+    task_round: int = 0
 
     @property
     def task_info(self):
@@ -29,6 +29,8 @@ class SectTaskContext:
 
     def set_task_info(self, task_info: SectTaskInfo | None):
         self._task_info = task_info
+        if task_info and task_info.task_round:
+            self.task_round = task_info.task_round
 
     def has_task_info(self) -> bool:
         return self._task_info is not None

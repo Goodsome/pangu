@@ -59,9 +59,10 @@ class SectTaskInfo:
 
     def _resolve_full_description(self) -> None:
         """解析完整的师门任务描述文本。"""
-        if self.full_description:
-            return
         self.full_description = "".join(i.text for i in self.ocr_items)
+        match = re.search(r"当前第(\d+)次", self.full_description)
+        if match:
+            self.task_round = int(match.group(1))
 
     def _resolve_status(self) -> None:
         """解析任务状态。"""
@@ -89,7 +90,7 @@ class SectTaskInfo:
                 self.status = SectTaskStatus.IN_PROGRESS
                 self._task_target = match.group(1)
                 if self._task_target == "子":
-                    raise ValueError(f"Unresolved {self.full_description=}")
+                    self._task_target = "簪子"
         elif match := re.search(
             r"在师门附近(.+?)当前", self.full_description
         ):
