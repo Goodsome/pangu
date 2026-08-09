@@ -71,10 +71,11 @@ def build_report_tree() -> BaseNode:
     return MemorySequence(
         children=[
             IsTaskStatus(status=SectTaskStatus.REPORT),
-            EnsureInShiMeng(),
+            # EnsureInShiMeng(),
             EnsureShifuDialog(),
             ReportOrGive(),
-            Wait(),
+            Wait(1),
+            EnsureCloseDialog(),
             RefreshTaskInfo(),
         ]
     )

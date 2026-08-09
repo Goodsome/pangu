@@ -6,6 +6,8 @@ from mhxy_automation.domain.behavior_tree.actions.sect_task.buy_item import BuyI
 from mhxy_automation.domain.behavior_tree.actions.sect_task.choose_item import (
     ChooseItem,
 )
+from mhxy_automation.domain.behavior_tree.actions.sect_task.click_target_in_task_panel import ClickTargetInTaskPanel
+from mhxy_automation.domain.behavior_tree.actions.sect_task.click_task_in_dialog import ClickTaskInDialog
 from mhxy_automation.domain.behavior_tree.actions.sect_task.close_shop_panel import (
     CloseShopPanel,
 )
@@ -77,7 +79,8 @@ class EnsureOpenShopDialog(Ensure):
 @dataclass
 class EnsureOpenShopPanel(Ensure):
     condition: Condition = field(default_factory=lambda: IsShopPanelVisible())
-    action: RunningAction | Action = field(default_factory=lambda: OpenShopPanel())
+    # action: RunningAction | Action = field(default_factory=lambda: OpenShopPanel())
+    action: RunningAction | Action = field(default_factory=lambda: ClickTargetInTaskPanel())
 
 
 @dataclass
@@ -97,12 +100,12 @@ def build_shopping_tree() -> BaseNode:
     return MemorySequence(
         children=[
             CheckTaskType(TaskType.SHOPPING),
-            EnsureToShopMap(),
-            EnsureToShop(),
-            Wait(duration=3),
-            EnsureOpenShopDialog(),
+            # EnsureToShopMap(),
+            # EnsureToShop(),
+            # Wait(duration=3),
+            # EnsureOpenShopDialog(),
             EnsureOpenShopPanel(),
-            ChooseItem(),
+            # ChooseItem(),
             EnsureBuyItem(),
             EnsureCloseDialog(),
             EnsureCloseShopPanel(),

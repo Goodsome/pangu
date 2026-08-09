@@ -34,7 +34,7 @@ class ClaimTask(MemorySequence):
         self.children = [
             IsTaskStatus(status=SectTaskStatus.CLAIMABLE),
             EnsureCloseDialog(),
-            EnsureInShiMeng(),
+            # EnsureInShiMeng(),
             EnsureTalkToShiFu(),
             ClaimSectTask(),
             Wait(),
