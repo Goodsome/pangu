@@ -16,7 +16,7 @@ class GoToShopMap(RunningAction):
         task_info = blackboard.sect_task.task_info
         shop_route = ShopRoute.from_item_name(task_info.task_target)
 
-        await blackboard.client.main_hud.inventory.use_fei_xing_fu(
+        await blackboard.client.main_hud.fast_skills.use_fei_xing_fu(
             target=shop_route.city_map
         )
         blackboard.main_ctx.current_map = None

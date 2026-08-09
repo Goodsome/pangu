@@ -91,6 +91,11 @@ class SectTaskInfo:
                 self._task_target = match.group(1)
                 if self._task_target == "子":
                     self._task_target = "簪子"
+        # elif match := re.search(
+            # r"帮师父抓到(.+?)，", self.full_description
+        # ):
+            # self.task_type = TaskType.
+            # self._task_target = match.group(1)
         elif match := re.search(
             r"在师门附近(.+?)当前", self.full_description
         ):

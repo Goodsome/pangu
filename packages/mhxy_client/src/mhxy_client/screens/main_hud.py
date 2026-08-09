@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import override
 
 from cv_engine import abs_diff
+from mhxy_client.screens.components.fast_skills import FastSkills
 from sys_input.models import MouseButton
 
 from mhxy_client.config.main_hud import DB_CHANGAN_MAP
@@ -48,6 +49,7 @@ class MainHUD(BaseScreen):
     dialogs: Dialogs = field(init=False)
     panels: Panels = field(init=False)
     inventory: InventoryPanel = field(init=False)
+    fast_skills: FastSkills = field(init=False)
     
     sect_task_info: SectTaskInfo = field(init=False)
     
@@ -58,6 +60,7 @@ class MainHUD(BaseScreen):
         self.panels = Panels(window=self.window)
         self.inventory = InventoryPanel(window=self.window)
         self.sect_task_info = SectTaskInfo()
+        self.fast_skills = FastSkills(window=self.window)
         self.is_visible: bool = True
         self._last_coordinate = None
 
