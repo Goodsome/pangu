@@ -9,6 +9,13 @@ from dataclasses import dataclass, field
 from mhxy_client import MhxyClient
 from mhxy_client.models import SectTaskInfo
 
+_INIT_FINISH_COUNTS = {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+}
 
 @dataclass
 class SectTaskContext:
@@ -19,7 +26,7 @@ class SectTaskContext:
     """
 
     _task_info: SectTaskInfo | None = None
-    task_round: int = 0
+    finish_count: int = 0
 
     @property
     def task_info(self):
@@ -29,11 +36,13 @@ class SectTaskContext:
 
     def set_task_info(self, task_info: SectTaskInfo | None):
         self._task_info = task_info
-        if task_info and task_info.task_round:
-            self.task_round = task_info.task_round
 
     def has_task_info(self) -> bool:
         return self._task_info is not None
+
+    @property
+    def finished(self) -> bool:
+        return self.finish_count >= 20
 
 
 @dataclass
@@ -57,6 +66,10 @@ class Blackboard:
     main_ctx: MainHudContext = field(default_factory=MainHudContext)
 
     _holds_input_lock: bool = False
+
+    def __post_init__(self):
+        window_idx = self.client.window.idx
+        self.sect_task.finish_count = _INIT_FINISH_COUNTS[str(window_idx)]
 
     @property
     def main_hud(self):

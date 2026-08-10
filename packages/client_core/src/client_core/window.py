@@ -109,6 +109,7 @@ class Window:
     height: int
     hwnd: HWND = 0
     title: str = ""
+    idx: int = 0
 
     def activate(self) -> None:
         """激活并将当前窗口置顶前台。"""

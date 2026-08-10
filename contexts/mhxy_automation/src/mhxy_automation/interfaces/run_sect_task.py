@@ -30,4 +30,4 @@ def run_sect_task(
     if batch > 0:
         asyncio.run(use_case.execute_batch(window_indices=list(range(batch))))
     else:
-        asyncio.run(use_case.execute(window_index=window_index, one_tick=one_tick))
+        asyncio.run(use_case.execute(window_index=window_index))

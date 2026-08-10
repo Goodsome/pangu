@@ -56,15 +56,15 @@ class BaseNode(ABC):
                 short_name = self.name
                 if len(short_name) > 30:
                     short_name = short_name[:30] + "..."
-                logger.info(f"[BT] {indent}➡️ 进入节点: {short_name}")
+                logger.debug(f"[BT] {indent}➡️ 进入节点: {short_name}")
 
             # 2. 调用真正的业务逻辑
             status = await self._tick(blackboard)
 
             # 3. 状态跳变检测 (Edge Detection)
-            # if status != self._last_status:
-            self._log_status_change(status, depth)
-            self._last_status = status
+            if status != self._last_status:
+                self._log_status_change(status, depth)
+                self._last_status = status
 
             return status
         finally:

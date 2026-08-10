@@ -37,7 +37,6 @@ class RunSectTask:
     async def execute(
         self,
         window_index: int = 0,
-        one_tick: bool = False,
     ) -> None:
         set_current_client_index(window_index)
         client = create_mhxy_client_by_index(window_index)
