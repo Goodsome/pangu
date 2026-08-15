@@ -4,7 +4,9 @@ version = "0.1.0"
 description = ""
 requires-python = ">=3.14"
 dependencies = [
+    "dependency-injector>=4.49.0",
     "fastmcp>=3.4.3",
+    "foundation",
     "spike",
 ]
 
@@ -21,3 +23,7 @@ venv = ".venv"
 include = ["src"]
 extraPaths = ["src"]
 reportUnusedCallResult = "none"
+
+[tool.uv.sources]
+foundation = { workspace = true }
+spike = { workspace = true }

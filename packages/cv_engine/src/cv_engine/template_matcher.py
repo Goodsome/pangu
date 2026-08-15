@@ -71,7 +71,7 @@ def _normalize_scene_bgr(scene: np.ndarray) -> np.ndarray:
         if channels == 3:
             return scene
 
-    raise ValueError(f"不支持的场景图像格式类型")
+    raise ValueError("不支持的场景图像格式类型")
 
 @dataclass
 class TemplateMatcher(ITemplateMatcher):

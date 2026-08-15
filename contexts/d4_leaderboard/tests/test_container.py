@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from d4_leaderboard.config import Settings
 from d4_leaderboard.container import Container
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.interfaces.api import D4LeaderboardApi

@@ -1,44 +1,34 @@
 [project]
 name = "pangu"
 version = "0.1.0"
-description = "Add your description here"
+description = "Pangu Monorepo"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "alembic>=1.18.4",
     "architecture",
-    "case-converter>=1.2.0",
-    "code_dom",
-    "code_structure",
-    "dependency-injector>=4.49.0",
-    "foundation",
-    "neo4j>=6.2.0",
-    "pangu_cli",
-    "pangu_mcp",
-    "psycopg[binary]>=3.3.4",
-    "pydantic>=2.13.4",
-    "pydantic-settings>=2.14.1",
-    "redis[hiredis]>=5.0",
-    "sqlalchemy[asyncio]>=2.0.50",
-    "typer>=0.26.7",
-    "ruff>=0.15.16",
-    "d4-leaderboard",
+    "client-core",
+    "code-evolution",
     "code-generation",
     "code-refactoring",
-    "code-evolution",
-    "vision-stream",
-    "sys-input",
-    "d4-client",
+    "code_dom",
+    "code_structure",
     "cv-engine",
     "d4-automation",
-    "d4-robot",
     "d4-backend",
-    "mhxy-client",
-    "d4-types",
-    "client-core",
+    "d4-client",
     "d4-injestion",
-    "mhxy-automation",
+    "d4-leaderboard",
+    "d4-robot",
+    "d4-types",
     "decepticons",
+    "foundation",
+    "mhxy-automation",
+    "mhxy-client",
+    "pangu_cli",
+    "pangu_mcp",
+    "spike",
+    "sys-input",
+    "vision-stream",
 ]
 
 [project.scripts]
@@ -63,39 +53,68 @@ reportUnusedCallResult = "none"
 reportImportCycles = "none"
 reportMissingTypeStubs = "none"
 
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "foundation/src",
+    "contexts/architecture/src",
+    "contexts/code_dom/src",
+    "contexts/code_structure/src",
+    "contexts/code_generation/src",
+    "contexts/code_evolution/src",
+    "contexts/code_refactoring/src",
+    "contexts/d4_automation/src",
+    "contexts/d4_injestion/src",
+    "contexts/d4_leaderboard/src",
+    "contexts/mhxy_automation/src",
+    "contexts/spike/src",
+    "packages/client_core/src",
+    "packages/cv_engine/src",
+    "packages/d4_client/src",
+    "packages/d4_types/src",
+    "packages/mhxy_client/src",
+    "packages/sys_input/src",
+    "packages/vision_stream/src",
+    "apps/d4_backend/src",
+    "apps/d4_robot/src",
+    "apps/decepticons/src",
+    "apps/pangu_cli/src",
+    "apps/pangu_mcp/src",
+]
+
 [tool.uv.workspace]
 members = ["contexts/*", "apps/*", "foundation", "packages/*"]
 
 [tool.uv.sources]
-
-spike = { workspace = true }
 architecture = { workspace = true }
-code_structure = { workspace = true }
-code_dom = { workspace = true }
-foundation = { workspace = true }
-pangu_cli = { workspace = true }
-pangu_mcp = { workspace = true }
-d4-leaderboard = { workspace = true }
+client-core = { workspace = true }
+code-evolution = { workspace = true }
 code-generation = { workspace = true }
 code-refactoring = { workspace = true }
-code-evolution = { workspace = true }
-vision-stream = { workspace = true }
-sys-input = { workspace = true }
-d4-client = { workspace = true }
+code_dom = { workspace = true }
+code_structure = { workspace = true }
 cv-engine = { workspace = true }
 d4-automation = { workspace = true }
-d4-robot = { workspace = true }
 d4-backend = { workspace = true }
-mhxy-client = { workspace = true }
-d4-types = { workspace = true }
-client-core = { workspace = true }
+d4-client = { workspace = true }
 d4-injestion = { workspace = true }
-mhxy-automation = { workspace = true }
+d4-leaderboard = { workspace = true }
+d4-robot = { workspace = true }
+d4-types = { workspace = true }
 decepticons = { workspace = true }
-
+foundation = { workspace = true }
+mhxy-automation = { workspace = true }
+mhxy-client = { workspace = true }
+pangu_cli = { workspace = true }
+pangu_mcp = { workspace = true }
+spike = { workspace = true }
+sys-input = { workspace = true }
+vision-stream = { workspace = true }
 
 [dependency-groups]
 dev = [
     "basedpyright>=1.39.9",
     "pytest>=9.1.1",
+    "ruff>=0.15.16",
 ]
+

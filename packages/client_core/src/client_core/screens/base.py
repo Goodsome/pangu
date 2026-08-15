@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar
 
-from client_core.models import Element, Point, Region, RelativePoint, RelativeRegion
+from client_core.models import Element, Region, RelativeRegion
 from client_core.window import Window
 
 logger = logging.getLogger(__name__)

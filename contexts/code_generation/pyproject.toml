@@ -1,14 +1,34 @@
 [project]
 name = "code-generation"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-authors = [
-    { name = "Goodsome", email = "xlxmesh@gmail.com" }
-]
+description = ""
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "architecture",
+    "code_dom",
+    "code_structure",
+    "dependency-injector>=4.49.0",
+    "foundation",
+    "pydantic>=2.13.4",
+    "typer>=0.26.7",
+]
 
 [build-system]
-requires = ["uv_build>=0.9.22,<0.10.0"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/code_generation"]
+
+[tool.pyright]
+venvPath = "../../"
+venv = ".venv"
+include = ["src"]
+extraPaths = ["src"]
+reportUnusedCallResult = "none"
+
+[tool.uv.sources]
+architecture = { workspace = true }
+code_dom = { workspace = true }
+code_structure = { workspace = true }
+foundation = { workspace = true }

@@ -1,23 +1,32 @@
 [project]
 name = "mhxy-client"
 version = "0.1.0"
-description = "Fantasy Westward Journey (MHXY) Automation Client"
-readme = "README.md"
-authors = [
-    { name = "Goodsome", email = "xlxmesh@gmail.com" }
-]
+description = ""
 requires-python = ">=3.14"
 dependencies = [
-    "sys-input",
-    "vision-stream",
+    "client-core",
     "cv-engine",
     "pydantic>=2.13.4",
-    "client-core",
+    "sys-input",
+    "vision-stream",
 ]
 
 [build-system]
-requires = ["uv_build>=0.9.22,<0.10.0"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.basedpyright]
-reportImportCycles = "none"
+[tool.hatch.build.targets.wheel]
+packages = ["src/mhxy_client"]
+
+[tool.pyright]
+venvPath = "../../"
+venv = ".venv"
+include = ["src"]
+extraPaths = ["src"]
+reportUnusedCallResult = "none"
+
+[tool.uv.sources]
+client-core = { workspace = true }
+cv-engine = { workspace = true }
+sys-input = { workspace = true }
+vision-stream = { workspace = true }

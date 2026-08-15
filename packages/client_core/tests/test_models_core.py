@@ -4,7 +4,6 @@ import pytest
 
 from cv_engine import (
     MatchResult as CVMatchResult,
-    Point as CVPoint,
     Region as CVRegion,
 )
 from client_core.models import (

@@ -3,7 +3,14 @@ name = "code_dom"
 version = "0.1.0"
 description = ""
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "dependency-injector>=4.49.0",
+    "foundation",
+    "pydantic>=2.13.4",
+    "redis[hiredis]>=5.0",
+    "typer>=0.26.7",
+    "typing-extensions>=4.0.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -16,5 +23,8 @@ packages = ["src/code_dom"]
 venvPath = "../../"
 venv = ".venv"
 include = ["src"]
-extraPaths = ["src", "../../src"]
+extraPaths = ["src"]
 reportUnusedCallResult = "none"
+
+[tool.uv.sources]
+foundation = { workspace = true }

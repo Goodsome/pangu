@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_entry_query_service import (

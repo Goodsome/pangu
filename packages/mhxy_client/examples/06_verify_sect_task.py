@@ -27,7 +27,6 @@ if str(pkg_src) not in sys.path:
 
 from foundation import configure_logging  # noqa: E402
 from mhxy_client import (  # noqa: E402
-    SectTaskStatus,
     create_mhxy_client_by_index,
     find_mhxy_window_rects,
 )

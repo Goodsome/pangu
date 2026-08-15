@@ -22,7 +22,6 @@ Sequence [师门任务总主控]
         └── ClaimSectTask              # Action: 点击「师门任务」选项，领取任务
 """
 
-from _pytest.config import Config
 from mhxy_automation.domain.behavior_tree.actions.sect_task import (
     CheckSectTask,
     ClaimSectTask,

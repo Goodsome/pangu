@@ -156,7 +156,7 @@ async def main() -> None:
     print(
         f"✅ 找到游戏窗口 (HWND: {target_win.hwnd}, 分辨率: {win_w}x{win_h})"
     )
-    print(f"🎯 控制变量参数:")
+    print("🎯 控制变量参数:")
     print(f"   - 网格: {cols}x{rows} (共 {cols * rows} 点)")
     print(f"   - ROI 半径: {radius} px (搜索区域 {radius*2}x{radius*2})")
     print(f"   - 沉淀延时: {delay_sec} s | 平滑移动: {smooth_move} | 阈值: {threshold}")

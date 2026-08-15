@@ -20,7 +20,6 @@ reset() 由父节点在以下时机调用：
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from tkinter.constants import E
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard

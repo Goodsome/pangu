@@ -11,7 +11,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from d4_leaderboard.container import Container
-from d4_leaderboard.domain.enums.player_class import PlayerClass
+from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_entry_query_service import (
     SqlAlchemyEntryQueryService,

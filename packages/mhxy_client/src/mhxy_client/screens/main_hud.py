@@ -5,7 +5,6 @@ import logging
 from typing import override
 
 from mhxy_client.models.npcs.npc import Npc
-from mhxy_client.screens.dialogs.base import NpcDialog
 from mhxy_client.screens.inventory import InventoryPanel
 from mhxy_client.screens.panels.panels import Panels
 from sys_input import VirtualKeyCode

@@ -5,7 +5,18 @@ description = ""
 requires-python = ">=3.14"
 dependencies = [
     "architecture",
+    "code-generation",
+    "code_dom",
+    "code_structure",
     "d4-injestion",
+    "dependency-injector>=4.49.0",
+    "foundation",
+    "neo4j>=6.2.0",
+    "pydantic-settings>=2.14.1",
+    "pydantic>=2.13.4",
+    "redis[hiredis]>=5.0",
+    "sqlalchemy[asyncio]>=2.0.50",
+    "typer>=0.26.7",
 ]
 
 [build-system]
@@ -19,9 +30,13 @@ packages = ["src/pangu_cli"]
 venvPath = "../../"
 venv = ".venv"
 include = ["src"]
-extraPaths = ["src", "../../src"]
+extraPaths = ["src"]
 reportUnusedCallResult = "none"
 
 [tool.uv.sources]
 architecture = { workspace = true }
+code-generation = { workspace = true }
+code_dom = { workspace = true }
+code_structure = { workspace = true }
 d4-injestion = { workspace = true }
+foundation = { workspace = true }

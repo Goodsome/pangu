@@ -1,8 +1,7 @@
 [project]
 name = "d4-backend"
 version = "0.1.0"
-description = "D4 Backend FastAPI Server"
-readme = "README.md"
+description = ""
 requires-python = ">=3.14"
 dependencies = [
     "d4-leaderboard",
@@ -16,6 +15,13 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/d4_backend"]
+
+[tool.pyright]
+venvPath = "../../"
+venv = ".venv"
+include = ["src"]
+extraPaths = ["src"]
+reportUnusedCallResult = "none"
 
 [tool.uv.sources]
 d4-leaderboard = { workspace = true }

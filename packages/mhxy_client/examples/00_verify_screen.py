@@ -3,11 +3,6 @@ import logging
 from pathlib import Path
 from foundation import configure_logging 
 from mhxy_client import create_mhxy_client_by_index
-from mhxy_client.models.npcs.fu_zhuang_dian_lao_ban import FuZhuangDianLaoBan
-from mhxy_client.screens.dialogs.zhen_yuan_da_xian import ZhenYuanDaXianDialog
-from mhxy_client.screens.panels.give_panel import GivePanel
-from mhxy_client.screens.panels.shop_panel import ShopPanel
-from mhxy_client.screens.scenes.zhang_ji_bu_zhuang import ZhangJiBuZhuangScene
 
 log_dir = Path(__file__).resolve().parent.parent.parent.parent / "logs"
 configure_logging(app_name="mhxy_client", log_dir=log_dir, log_level=logging.INFO)
