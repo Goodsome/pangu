@@ -130,3 +130,76 @@ async def test_find_by_query() -> None:
     assert len(page.items) == 2
     assert page.items[0].id == test_uuid_1
     assert page.items[1].id == test_uuid_2
+
+
+@pytest.mark.anyio
+async def test_find_by_query_orders_by_leaderboard_semantics() -> None:
+    mock_session = AsyncMock(spec=AsyncSession)
+
+    mock_count_result = MagicMock()
+    mock_count_result.scalar_one.return_value = 0
+    mock_items_result = MagicMock()
+    mock_items_result.scalars.return_value.all.return_value = []
+
+    captured: list[typing.Any] = []
+
+    async def execute_side_effect(stmt: typing.Any) -> MagicMock:
+        captured.append(stmt)
+        return mock_count_result
+
+    execute_mock = cast(AsyncMock, mock_session.execute)
+    execute_mock.side_effect = execute_side_effect
+
+    @contextlib.asynccontextmanager
+    async def mock_session_factory():
+        yield mock_session
+
+    service = SqlAlchemyEntryQueryService(
+        session_factory=cast(typing.Any, mock_session_factory)
+    )
+
+    await service.find_by_query(
+        PageQuery[EntryFilter](current=1, size=10, condition=EntryFilter())
+    )
+
+    # 无过滤条件：count 与 select 均不含 WHERE，select 固定榜单排序
+    assert "WHERE" not in str(captured[0])
+    assert "WHERE" not in str(captured[1])
+    assert "ORDER BY entries.tier DESC, entries.duration_ms ASC" in str(captured[1])
+
+
+@pytest.mark.anyio
+async def test_find_by_query_filters_by_player_class() -> None:
+    mock_session = AsyncMock(spec=AsyncSession)
+
+    mock_count_result = MagicMock()
+    mock_count_result.scalar_one.return_value = 0
+    mock_items_result = MagicMock()
+    mock_items_result.scalars.return_value.all.return_value = []
+
+    captured: list[typing.Any] = []
+
+    async def execute_side_effect(stmt: typing.Any) -> MagicMock:
+        captured.append(stmt)
+        return mock_count_result
+
+    execute_mock = cast(AsyncMock, mock_session.execute)
+    execute_mock.side_effect = execute_side_effect
+
+    @contextlib.asynccontextmanager
+    async def mock_session_factory():
+        yield mock_session
+
+    service = SqlAlchemyEntryQueryService(
+        session_factory=cast(typing.Any, mock_session_factory)
+    )
+
+    await service.find_by_query(
+        PageQuery[EntryFilter](
+            current=1, size=10, condition=EntryFilter(player_class=PlayerClass.SORCERER)
+        )
+    )
+
+    # 职业过滤同时作用于 count 与 select
+    assert "WHERE entries.player_class" in str(captured[0])
+    assert "WHERE entries.player_class" in str(captured[1])

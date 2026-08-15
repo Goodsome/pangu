@@ -154,6 +154,29 @@ async def test_list_entries_endpoint(app: FastAPI, container: Container) -> None
 
 
 @pytest.mark.anyio
+async def test_list_entries_endpoint_with_class_filter(
+    app: FastAPI, container: Container
+) -> None:
+    mock_query_service = AsyncMock()
+    mock_query_service.find_by_query.return_value = {
+        "items": [],
+        "total": 0,
+        "current": 1,
+        "size": 10,
+    }
+    container.entry_query_service.override(mock_query_service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/entries/?current=1&size=10&player_class=SORCERER")
+
+    assert response.status_code == 200
+    page_query = mock_query_service.find_by_query.await_args.args[0]
+    assert page_query.condition.player_class == PlayerClass.SORCERER
+
+
+@pytest.mark.anyio
 async def test_update_entry_endpoint(app: FastAPI, mock_session: AsyncMock) -> None:
     test_id = uuid.uuid4()
     now = datetime.now(timezone.utc)

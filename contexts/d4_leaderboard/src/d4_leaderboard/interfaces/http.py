@@ -84,10 +84,11 @@ async def get_entry(
 async def list_entries(
     current: int = Query(default=1, ge=1),
     size: int = Query(default=10, ge=1, le=100),
+    player_class: PlayerClass | None = Query(default=None),
     query_service: EntryQueryService = Depends(Provide[Container.entry_query_service]),
 ) -> Page[EntryDto]:
     page_query = PageQuery[EntryFilter](
-        current=current, size=size, condition=EntryFilter()
+        current=current, size=size, condition=EntryFilter(player_class=player_class)
     )
     return await query_service.find_by_query(page_query)
 

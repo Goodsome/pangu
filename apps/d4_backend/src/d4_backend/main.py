@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 import inspect
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from d4_leaderboard.container import Container as D4LeaderboardContainer
@@ -37,6 +38,14 @@ def create_app() -> FastAPI:
     leaderboard_container = D4LeaderboardContainer()
     leaderboard_container.wire(modules=["d4_leaderboard.interfaces.http"])
     app.state.leaderboard_container = leaderboard_container
+
+    # 允许 pangu-web 前端（Next.js dev 默认端口）跨域调用
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://localhost:3001"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     # 挂载限界上下文路由
     app.include_router(leaderboard_router)

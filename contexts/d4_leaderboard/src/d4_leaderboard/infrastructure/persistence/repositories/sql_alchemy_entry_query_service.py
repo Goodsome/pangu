@@ -30,11 +30,26 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
     @override
     async def find_by_query(self, query: PageQuery[EntryFilter]) -> Page[EntryDto]:
         async with self.session_factory() as session:
-            count_stmt = select(func.count()).select_from(EntryModel)
+            conditions = []
+            if query.condition.player_class is not None:
+                conditions.append(
+                    EntryModel.player_class == query.condition.player_class
+                )
+
+            count_stmt = select(func.count()).select_from(EntryModel).where(*conditions)
             total_res = await session.execute(count_stmt)
             total: int = total_res.scalar_one() or 0
 
-            stmt = select(EntryModel)
+            # 榜单固定语义：层数高者靠前，同层用时短者靠前，仍相同按时间早者靠前
+            stmt = (
+                select(EntryModel)
+                .where(*conditions)
+                .order_by(
+                    EntryModel.tier.desc(),
+                    EntryModel.duration_ms.asc(),
+                    EntryModel.occurred_at.asc(),
+                )
+            )
             if query.size is not None and query.size > 0:
                 offset = (query.current - 1) * query.size
                 stmt = stmt.offset(offset).limit(query.size)
