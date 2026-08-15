@@ -12,7 +12,7 @@ dependencies = [
     "d4-types",
     "dependency-injector>=4.49.0",
     "foundation",
-    "httpx>=0.28.1",
+    "httpx[socks]>=0.28.1",
     "pydantic-settings>=2.14.1",
     "typer>=0.26.7",
 ]

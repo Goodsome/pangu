@@ -8,10 +8,14 @@ from __future__ import annotations
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Factory, Singleton
 
+from d4_injestion.application.use_cases.injest_helltides_leaderboard import (
+    InjestHelltidesLeaderboard,
+)
 from d4_injestion.application.use_cases.injest_leaderboard_entries import (
     InjestLeaderboardEntries,
 )
 from d4_injestion.config import Settings
+from d4_injestion.domain.serivces.helltides_row_mapper import HelltidesRowMapper
 from d4_injestion.domain.serivces.leaderboard_record_parser import (
     LeaderboardRecordParser,
 )
@@ -22,6 +26,9 @@ from d4_injestion.infrastructure.adapters.cv_engine_ocr_scanner import (
 )
 from d4_injestion.infrastructure.adapters.filesystem_screenshot_discoverer import (
     FilesystemScreenshotDiscoverer,
+)
+from d4_injestion.infrastructure.adapters.http_helltides_client import (
+    HttpHelltidesClient,
 )
 from d4_injestion.infrastructure.adapters.http_leaderboard_entry_client import (
     HttpLeaderboardEntryClient,
@@ -56,4 +63,18 @@ class Container(DeclarativeContainer):
         parser=parser,
         entry_client=entry_client,
         ocr_confidence_threshold=settings.provided.ocr_confidence_threshold,
+    )
+
+    # helltides.com 抓取注入链路
+    helltides_client: Factory[HttpHelltidesClient] = Factory(
+        HttpHelltidesClient,
+        base_url=settings.provided.helltides_base_url,
+    )
+    row_mapper: Factory[HelltidesRowMapper] = Factory(HelltidesRowMapper)
+
+    injest_helltides_use_case: Factory[InjestHelltidesLeaderboard] = Factory(
+        InjestHelltidesLeaderboard,
+        helltides_client=helltides_client,
+        row_mapper=row_mapper,
+        entry_client=entry_client,
     )

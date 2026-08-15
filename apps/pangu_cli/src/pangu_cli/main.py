@@ -8,6 +8,7 @@ from code_structure.interfaces.cli.sync_staged_module_symbols import (
     sync_staged_module_symbols,
 )
 import typer
+from d4_injestion.interfaces.cli.injest_helltides import injest_helltides
 from foundation.logging_setup import configure_logging
 from pangu_cli.container import create_container
 from pangu_cli.run_outbox_worker import run_worker
@@ -29,6 +30,8 @@ app.add_typer(generation_app, name="gen")
 app.add_typer(code_structure_app, name="structure")
 
 app.command()(run_worker)
+app.command(name="injest-helltides")(injest_helltides)
+
 
 @app.command(name="init-graph")
 def init_graph() -> None:

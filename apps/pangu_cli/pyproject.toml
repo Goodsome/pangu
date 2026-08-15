@@ -4,7 +4,8 @@ version = "0.1.0"
 description = ""
 requires-python = ">=3.14"
 dependencies = [
-    "architecture"
+    "architecture",
+    "d4-injestion",
 ]
 
 [build-system]
@@ -23,3 +24,4 @@ reportUnusedCallResult = "none"
 
 [tool.uv.sources]
 architecture = { workspace = true }
+d4-injestion = { workspace = true }

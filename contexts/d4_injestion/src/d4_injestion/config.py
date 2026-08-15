@@ -27,6 +27,10 @@ class Settings(BaseSettings):
         default="http://localhost:8000",
         description="d4_leaderboard HTTP 服务基址",
     )
+    helltides_base_url: str = Field(
+        default="https://helltides.com",
+        description="helltides.com 抓取基址",
+    )
     ocr_confidence_threshold: float = Field(
         default=0.5,
         description="OCR 识别置信度过滤阈值",
