@@ -600,12 +600,14 @@ name = "decepticons"
 version = "0.1.0"
 source = { editable = "apps/decepticons" }
 dependencies = [
+    { name = "foundation" },
     { name = "mhxy-automation" },
     { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "foundation", editable = "foundation" },
     { name = "mhxy-automation", editable = "contexts/mhxy_automation" },
     { name = "typer", specifier = ">=0.26.7" },
 ]
@@ -1148,12 +1150,14 @@ name = "mhxy-automation"
 version = "0.1.0"
 source = { editable = "contexts/mhxy_automation" }
 dependencies = [
+    { name = "foundation" },
     { name = "mhxy-client" },
     { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "foundation", editable = "foundation" },
     { name = "mhxy-client", editable = "packages/mhxy_client" },
     { name = "typer", specifier = ">=0.26.7" },
 ]

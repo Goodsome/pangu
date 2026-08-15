@@ -16,6 +16,8 @@ from cv_engine import (
     IOCREngine,
     ITemplateMatcher,
     MatLike,
+    abs_diff,
+    load_image,
 )
 from sys_input import (
     HWND,
@@ -107,6 +109,7 @@ class Window:
     height: int
     hwnd: HWND = 0
     title: str = ""
+    idx: int = 0
 
     def activate(self) -> None:
         """激活并将当前窗口置顶前台。"""
@@ -289,6 +292,20 @@ class Window:
             else None
         )
 
+    async def get_text(
+        self,
+        confidence_threshold: float = 0.5,
+        roi: Region | RelativeRegion | None = None,
+    ) -> str | None:
+        """同步获取场景中的全部文本内容。"""
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        text = self.ocr_engine.get_text(
+            scene=frame.mat,
+            confidence_threshold=confidence_threshold,
+        )
+        return text
+
     # ---------------------------------------------------------------------------
     # 组合交互操作 (Match & Click / Find Text & Click)
     # ---------------------------------------------------------------------------
@@ -349,17 +366,14 @@ class Window:
             y=sys_screen_pos.y - client_origin_screen.y,
         )
 
-    async def ensure_cursor_in_window(self) -> Point:
+    async def ensure_cursor_in_window(self):
         """检查系统物理鼠标是否在窗口客户区内。若不在，先将其平滑/直接移动至窗口中心。"""
-        win_w = getattr(self, "width", 800)
-        win_h = getattr(self, "height", 600)
-        win_w = win_w if isinstance(win_w, int) and win_w > 0 else 800
-        win_h = win_h if isinstance(win_h, int) and win_h > 0 else 600
+        win_w = self.width
+        win_h = self.height
 
         sys_client_pos = self.get_sys_cursor_client_pos()
         if (
-            sys_client_pos is not None
-            and 0 <= sys_client_pos.x <= win_w
+            0 <= sys_client_pos.x <= win_w
             and 0 <= sys_client_pos.y <= win_h
         ):
             return sys_client_pos
@@ -371,9 +385,6 @@ class Window:
             center_point,
         )
         await self.mouse_move(point=center_point)
-        await asyncio.sleep(0.1)
-        new_pos = self.get_sys_cursor_client_pos()
-        return new_pos if new_pos is not None else center_point
 
     async def mouse_move(self, point: Point | RelativePoint) -> None:
         """异步移动光标到相对窗口的指定像素或相对比例位置。"""
@@ -536,7 +547,9 @@ class Window:
         await self.input_backend.mouse_up(point=ipt, button=button)
 
     async def key_press(
-        self, vk_code: VirtualKeyCode | int, duration_sec: float = 0.05
+        self,
+        vk_code: VirtualKeyCode | int,
+        duration_sec: float = 0.05,
     ) -> None:
         """异步模拟按键按下并在指定秒后抬起。"""
         duration_sec = get_random_duration(mean=duration_sec)
@@ -634,4 +647,18 @@ class Window:
             await self.vision_backend.close()
 
 
-BaseWindow = Window
+    async def abs_diff(
+        self, 
+        roi: Region | RelativeRegion | None,
+        template_path: Path,
+    ) -> bool:
+        """异步计算当前窗口画面与指定 ROI 区域的像素差异。"""
+        
+        abs_roi = self._resolve_region(roi)
+        frame = await self.capture(region=abs_roi)
+        template = load_image(template_path)
+        return abs_diff(
+            frame.mat,
+            template,
+        )
+        

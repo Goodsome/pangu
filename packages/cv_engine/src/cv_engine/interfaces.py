@@ -120,3 +120,12 @@ class IOCREngine(Protocol):
     ) -> OcrResult | None:
         """异步在场景图中检索特定的目标文本。"""
         ...
+
+    def get_text(
+        self,
+        scene: MatLike,
+        confidence_threshold: float = 0.5,
+        roi: Region | None = None,
+    ) -> str | None:
+        """同步获取场景中的全部文本内容。"""
+        ...

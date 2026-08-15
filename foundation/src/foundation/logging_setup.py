@@ -4,8 +4,73 @@
 """
 
 import logging
+from contextlib import contextmanager
+from contextvars import ContextVar
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Generator, override
+
+# ContextVar 用于并发执行时区分不同窗口/client的日志上下文
+current_client_index: ContextVar[int | None] = ContextVar("current_client_index", default=None)
+
+
+def set_current_client_index(index: int | None) -> None:
+    """设置当前 Task / 线程对应的 client 窗口索引。"""
+    _ = current_client_index.set(index)
+
+
+class ClientLogFilter(logging.Filter):
+    """日志过滤器：只允许当前窗口/client 索引匹配的日志记录通过。"""
+
+    window_index: int
+
+    def __init__(self, window_index: int):
+        super().__init__()
+        self.window_index = window_index
+
+    @override
+    def filter(self, record: logging.LogRecord) -> bool:
+        active_index = current_client_index.get()
+        if active_index == self.window_index:
+            setattr(record, "window_index", active_index)
+            return True
+        return False
+
+
+@contextmanager
+def client_file_logging(
+    window_indices: list[int],
+    log_dir: Path | str = "logs",
+    log_format: str | None = None,
+    date_format: str | None = None,
+) -> Generator[None, None, None]:
+    """为指定的 client/window 列表配置并挂载按客户端隔离的 FileHandler 上下文管理器。"""
+    log_dir_path = Path(log_dir)
+    log_dir_path.mkdir(parents=True, exist_ok=True)
+
+    root_logger = logging.getLogger()
+    handlers: list[logging.Handler] = []
+
+    if log_format is None:
+        log_format = "%(asctime)s [%(levelname)s] [Client-%(window_index)s] %(name)s: %(message)s"
+    if date_format is None:
+        date_format = "%H:%M:%S"
+    formatter = logging.Formatter(log_format, datefmt=date_format)
+
+    for index in window_indices:
+        log_file = log_dir_path / f"client_{index}.log"
+        handler = logging.FileHandler(log_file, encoding="utf-8")
+        handler.setFormatter(formatter)
+        handler.addFilter(ClientLogFilter(index))
+        root_logger.addHandler(handler)
+        handlers.append(handler)
+
+    try:
+        yield
+    finally:
+        for handler in handlers:
+            root_logger.removeHandler(handler)
+            handler.close()
 
 
 def _configure_sdk_loggers(base_handlers: list[logging.Handler], level: int):
@@ -53,9 +118,9 @@ def configure_logging(
         root_logger.handlers.clear()
 
     if log_format is None:
-        log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        log_format = "%(asctime)s [%(levelname)s] %(module)s: %(message)s"
     if date_format is None:
-        date_format = "%Y-%m-%d %H:%M:%S"
+        date_format = "%H:%M:%S"
     formatter = logging.Formatter(log_format, datefmt=date_format)
 
     # 2. 配置文件输出，文件名自动加上应用名 (如 cli.log, mcp.log)

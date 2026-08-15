@@ -63,6 +63,19 @@ class BaseRegion:
         """
         return self.x <= pt.x <= self.right and self.y <= pt.y <= self.bottom
 
+    def move(self, dx: int | float = 0, dy: int | float = 0) -> Self:
+        """移动矩形区域。"""
+        return self.__class__(x=self.x + dx, y=self.y + dy, width=self.width, height=self.height)
+
+    def scale(self, scale: float) -> Self:
+        """缩放矩形区域。"""
+        width = self.width * scale
+        height = self.height * scale
+        x = self.x + (self.width - width) / 2
+        y = self.y + (self.height - height) / 2
+        
+        return self.__class__(x=x, y=y, width=width, height=height)
+
     def split(
         self,
         n: int,
@@ -354,7 +367,7 @@ class OcrResult:
     text: str
     confidence: float
     rect: Region
-    box_points: tuple[Point, Point, Point, Point]
+    box_points: tuple[Point, Point, Point, Point] | None = None
     center: Point = field(init=False)
 
     def __post_init__(self) -> None:

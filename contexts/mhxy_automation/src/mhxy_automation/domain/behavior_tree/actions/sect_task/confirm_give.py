@@ -1,15 +1,19 @@
 from typing import override
 
 from mhxy_automation.domain.aggregates.blackboard import Blackboard
-from mhxy_automation.domain.behavior_tree.core import Action
+from mhxy_automation.domain.behavior_tree.core import RunningAction
 from mhxy_automation.domain.enums.node_status import NodeStatus
 
 
-class ConfirmGive(Action):
+class ConfirmGive(RunningAction):
     """确认赠送任务"""
 
+    _triggered: bool = False
+
     @override
-    async def tick(self, blackboard: Blackboard) -> NodeStatus:
+    async def on_start(self, blackboard: Blackboard) -> None:
         await blackboard.client.main_hud.panels.given_panel.confirm_give()
-        blackboard.sect_task.clear_task_info()
-        return NodeStatus.SUCCESS
+
+    @override
+    async def on_update(self, blackboard: Blackboard) -> NodeStatus:
+        return NodeStatus.RUNNING

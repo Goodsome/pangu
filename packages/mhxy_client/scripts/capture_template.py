@@ -13,6 +13,7 @@ import asyncio
 import logging
 from pathlib import Path
 
+from client_core import RelativeRegion
 import cv2
 from mhxy_client import (
     create_mhxy_client_by_index,
@@ -57,18 +58,6 @@ async def main() -> None:
     templates_dir.mkdir(parents=True, exist_ok=True)
     save_path = templates_dir / file_name
 
-    print("🔍 正在查找系统中的梦幻西游游戏窗口...")
-    rects = find_mhxy_window_rects(title_keyword="梦幻")
-    if not rects:
-        print("❌ 未找到运行中的梦幻西游游戏窗口！请确保游戏已被启动且窗口可见。")
-        return
-
-    sorted_rects = sort_window_rects(rects)
-    target_win = sorted_rects[0]
-    print(
-        f"✅ 找到 {len(sorted_rects)} 个窗口，选择第 0 个窗口 (HWND: {target_win.hwnd}, 分辨率: {target_win.width}x{target_win.height})"
-    )
-
     client = create_mhxy_client_by_index(index=0)
     async with client:
         print("\n📸 正在捕获游戏窗口画面...")
@@ -91,6 +80,11 @@ async def main() -> None:
             print("⚠️ 已取消框选，未保存模板。")
             return
 
+        relative_roi = RelativeRegion.from_absolute(
+            abs_region, window_width=frame.width, window_height=frame.height    
+        )
+        
+
         # 裁剪并保存模板图像
         img_mat = frame.mat
         cropped = img_mat[
@@ -102,7 +96,9 @@ async def main() -> None:
         print("\n" + "=" * 60)
         print("🎉 模板保存成功！")
         print(f"   - 保存路径: {save_path.resolve()}")
-        print(f"   - 选区坐标: x={abs_region.x}, y={abs_region.y}, width={abs_region.width}, height={abs_region.height}")
+        print(
+            f"    RelativeRegion(x={relative_roi.x:.4f}, y={relative_roi.y:.4f}, width={relative_roi.width:.4f}, height={relative_roi.height:.4f})"
+        )
         print("=" * 60 + "\n")
 
 

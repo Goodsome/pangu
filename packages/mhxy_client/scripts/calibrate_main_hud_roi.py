@@ -9,6 +9,7 @@
 4. 标定完成后，控制台将输出完整的增量 RelativeRegion 配置片段。
 """
 
+import argparse
 import asyncio
 import logging
 
@@ -26,9 +27,8 @@ logger = logging.getLogger(__name__)
 target_fields = [
     ("map_name_roi", "地图名称与坐标显示区域"),
     ("task_list_roi", "任务追踪列表区域"),
-    ("fu_roi", "任务追踪列表区域"),
+    ("task_panel_roi", "任务面板区域"),
     ("dialog_name_roi", "对话框名称区域"),
-    ("claim_task_roi", "师门任务区域"),
     ("dialog_roi", "对话框区域"),
     ("confirm_give_roi", "确认赠送区域"),
     ("inventory_title_roi", "背包标题区域"),
@@ -36,7 +36,7 @@ target_fields = [
     ("feixingfu_map_changan_roi", "飞行符地图长安区域"),
     
     # ("title_roi", ""),
-    # ("confirm_give_roi", ""),
+    ("roi", ""),
     
 ]
 
@@ -46,23 +46,20 @@ def is_valid_relative_roi(roi: RelativeRegion | None) -> bool:
         return False
     return roi.width > 0.0 and roi.height > 0.0
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--idx",
+        type=int,
+        default=0,
+        help=""
+    )
+    
+    return parser.parse_args()
 
 async def main() -> None:
-    print("🔍 正在查找系统中的梦幻西游游戏窗口...")
-    rects = find_mhxy_window_rects(title_keyword="梦幻")
-
-    if not rects:
-        print("❌ 未找到运行中的梦幻西游游戏窗口！请确保游戏已被启动且窗口可见。")
-        return
-
-    sorted_rects = sort_window_rects(rects)
-    target_win = sorted_rects[0]
-
-    print(
-        f"✅ 共找到 {len(sorted_rects)} 个游戏窗口。选择第 0 个窗口:\n"
-        f"   - 句柄 (HWND): {target_win.hwnd}\n"
-        f"   - 窗口分辨率: {target_win.width}x{target_win.height}"
-    )
+    args = parse_args()
+    window_index = args.idx
 
     # 1. 加载当前既有 MainHudLayoutConfig
     current_config = MainHudLayoutConfig()
@@ -85,7 +82,7 @@ async def main() -> None:
 
     # 2. 对未配置的字段进行交互式拖拽标定
     if need_calibrate:
-        client = create_mhxy_client_by_index(index=0)
+        client = create_mhxy_client_by_index(index=window_index)
         async with client:
             print("\n📸 正在捕获游戏窗口画面...")
             await client.begin_frame()

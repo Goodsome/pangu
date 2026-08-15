@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 requires-python = ">=3.14"
 dependencies = [
+    "foundation",
     "mhxy-client",
     "typer>=0.26.7",
 ]

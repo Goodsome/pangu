@@ -77,7 +77,7 @@ async def async_main() -> None:
 
     async with client:
         # A. 捕获完整客户区全图画面并保存
-        full_frame = await client.capture(region=None)
+        full_frame = await client.window.capture(region=None)
         if full_frame.mat is not None:
             await full_frame.save(full_path)
             logger.info(
@@ -85,7 +85,7 @@ async def async_main() -> None:
             )
 
         # B. 捕获指定 ROI 区域单帧并保存
-        region_frame = await client.capture(region=target_roi)
+        region_frame = await client.window.capture(region=target_roi)
         if region_frame.mat is not None:
             await region_frame.save(region_path)
             logger.info(
@@ -93,7 +93,7 @@ async def async_main() -> None:
             )
 
         # C. 运行 OCR 识别
-        results = await client.ocr(confidence_threshold=0.5, roi=target_roi)
+        results = await client.window.ocr(confidence_threshold=0.5, roi=target_roi)
 
         if results:
             logger.info(f"\n[OK] 在指定区域共识别到 {len(results)} 条文本:\n")

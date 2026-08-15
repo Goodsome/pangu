@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 requires-python = ">=3.14"
 dependencies = [
+    "foundation",
     "mhxy-automation",
     "typer>=0.26.7",
 ]
@@ -23,4 +24,5 @@ extraPaths = ["src"]
 reportUnusedCallResult = "none"
 
 [tool.uv.sources]
+foundation = { workspace = true }
 mhxy-automation = { workspace = true }

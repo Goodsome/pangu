@@ -54,7 +54,7 @@ async def async_main() -> None:
 
     async with client:
         client.activate()
-        await client.key_press(vk_code=target_key, duration_sec=0.05)
+        await client.window.key_press(vk_code=target_key, duration_sec=0.05)
         logger.info(f"[OK] 全局 [{target_key.name}] 按键模拟完毕！")
 
     logger.info("=" * 60)

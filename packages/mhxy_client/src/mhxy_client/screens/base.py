@@ -27,7 +27,7 @@ _DEFAULT_POINTER_TEMPLATE_PATH = (
 
 # 校准容差与 CV 沉淀时间：游戏光标滞后系统光标，测量前需沉淀让其追上
 _TOLERANCE_PX: float = 10.0
-_SETTLE_SEC: float = 0.1
+_SETTLE_SEC: float = 0.2
 # 钟形减速段 CV 检查点 (占步数比例)：此处速度低、游戏光标滞后误差小，offset 估计更准
 _CV_CHECKPOINT_FRACTIONS: tuple[float, ...] = (0.8,)
 
@@ -43,7 +43,7 @@ def _corrected_aim(abs_target: Point, sys_pos: Point, game: Point) -> Point:
 def _hop_scale(hop_dist: float) -> tuple[int, float]:
     """按跳距缩放钟形步数与时长: 短跳用更少步数与更短时长。"""
     steps = max(5, min(30, int(hop_dist / 20)))
-    duration = max(0.4, min(1.5, hop_dist / 200))
+    duration = max(0.4, min(2, hop_dist / 200))
     return steps, duration
 
 
@@ -56,8 +56,8 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         win_w = self.window.width
         win_h = self.window.height
         if not (0 <= sys_client_pos.x <= win_w and 0 <= sys_client_pos.y <= win_h):
-            # 系统光标不在窗口客户区内时才挪进来 (不再无条件重置到中心)
-            sys_client_pos = await self.window.ensure_cursor_in_window()
+            await self.window.ensure_cursor_in_window()
+            sys_client_pos = self.window.get_sys_cursor_client_pos()
         radius = 100
         roi_x = max(0, sys_client_pos.x - radius)
         roi_y = max(0, sys_client_pos.y - radius)
@@ -89,6 +89,8 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         elif pointer_result is not None and cursor_result is None:
             return pointer_result.top_left, True
         else:
+            frame = await self.window.capture(roi)
+            await frame.save(Path("screenshots/match_cursor_failed.png"))
             return None, False
 
     async def _measure_game_cursor(self) -> tuple[Point, Point | None, bool]:
@@ -105,7 +107,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         win_h = self.window.height
         if not (0 <= sys_pos.x <= win_w and 0 <= sys_pos.y <= win_h):
             return sys_pos, sys_pos, False
-        await asyncio.sleep(_SETTLE_SEC)
+        # await asyncio.sleep(_SETTLE_SEC)
         game_cursor, is_pointer = await self._get_game_mouse()
         return sys_pos, game_cursor, is_pointer
 
@@ -163,6 +165,7 @@ class BaseScreen(AutoCalibratingScreen, ABC):
         Returns:
             bool: 到位返回 True，达到最大次数仍未收敛返回 False。
         """
+        # await self.window.ensure_cursor_in_window()
         abs_target_roi = self.window.resolve_region(target_roi)
         if target_point is not None:
             abs_target = self.window.resolve_point(target_point)
@@ -231,10 +234,12 @@ class BaseScreen(AutoCalibratingScreen, ABC):
             _ = await self.mouse_move(point, target_roi=target_roi)
             await asyncio.sleep(0.1)
         await self.window.mouse_click(button=button)
+        await asyncio.sleep(0.1)
 
     async def click(
         self,
         point: Point | RelativePoint | None = None,
         target_roi: Region | RelativeRegion | None = None,
+        button: MouseButton = MouseButton.LEFT,
     ) -> None:
-        await self.mouse_click(point, target_roi=target_roi)
+        await self.mouse_click(point, target_roi=target_roi, button=button)

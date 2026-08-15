@@ -22,6 +22,7 @@ class TaskType(StrEnum):
 
     SEND_MAIL = auto()
     SHOPPING = auto()
+    PATROL = auto()
 
 
 @dataclass
@@ -59,6 +60,9 @@ class SectTaskInfo:
     def _resolve_full_description(self) -> None:
         """解析完整的师门任务描述文本。"""
         self.full_description = "".join(i.text for i in self.ocr_items)
+        match = re.search(r"当前第(\d+)次", self.full_description)
+        if match:
+            self.task_round = int(match.group(1))
 
     def _resolve_status(self) -> None:
         """解析任务状态。"""
@@ -68,28 +72,44 @@ class SectTaskInfo:
         elif self.full_description.startswith("继续回师门"):
             self.status = SectTaskStatus.CLAIMABLE
             self._task_target = "师父"
-        elif match := re.match(
-            r"帮师父送信给(.+?)，当前第(\d+)次", self.full_description
+        elif match := re.search(
+            r"帮师父送信给(.+?)，当", self.full_description
         ):
             self.status = SectTaskStatus.IN_PROGRESS
             self.task_type = TaskType.SEND_MAIL
             self._task_target = match.group(1)
-            self.task_round = int(match.group(2))
-        elif self.full_description.startswith("买到布鞋"):
-            self.status = SectTaskStatus.IN_PROGRESS
+        elif match := re.search(
+            r"买到(.+?)送给师", self.full_description
+        ):
             self.task_type = TaskType.SHOPPING
             if "已拥有" in self.full_description:
                 self.has_item = True
+                self.status = SectTaskStatus.REPORT
                 self._task_target = "师父"
             else:
-                self._task_target = "布鞋"
+                self.status = SectTaskStatus.IN_PROGRESS
+                self._task_target = match.group(1)
+                if self._task_target == "子":
+                    self._task_target = "簪子"
+        # elif match := re.search(
+            # r"帮师父抓到(.+?)，", self.full_description
+        # ):
+            # self.task_type = TaskType.
+            # self._task_target = match.group(1)
+        elif match := re.search(
+            r"在师门附近(.+?)当前", self.full_description
+        ):
+            self.status = SectTaskStatus.IN_PROGRESS
+            self.task_type = TaskType.PATROL
+            self._task_target = match.group(1)
+            
         elif match := re.match(
-            r"任务完成，找师父报告去", self.full_description
+            r"任务完成", self.full_description
         ):
             self.status = SectTaskStatus.REPORT
             self._task_target = "师父"
         else:
-            raise ValueError(f"Unknown task status: {self.full_description}")
+            raise ValueError(f"Unresolved {self.full_description=}")
 
     def _resolve_action_point(self) -> None:
         """解析可点击超链接文字的物理中心坐标。"""
@@ -102,7 +122,7 @@ class SectTaskInfo:
                 self.action_point = self._resove_in_progress_point()
             case SectTaskStatus.REPORT:
                 self.action_point = self.resolve_point_by_targets(
-                    search_targets=("师父",)
+                    search_targets=("师父", "父", "师")
                 )
             case _:
                 raise NotImplementedError
@@ -123,18 +143,10 @@ class SectTaskInfo:
                     )
                     if sub_point is not None:
                         return sub_point
-        raise ValueError(f"Unknown claim task point: {self.full_description}")
+        raise ValueError(f"Unknown claim task point: {self.full_description}, {search_targets=}")
 
     def _resove_in_progress_point(self) -> Point:
         assert self._task_target is not None
-        match self.task_type:
-            case TaskType.SEND_MAIL:
-                return self.resolve_point_by_targets(
-                    search_targets=("送信给",), get_next_word=True
-                )
-            case TaskType.SHOPPING:
-                return self.resolve_point_by_targets(
-                    search_targets=(self._task_target,),
-                )
-            case _:
-                raise NotImplementedError
+        return self.resolve_point_by_targets(
+            search_targets=(self._task_target,),
+        )

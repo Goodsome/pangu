@@ -55,7 +55,7 @@ async def async_main() -> None:
     )
 
     async with client:
-        await client.mouse_click(point=center_point, button=MouseButton.LEFT)
+        await client.window.mouse_click(point=center_point, button=MouseButton.LEFT)
         logger.info("[OK] 全局物理鼠标点击命令执行完毕！")
 
     logger.info("=" * 60)

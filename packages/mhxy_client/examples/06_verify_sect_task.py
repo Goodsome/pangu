@@ -91,7 +91,7 @@ async def async_main() -> None:
         roi_save_path.parent.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"\n[Vision] 正在捕获任务列表区域画面 (ROI: {roi})...")
-        frame = await client.capture(region=roi)
+        frame = await client.window.capture(region=roi)
         if frame.mat is not None:
             await frame.save(roi_save_path)
             logger.info(f"📷 任务列表 ROI 截图已保存至: {roi_save_path.as_uri()}")

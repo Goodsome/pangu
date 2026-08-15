@@ -185,6 +185,7 @@ def create_mhxy_client_for_rect(
     use_dxgi: bool = True,
     init_cv_engines: bool = False,
     use_hardware_input: bool = True,
+    index: int = 0,
 ) -> MhxyClient:
     """基于 WindowRectInfo 构建独立的 MhxyClient 实例。"""
     input_backend: InputBackend
@@ -217,6 +218,7 @@ def create_mhxy_client_for_rect(
         height=rect.height,
         hwnd=rect.hwnd,
         title=rect.title,
+        idx=index,
     )
 
     return MhxyClient(hwnd=rect.hwnd, window=window)
@@ -260,6 +262,7 @@ def create_mhxy_client_by_index(
         use_dxgi=use_dxgi,
         init_cv_engines=init_cv_engines,
         use_hardware_input=use_hardware_input,
+        index=index,
     )
 
 
@@ -291,6 +294,7 @@ def create_mhxy_clients(
             use_dxgi=use_dxgi,
             init_cv_engines=init_cv_engines,
             use_hardware_input=use_hardware_input,
+            index=i,
         )
-        for r in sorted_rects
+        for i, r in enumerate(sorted_rects)
     ]
