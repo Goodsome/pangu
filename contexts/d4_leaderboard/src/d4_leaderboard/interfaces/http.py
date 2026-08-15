@@ -12,6 +12,10 @@ from d4_leaderboard.application.ports.entry_query_service import EntryQueryServi
 from d4_leaderboard.container import Container
 from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.identities.entry_id import EntryId
+from d4_leaderboard.domain.value_objects.equipment import Equipment
+from d4_leaderboard.domain.value_objects.paragon import ParagonBoard
+from d4_leaderboard.domain.value_objects.skill import Skill
+from d4_leaderboard.domain.value_objects.talisman import TalismanSnapshot
 from foundation.common_types.page import Page, PageQuery
 from foundation.message_bus.message_bus import AsyncBaseMessageBus
 
@@ -22,6 +26,10 @@ class CreateEntryRequest(BaseModel):
     tier: int = Field(..., ge=1, le=150)
     duration_ms: int = Field(..., ge=0, le=600000)
     occurred_at: datetime
+    equipment: list[Equipment] = Field(default_factory=list)
+    skills: list[Skill] = Field(default_factory=list)
+    paragon_boards: list[ParagonBoard] = Field(default_factory=list)
+    talismans: TalismanSnapshot | None = Field(default=None)
 
 
 class UpdateEntryRequest(BaseModel):
@@ -30,6 +38,10 @@ class UpdateEntryRequest(BaseModel):
     tier: int | None = Field(None, ge=1, le=150)
     duration_ms: int | None = Field(None, ge=0, le=600000)
     occurred_at: datetime | None = None
+    equipment: list[Equipment] | None = Field(default=None)
+    skills: list[Skill] | None = Field(default=None)
+    paragon_boards: list[ParagonBoard] | None = Field(default=None)
+    talismans: TalismanSnapshot | None = Field(default=None)
 
 
 router = APIRouter(prefix="/entries", tags=["entries"])
@@ -47,6 +59,10 @@ async def create_entry(
         tier=req.tier,
         duration_ms=req.duration_ms,
         occurred_at=req.occurred_at,
+        equipment=req.equipment,
+        skills=req.skills,
+        paragon_boards=req.paragon_boards,
+        talismans=req.talismans,
     )
     await message_bus.handle(cmd)
 
@@ -91,6 +107,10 @@ async def update_entry(
         tier=req.tier,
         duration_ms=req.duration_ms,
         occurred_at=req.occurred_at,
+        equipment=req.equipment,
+        skills=req.skills,
+        paragon_boards=req.paragon_boards,
+        talismans=req.talismans,
     )
     try:
         await message_bus.handle(cmd)
