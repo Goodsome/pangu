@@ -31,6 +31,10 @@ class Settings(BaseSettings):
         default="https://helltides.com",
         description="helltides.com 抓取基址",
     )
+    helltides_run_cache_path: Path = Field(
+        default=Path("output/helltides_run_cache.json"),
+        description="getRun 详情本地缓存文件路径",
+    )
     ocr_confidence_threshold: float = Field(
         default=0.5,
         description="OCR 识别置信度过滤阈值",

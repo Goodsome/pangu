@@ -38,24 +38,28 @@ class HttpLeaderboardEntryClient(LeaderboardEntryClient):
     async def create_entry(self, record: LeaderboardRecord) -> None:
         """POST /entries/ 创建一条榜单记录。
 
-        请求体对齐 d4_leaderboard ``CreateEntryRequest``:
-        ``player_name / player_class / tier / duration_ms / occurred_at``。
+        请求体为 ``LeaderboardRecord`` 的 JSON 序列化, 字段与 d4_leaderboard
+        ``CreateEntryRequest`` 对齐; record 上新增的可选字段 (如 build 数据)
+        未设置时不会出现在 payload 中, 由服务端默认值兜底。
 
         Raises:
             httpx.HTTPStatusError: 服务端返回非 2xx 状态码。
         """
-        payload = {
-            "player_name": record.player_name,
-            "player_class": record.player_class.value,
-            "tier": record.tier,
-            "duration_ms": record.duration_ms,
-            "occurred_at": record.occurred_at.isoformat(),
-        }
+        payload = record.model_dump(mode="json", exclude_unset=True)
         response = await self._get_client().post(
             f"{self._base_url}/entries/",
             json=payload,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError:
+            # 记录服务端返回体 (如 FastAPI 422 校验详情), 便于定位字段问题
+            logger.warning(
+                "注入被服务端拒绝 status=%d body=%s",
+                response.status_code,
+                response.text[:500],
+            )
+            raise
         logger.debug(
             "注入成功: %s (%s) tier=%d duration_ms=%d",
             record.player_name,

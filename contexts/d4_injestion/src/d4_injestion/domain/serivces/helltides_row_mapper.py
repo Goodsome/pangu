@@ -41,7 +41,7 @@ class HelltidesRowMapper:
         records: list[LeaderboardRecord] = []
         for index, row in enumerate(rows):
             try:
-                records.append(self._to_record(row, occurred_at))
+                records.append(self.to_record(row, occurred_at))
             except (KeyError, ValueError) as e:
                 logger.warning(
                     "跳过无法映射的榜单行 index=%d player=%r: %s",
@@ -51,7 +51,7 @@ class HelltidesRowMapper:
                 )
         return records
 
-    def _to_record(self, row: HelltidesRow, occurred_at: datetime) -> LeaderboardRecord:
+    def to_record(self, row: HelltidesRow, occurred_at: datetime) -> LeaderboardRecord:
         """单行映射, 未知职业或校验失败时抛出 KeyError / ValueError。"""
         return LeaderboardRecord(
             player_name=row.player_name,

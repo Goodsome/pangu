@@ -15,6 +15,7 @@ from d4_injestion.application.use_cases.injest_leaderboard_entries import (
     InjestLeaderboardEntries,
 )
 from d4_injestion.config import Settings
+from d4_injestion.domain.serivces.helltides_build_mapper import HelltidesBuildMapper
 from d4_injestion.domain.serivces.helltides_row_mapper import HelltidesRowMapper
 from d4_injestion.domain.serivces.leaderboard_record_parser import (
     LeaderboardRecordParser,
@@ -26,6 +27,9 @@ from d4_injestion.infrastructure.adapters.cv_engine_ocr_scanner import (
 )
 from d4_injestion.infrastructure.adapters.filesystem_screenshot_discoverer import (
     FilesystemScreenshotDiscoverer,
+)
+from d4_injestion.infrastructure.adapters.cached_helltides_client import (
+    CachedHelltidesClient,
 )
 from d4_injestion.infrastructure.adapters.http_helltides_client import (
     HttpHelltidesClient,
@@ -65,16 +69,23 @@ class Container(DeclarativeContainer):
         ocr_confidence_threshold=settings.provided.ocr_confidence_threshold,
     )
 
-    # helltides.com 抓取注入链路
-    helltides_client: Factory[HttpHelltidesClient] = Factory(
+    # helltides.com 抓取注入链路 (getRun 详情走本地文件缓存装饰器)
+    http_helltides_client: Factory[HttpHelltidesClient] = Factory(
         HttpHelltidesClient,
         base_url=settings.provided.helltides_base_url,
     )
+    helltides_client: Factory[CachedHelltidesClient] = Factory(
+        CachedHelltidesClient,
+        delegate=http_helltides_client,
+        cache_path=settings.provided.helltides_run_cache_path,
+    )
     row_mapper: Factory[HelltidesRowMapper] = Factory(HelltidesRowMapper)
+    build_mapper: Factory[HelltidesBuildMapper] = Factory(HelltidesBuildMapper)
 
     injest_helltides_use_case: Factory[InjestHelltidesLeaderboard] = Factory(
         InjestHelltidesLeaderboard,
         helltides_client=helltides_client,
         row_mapper=row_mapper,
+        build_mapper=build_mapper,
         entry_client=entry_client,
     )

@@ -9,7 +9,7 @@ dependencies = [
     "dependency-injector>=4.49.0",
     "fastapi>=0.141.1",
     "foundation",
-    "httpx>=0.28.1",
+    "httpx[socks]>=0.28.1",
     "psycopg[binary]>=3.3.4",
     "pydantic-settings>=2.14.1",
     "pydantic>=2.13.4",

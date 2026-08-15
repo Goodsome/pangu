@@ -11,4 +11,7 @@ class InjestionResult(BaseModel):
     total: int = Field(..., ge=0, description="待注入记录总数")
     succeeded: int = Field(..., ge=0, description="成功注入条数")
     failed: int = Field(..., ge=0, description="失败条数")
+    degraded: int = Field(
+        default=0, ge=0, description="build 数据获取失败降级为基础记录的条数"
+    )
     errors: list[str] = Field(default_factory=list, description="失败详情列表")

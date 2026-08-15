@@ -16,10 +16,11 @@ async def _async_main() -> None:
     try:
         result = await use_case.execute()
         logger.info(
-            "注入完成: total=%d succeeded=%d failed=%d",
+            "注入完成: total=%d succeeded=%d failed=%d degraded=%d",
             result.total,
             result.succeeded,
             result.failed,
+            result.degraded,
         )
     except Exception as e:
         logger.exception("注入流程发生异常: %s", e)
