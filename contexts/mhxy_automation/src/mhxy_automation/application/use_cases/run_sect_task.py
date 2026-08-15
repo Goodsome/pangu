@@ -131,7 +131,7 @@ class RunSectTask:
                             name=f"WindowTask-{index}",
                         )
                 logger.info("[RunSectTask] 所有窗口任务已安全结束。")
-            except* Exception:
+            except Exception:
                 # TaskGroup 会收集所有抛出的异常，可以使用 except* 语法处理 ExceptionGroup
                 logger.exception("[RunSectTask] 批量执行中发生异常")
 
