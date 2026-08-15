@@ -14,3 +14,4 @@ class AstTry(AstStmtBase):
     handlers: list[AstExceptHandler] = Field(default_factory=list)
     orelse: list[AstStmtBase] = Field(default_factory=list)
     finalbody: list[AstStmtBase] = Field(default_factory=list)
+    is_star: bool = False

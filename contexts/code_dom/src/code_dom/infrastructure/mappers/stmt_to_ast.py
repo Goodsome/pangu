@@ -130,7 +130,6 @@ class StmtToAst:
     def from_nonlocal(stmt: AstNonlocal) -> ast.Nonlocal:
         return ast.Nonlocal(names=stmt.names)
 
-
     @staticmethod
     def from_while(stmt: AstWhile):
         return ast.While(
@@ -333,8 +332,9 @@ class StmtToAst:
         )
 
     @staticmethod
-    def from_try(stmt: AstTry) -> ast.Try:
-        return ast.Try(
+    def from_try(stmt: AstTry) -> ast.Try | ast.TryStar:
+        cls = ast.TryStar if stmt.is_star else ast.Try
+        return cls(
             body=StmtToAst._to_body(stmt.body),
             handlers=[StmtToAst._to_except_handler(h) for h in stmt.handlers],
             orelse=StmtToAst._to_body(stmt.orelse),

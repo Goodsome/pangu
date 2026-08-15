@@ -104,6 +104,9 @@ class AstToStmt:
                 return AstToStmt.to_ast_match(node)
             case ast.Try():
                 return AstToStmt.to_ast_try(node)
+            case ast.TryStar():
+                return AstToStmt.to_ast_try_star(node)
+
             case ast.FunctionDef():
                 return AstToStmt.to_ast_function_def(node)
             case ast.AsyncFunctionDef():
@@ -245,7 +248,7 @@ class AstToStmt:
         return AstMatch(subject=AstToExpr.to_expr(node.subject), cases=cases)
 
     @staticmethod
-    def to_ast_try(node: ast.Try) -> AstTry:
+    def to_ast_try(node: ast.Try | ast.TryStar) -> AstTry:
         handlers = [
             AstExceptHandler(
                 type=AstToExpr.to_expr(handler.type) if handler.type else None,
@@ -259,7 +262,12 @@ class AstToStmt:
             handlers=handlers,
             orelse=[AstToStmt.to_stmt(stmt) for stmt in node.orelse],
             finalbody=[AstToStmt.to_stmt(stmt) for stmt in node.finalbody],
+            is_star=isinstance(node, ast.TryStar),
         )
+
+    @staticmethod
+    def to_ast_try_star(node: ast.TryStar) -> AstTry:
+        return AstToStmt.to_ast_try(node)
 
     @staticmethod
     def _to_arg(node: ast.arg) -> Arg:
@@ -406,4 +414,3 @@ class AstToStmt:
     @staticmethod
     def to_ast_nonlocal(node: ast.Nonlocal) -> AstNonlocal:
         return AstNonlocal(names=node.names)
-
