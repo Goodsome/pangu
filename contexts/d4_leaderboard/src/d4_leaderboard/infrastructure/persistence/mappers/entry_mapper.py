@@ -16,6 +16,9 @@ from d4_leaderboard.domain.value_objects.talisman import TalismanSnapshot
 from d4_leaderboard.infrastructure.persistence.models.entry_equipment_model import (
     EntryEquipmentModel,
 )
+from d4_leaderboard.infrastructure.persistence.models.entry_equipment_statline_model import (  # noqa: E501
+    EntryEquipmentStatlineModel,
+)
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 
 
@@ -33,7 +36,19 @@ def equipment_model_to_vo(eq_model: EntryEquipmentModel) -> Equipment:
         rarity=EquipmentRarity(eq_model.rarity),
         item_power=eq_model.item_power,
         is_ancestral=eq_model.is_ancestral,
-        statlines=[Affix.model_validate(s) for s in eq_model.statlines or []],
+        statlines=[
+            Affix(
+                affix_id=s.affix_id,
+                codename=s.codename,
+                stat_type=s.stat_type,
+                is_greater=s.is_greater,
+                is_temper=s.is_temper,
+                is_rerolled=s.is_rerolled,
+                is_transfigured=s.is_transfigured,
+                is_masterwork_crit=s.is_masterwork_crit,
+            )
+            for s in eq_model.statlines or []
+        ],
         sockets=[Socket.model_validate(s) for s in eq_model.sockets or []],
         aspect_power=AspectPower.model_validate(eq_model.aspect_power)
         if eq_model.aspect_power
@@ -51,7 +66,20 @@ def equipment_vo_to_model(vo: Equipment, entry_id: UUID) -> EntryEquipmentModel:
         rarity=vo.rarity,
         item_power=vo.item_power,
         is_ancestral=vo.is_ancestral,
-        statlines=[s.model_dump() for s in vo.statlines],
+        statlines=[
+            EntryEquipmentStatlineModel(
+                position=position,
+                affix_id=s.affix_id,
+                codename=s.codename,
+                stat_type=s.stat_type,
+                is_greater=s.is_greater,
+                is_temper=s.is_temper,
+                is_rerolled=s.is_rerolled,
+                is_transfigured=s.is_transfigured,
+                is_masterwork_crit=s.is_masterwork_crit,
+            )
+            for position, s in enumerate(vo.statlines)
+        ],
         sockets=[s.model_dump() for s in vo.sockets],
         aspect_power=vo.aspect_power.model_dump() if vo.aspect_power else None,
     )

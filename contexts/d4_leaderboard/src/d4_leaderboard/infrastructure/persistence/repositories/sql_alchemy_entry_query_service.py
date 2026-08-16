@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import override
 
-from sqlalchemy import case, cast, func, literal, select, true
-from sqlalchemy.dialects.postgresql import JSONPATH, JSONB
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from d4_leaderboard.application.dtos.affix_distribution_dto import (
@@ -21,6 +20,9 @@ from d4_leaderboard.infrastructure.persistence.mappers.entry_mapper import (
 )
 from d4_leaderboard.infrastructure.persistence.models.entry_equipment_model import (
     EntryEquipmentModel,
+)
+from d4_leaderboard.infrastructure.persistence.models.entry_equipment_statline_model import (  # noqa: E501
+    EntryEquipmentStatlineModel,
 )
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from foundation.common_types.page import Page, PageQuery
@@ -97,37 +99,31 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
                 )
 
             # 词缀按 回火/嬗变/自带 三类互斥分组, 精炼 (is_masterwork_crit)
-            # 可点在任意词缀上, 故额外按 FILTER 单独计数; LATERAL 显式声明对
-            # entry_equipments.statlines 的逐行展开, 避免隐式笛卡尔积告警
-            stat = func.jsonb_array_elements(
-                EntryEquipmentModel.statlines
-            ).table_valued("value").lateral()
-            value = cast(stat.c.value, JSONB)
+            # 可点在任意词缀上, 故额外按 FILTER 单独计数
+            stat = EntryEquipmentStatlineModel
             category = case(
-                (value["is_temper"].as_boolean(), "temper"),
-                (value["is_transfigured"].as_boolean(), "transfigured"),
+                (stat.is_temper, "temper"),
+                (stat.is_transfigured, "transfigured"),
                 else_="innate",
             )
-            codename = value["codename"].astext
-            stat_type = value["stat_type"].astext
 
             dist_stmt = (
                 select(
                     category.label("category"),
-                    codename.label("codename"),
-                    stat_type.label("stat_type"),
+                    stat.codename.label("codename"),
+                    stat.stat_type.label("stat_type"),
                     func.count().label("affix_count"),
                     func.count()
-                    .filter(value["is_masterwork_crit"].as_boolean())
+                    .filter(stat.is_masterwork_crit)
                     .label("masterwork_count"),
                 )
                 .select_from(EntryModel)
                 .join(
                     EntryEquipmentModel, EntryEquipmentModel.entry_id == EntryModel.id
                 )
-                .join(stat, true())
+                .join(stat, stat.equipment_id == EntryEquipmentModel.id)
                 .where(*entry_conditions, *equipment_conditions)
-                .group_by(category, codename, stat_type)
+                .group_by(category, stat.codename, stat.stat_type)
             )
 
             # 分母: 命中条目数、命中装备件数、带精炼标记的装备件数
@@ -140,21 +136,17 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
                 .join(EntryModel, EntryEquipmentModel.entry_id == EntryModel.id)
                 .where(*entry_conditions, *equipment_conditions)
             )
-            # jsonpath 字面量需显式 cast 成 JSONPATH, 否则绑定参数会被推成 VARCHAR
-            masterwork_path = cast(
-                literal("$[*].is_masterwork_crit ? (@ == true)"), JSONPATH
-            )
             masterwork_item_count_stmt = (
-                select(func.count())
-                .select_from(EntryEquipmentModel)
-                .join(EntryModel, EntryEquipmentModel.entry_id == EntryModel.id)
+                select(func.count(func.distinct(EntryEquipmentModel.id)))
+                .select_from(EntryModel)
+                .join(
+                    EntryEquipmentModel, EntryEquipmentModel.entry_id == EntryModel.id
+                )
+                .join(stat, stat.equipment_id == EntryEquipmentModel.id)
                 .where(
                     *entry_conditions,
                     *equipment_conditions,
-                    func.jsonb_path_exists(
-                        EntryEquipmentModel.statlines,
-                        masterwork_path,
-                    ),
+                    stat.is_masterwork_crit,
                 )
             )
 

@@ -328,13 +328,14 @@ async def test_get_affix_distribution_sql_aggregates_in_postgres() -> None:
 
     dist_compiled = captured[3].compile(dialect=postgresql.dialect())
     dist_sql = str(dist_compiled)
-    assert "jsonb_array_elements" in dist_sql
+    # 词缀分布已基于规范化表做普通 GROUP BY, 不再展开 JSONB
+    assert "jsonb_array_elements" not in dist_sql
+    assert "entry_equipment_statlines" in dist_sql
     assert "entry_equipments.slot" in dist_sql
     assert "GROUP BY" in dist_sql
     assert "FILTER (WHERE" in dist_sql
-    # JSONB 键名以绑定参数形式出现
-    assert "is_masterwork_crit" in dist_compiled.params.values()
-    assert "is_transfigured" in dist_compiled.params.values()
+    assert "is_masterwork_crit" in dist_sql
+    assert "is_transfigured" in dist_sql
 
 
 @pytest.mark.anyio
