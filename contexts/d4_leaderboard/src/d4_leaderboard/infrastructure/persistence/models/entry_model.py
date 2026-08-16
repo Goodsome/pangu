@@ -23,6 +23,8 @@ class EntryModel(BaseORM):
     duration_ms: Mapped[int] = mapped_column()
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     skills: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
+    # 由 skills 派生的 build 签名 (排序 codename 以 '+' 拼接), 无技能时为 NULL
+    skill_build_key: Mapped[str | None] = mapped_column(index=True, nullable=True)
     paragon_boards: Mapped[list[dict[str, Any]] | None] = mapped_column(
         JSONB, nullable=True
     )

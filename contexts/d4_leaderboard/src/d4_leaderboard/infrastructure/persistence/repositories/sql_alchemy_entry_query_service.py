@@ -13,6 +13,13 @@ from d4_leaderboard.application.dtos.affix_distribution_filter import (
 )
 from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
+from d4_leaderboard.application.dtos.skill_build_distribution_dto import (
+    SkillBuildDistributionDto,
+    SkillBuildItem,
+)
+from d4_leaderboard.application.dtos.skill_build_distribution_filter import (
+    SkillBuildDistributionFilter,
+)
 from d4_leaderboard.application.ports.entry_query_service import EntryQueryService
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.infrastructure.persistence.mappers.entry_mapper import (
@@ -91,6 +98,10 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
                 )
             if condition.min_tier > 1:
                 entry_conditions.append(EntryModel.tier >= condition.min_tier)
+            if condition.build_key is not None:
+                entry_conditions.append(
+                    EntryModel.skill_build_key == condition.build_key
+                )
 
             equipment_conditions = []
             if condition.slot is not None:
@@ -194,6 +205,7 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
                 player_class=condition.player_class,
                 slot=condition.slot,
                 min_tier=condition.min_tier,
+                build_key=condition.build_key,
                 entry_count=entry_count,
                 item_count=item_count,
                 masterwork_item_count=masterwork_item_count,
@@ -201,6 +213,55 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
                 temper=buckets["temper"],
                 transfigured=buckets["transfigured"],
                 masterwork_crit=masterwork,
+            )
+
+    @override
+    async def get_skill_build_distribution(
+        self, condition: SkillBuildDistributionFilter
+    ) -> SkillBuildDistributionDto:
+        async with self.session_factory() as session:
+            entry_conditions = []
+            if condition.player_class is not None:
+                entry_conditions.append(
+                    EntryModel.player_class == condition.player_class
+                )
+            if condition.min_tier > 1:
+                entry_conditions.append(EntryModel.tier >= condition.min_tier)
+
+            # build 签名为 NULL (无技能) 的条目不参与分组, 但计入 entry_count 分母
+            entry_count_stmt = (
+                select(func.count()).select_from(EntryModel).where(*entry_conditions)
+            )
+            dist_stmt = (
+                select(
+                    EntryModel.skill_build_key.label("build_key"),
+                    func.count().label("build_count"),
+                )
+                .where(*entry_conditions, EntryModel.skill_build_key.is_not(None))
+                .group_by(EntryModel.skill_build_key)
+                .order_by(func.count().desc())
+            )
+
+            entry_count = (await session.execute(entry_count_stmt)).scalar_one() or 0
+            dist_res = await session.execute(dist_stmt)
+            rows = dist_res.all()
+
+            items = [
+                SkillBuildItem(
+                    build_key=row.build_key,
+                    skills=row.build_key.split("+"),
+                    count=row.build_count,
+                    percentage=_percentage(row.build_count, entry_count),
+                )
+                for row in rows
+            ]
+
+            return SkillBuildDistributionDto(
+                player_class=condition.player_class,
+                min_tier=condition.min_tier,
+                entry_count=entry_count,
+                build_count=len(items),
+                items=items,
             )
 
 

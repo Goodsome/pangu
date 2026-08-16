@@ -6,6 +6,12 @@ from d4_leaderboard.application.dtos.affix_distribution_filter import (
 )
 from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
+from d4_leaderboard.application.dtos.skill_build_distribution_dto import (
+    SkillBuildDistributionDto,
+)
+from d4_leaderboard.application.dtos.skill_build_distribution_filter import (
+    SkillBuildDistributionFilter,
+)
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from foundation.common_types.page import Page, PageQuery
 
@@ -21,3 +27,8 @@ class EntryQueryService(ABC):
     async def get_affix_distribution(
         self, condition: AffixDistributionFilter
     ) -> AffixDistributionDto: ...
+
+    @abstractmethod
+    async def get_skill_build_distribution(
+        self, condition: SkillBuildDistributionFilter
+    ) -> SkillBuildDistributionDto: ...

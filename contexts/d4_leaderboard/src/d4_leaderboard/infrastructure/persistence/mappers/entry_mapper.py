@@ -106,6 +106,7 @@ def entry_model_to_entity(model: EntryModel) -> Entry:
 
 def entry_entity_to_model(entity: Entry) -> EntryModel:
     entry_id = entity.id.value
+    skill_build = entity.skill_build
     return EntryModel(
         id=entry_id,
         player_name=entity.player_name,
@@ -113,6 +114,7 @@ def entry_entity_to_model(entity: Entry) -> EntryModel:
         tier=entity.tier,
         duration_ms=entity.duration_ms,
         occurred_at=entity.occurred_at,
+        skill_build_key=skill_build.key if skill_build else None,
         equipments=[equipment_vo_to_model(eq, entry_id) for eq in entity.equipment],
         skills=[s.model_dump() for s in entity.skills],
         paragon_boards=[b.model_dump() for b in entity.paragon_boards],

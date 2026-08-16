@@ -12,6 +12,12 @@ from d4_leaderboard.application.dtos.affix_distribution_filter import (
 )
 from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
+from d4_leaderboard.application.dtos.skill_build_distribution_dto import (
+    SkillBuildDistributionDto,
+)
+from d4_leaderboard.application.dtos.skill_build_distribution_filter import (
+    SkillBuildDistributionFilter,
+)
 from d4_leaderboard.application.ports.entry_query_service import EntryQueryService
 from d4_leaderboard.container import Container
 from d4_types.enums.player_class import PlayerClass
@@ -78,13 +84,27 @@ async def get_affix_distribution(
     player_class: PlayerClass | None = Query(default=None),
     slot: EquipmentSlot | None = Query(default=None),
     min_tier: int = Query(default=100, ge=1, le=150),
+    build_key: str | None = Query(default=None, description="技能组合 build 签名"),
     query_service: EntryQueryService = Depends(Provide[Container.entry_query_service]),
 ) -> AffixDistributionDto:
     # 注意: 本路由必须注册在 GET /{entry_id} 之前, 否则非 UUID 路径会被先按 422 拒绝
     condition = AffixDistributionFilter(
-        player_class=player_class, slot=slot, min_tier=min_tier
+        player_class=player_class, slot=slot, min_tier=min_tier, build_key=build_key
     )
     return await query_service.get_affix_distribution(condition)
+
+
+@router.get("/skill-builds", response_model=SkillBuildDistributionDto)
+@inject
+async def get_skill_build_distribution(
+    player_class: PlayerClass | None = Query(default=None),
+    min_tier: int = Query(default=1, ge=1, le=150),
+    query_service: EntryQueryService = Depends(Provide[Container.entry_query_service]),
+) -> SkillBuildDistributionDto:
+    condition = SkillBuildDistributionFilter(
+        player_class=player_class, min_tier=min_tier
+    )
+    return await query_service.get_skill_build_distribution(condition)
 
 
 @router.get("/{entry_id}", response_model=EntryDto)

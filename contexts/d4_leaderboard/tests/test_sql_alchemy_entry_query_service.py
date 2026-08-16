@@ -12,6 +12,9 @@ from d4_leaderboard.application.dtos.affix_distribution_filter import (
     AffixDistributionFilter,
 )
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
+from d4_leaderboard.application.dtos.skill_build_distribution_filter import (
+    SkillBuildDistributionFilter,
+)
 from d4_types.enums.player_class import PlayerClass
 from d4_leaderboard.domain.enums.equipment_slot import EquipmentSlot
 from d4_leaderboard.domain.identities.entry_id import EntryId
@@ -363,3 +366,99 @@ async def test_get_affix_distribution_zero_item_count_no_division_error() -> Non
     assert dto.item_count == 0
     assert dto.innate == []
     assert dto.masterwork_crit == []
+
+
+@pytest.mark.anyio
+async def test_get_affix_distribution_filters_by_build_key() -> None:
+    mock_session = AsyncMock(spec=AsyncSession)
+    empty_rows = MagicMock()
+    empty_rows.all.return_value = []
+    captured: list[typing.Any] = []
+
+    async def execute_side_effect(stmt: typing.Any) -> MagicMock:
+        captured.append(stmt)
+        return empty_rows if len(captured) == 4 else _scalar_result(0)
+
+    execute_mock = cast(AsyncMock, mock_session.execute)
+    execute_mock.side_effect = execute_side_effect
+
+    @contextlib.asynccontextmanager
+    async def mock_session_factory():
+        yield mock_session
+
+    service = SqlAlchemyEntryQueryService(
+        session_factory=cast(typing.Any, mock_session_factory)
+    )
+
+    await service.get_affix_distribution(AffixDistributionFilter(build_key="a+b+c"))
+
+    # build 过滤作用于全部 4 条查询 (含分母 count)
+    for stmt in captured:
+        sql = str(stmt.compile(dialect=postgresql.dialect()))
+        assert "entries.skill_build_key" in sql
+
+
+@pytest.mark.anyio
+async def test_get_skill_build_distribution_groups_and_sorts() -> None:
+    mock_session = AsyncMock(spec=AsyncSession)
+    rows_result = MagicMock()
+    rows_result.all.return_value = [
+        SimpleNamespace(build_key="warcry+whirlwind", build_count=153),
+        SimpleNamespace(build_key="leap+rend", build_count=12),
+    ]
+    execute_mock = cast(AsyncMock, mock_session.execute)
+    execute_mock.side_effect = [_scalar_result(200), rows_result]
+
+    @contextlib.asynccontextmanager
+    async def mock_session_factory():
+        yield mock_session
+
+    service = SqlAlchemyEntryQueryService(
+        session_factory=cast(typing.Any, mock_session_factory)
+    )
+
+    dto = await service.get_skill_build_distribution(
+        SkillBuildDistributionFilter(player_class=PlayerClass.BARBARIAN, min_tier=100)
+    )
+
+    assert dto.entry_count == 200
+    assert dto.build_count == 2
+    assert dto.items[0].build_key == "warcry+whirlwind"
+    assert dto.items[0].skills == ["warcry", "whirlwind"]
+    assert dto.items[0].count == 153
+    assert dto.items[0].percentage == 76.5
+    assert dto.items[1].percentage == 6.0
+
+
+@pytest.mark.anyio
+async def test_get_skill_build_distribution_sql_groups_by_key() -> None:
+    mock_session = AsyncMock(spec=AsyncSession)
+    empty_rows = MagicMock()
+    empty_rows.all.return_value = []
+    captured: list[typing.Any] = []
+
+    async def execute_side_effect(stmt: typing.Any) -> MagicMock:
+        captured.append(stmt)
+        return empty_rows if len(captured) == 2 else _scalar_result(0)
+
+    execute_mock = cast(AsyncMock, mock_session.execute)
+    execute_mock.side_effect = execute_side_effect
+
+    @contextlib.asynccontextmanager
+    async def mock_session_factory():
+        yield mock_session
+
+    service = SqlAlchemyEntryQueryService(
+        session_factory=cast(typing.Any, mock_session_factory)
+    )
+
+    await service.get_skill_build_distribution(
+        SkillBuildDistributionFilter(player_class=PlayerClass.BARBARIAN, min_tier=100)
+    )
+
+    dist_sql = str(captured[1].compile(dialect=postgresql.dialect()))
+    # 分组查询按 build 签名分组, 排除无签名条目, 且按频次倒序
+    assert "GROUP BY entries.skill_build_key" in dist_sql
+    assert "entries.skill_build_key IS NOT NULL" in dist_sql
+    assert "ORDER BY count(*) DESC" in dist_sql
+    assert "WHERE entries.player_class" in dist_sql

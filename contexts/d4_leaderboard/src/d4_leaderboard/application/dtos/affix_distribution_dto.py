@@ -24,6 +24,7 @@ class AffixDistributionDto(BaseModel):
     player_class: PlayerClass | None = None
     slot: EquipmentSlot | None = None
     min_tier: int = 1
+    build_key: str | None = None
 
     entry_count: int = Field(..., description="命中的榜单条目数")
     item_count: int = Field(
