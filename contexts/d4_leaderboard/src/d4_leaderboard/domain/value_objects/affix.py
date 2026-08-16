@@ -13,7 +13,7 @@ class Affix(ValueObject):
     stat_type: str = Field(..., description="属性描述文本")
 
     is_greater: bool = Field(default=False, description="是否为太古词缀")
-    is_temper: bool = Field(default=False, description="是否为回粹词缀")
+    is_temper: bool = Field(default=False, description="是否为回火词缀")
     is_rerolled: bool = Field(default=False, description="是否为重洗词缀")
-    is_transfigured: bool = Field(default=False, description="是否为魔改词缀")
-    is_masterwork_crit: bool = Field(default=False, description="是否触发精炼重击")
+    is_transfigured: bool = Field(default=False, description="是否为嬗变词缀")
+    is_masterwork_crit: bool = Field(default=False, description="是否精炼")

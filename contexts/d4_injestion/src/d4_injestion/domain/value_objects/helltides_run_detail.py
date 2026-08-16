@@ -28,10 +28,10 @@ class HelltidesStatline(ValueObject):
     codename: str = Field(..., description="词缀代号")
     category: int = Field(default=0, description="词缀类别代码")
     is_greater: bool = Field(default=False, description="是否太古词缀")
-    is_temper: bool = Field(default=False, description="是否回粹词缀")
+    is_temper: bool = Field(default=False, description="是否回火词缀")
     is_rerolled: bool = Field(default=False, description="是否重洗词缀")
-    is_transfigured: bool = Field(default=False, description="是否魔改词缀")
-    is_masterwork_crit: bool = Field(default=False, description="是否触发精炼重击")
+    is_transfigured: bool = Field(default=False, description="是否嬗变词缀")
+    is_masterwork_crit: bool = Field(default=False, description="是否精炼")
 
 
 class HelltidesSocket(ValueObject):

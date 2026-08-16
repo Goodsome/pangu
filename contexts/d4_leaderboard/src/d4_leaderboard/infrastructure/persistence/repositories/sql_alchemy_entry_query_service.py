@@ -1,15 +1,26 @@
 from dataclasses import dataclass
 from typing import override
 
-from sqlalchemy import func, select
+from sqlalchemy import case, cast, func, literal, select, true
+from sqlalchemy.dialects.postgresql import JSONPATH, JSONB
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from d4_leaderboard.application.dtos.affix_distribution_dto import (
+    AffixDistributionDto,
+    AffixDistributionItem,
+)
+from d4_leaderboard.application.dtos.affix_distribution_filter import (
+    AffixDistributionFilter,
+)
 from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
 from d4_leaderboard.application.ports.entry_query_service import EntryQueryService
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.infrastructure.persistence.mappers.entry_mapper import (
     entry_model_to_entry_dto,
+)
+from d4_leaderboard.infrastructure.persistence.models.entry_equipment_model import (
+    EntryEquipmentModel,
 )
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from foundation.common_types.page import Page, PageQuery
@@ -65,3 +76,143 @@ class SqlAlchemyEntryQueryService(EntryQueryService):
                 current=query.current,
                 size=query.size,
             )
+
+    @override
+    async def get_affix_distribution(
+        self, condition: AffixDistributionFilter
+    ) -> AffixDistributionDto:
+        async with self.session_factory() as session:
+            entry_conditions = []
+            if condition.player_class is not None:
+                entry_conditions.append(
+                    EntryModel.player_class == condition.player_class
+                )
+            if condition.min_tier > 1:
+                entry_conditions.append(EntryModel.tier >= condition.min_tier)
+
+            equipment_conditions = []
+            if condition.slot is not None:
+                equipment_conditions.append(
+                    EntryEquipmentModel.slot == int(condition.slot)
+                )
+
+            # 词缀按 回火/嬗变/自带 三类互斥分组, 精炼 (is_masterwork_crit)
+            # 可点在任意词缀上, 故额外按 FILTER 单独计数; LATERAL 显式声明对
+            # entry_equipments.statlines 的逐行展开, 避免隐式笛卡尔积告警
+            stat = func.jsonb_array_elements(
+                EntryEquipmentModel.statlines
+            ).table_valued("value").lateral()
+            value = cast(stat.c.value, JSONB)
+            category = case(
+                (value["is_temper"].as_boolean(), "temper"),
+                (value["is_transfigured"].as_boolean(), "transfigured"),
+                else_="innate",
+            )
+            codename = value["codename"].astext
+            stat_type = value["stat_type"].astext
+
+            dist_stmt = (
+                select(
+                    category.label("category"),
+                    codename.label("codename"),
+                    stat_type.label("stat_type"),
+                    func.count().label("affix_count"),
+                    func.count()
+                    .filter(value["is_masterwork_crit"].as_boolean())
+                    .label("masterwork_count"),
+                )
+                .select_from(EntryModel)
+                .join(
+                    EntryEquipmentModel, EntryEquipmentModel.entry_id == EntryModel.id
+                )
+                .join(stat, true())
+                .where(*entry_conditions, *equipment_conditions)
+                .group_by(category, codename, stat_type)
+            )
+
+            # 分母: 命中条目数、命中装备件数、带精炼标记的装备件数
+            entry_count_stmt = (
+                select(func.count()).select_from(EntryModel).where(*entry_conditions)
+            )
+            item_count_stmt = (
+                select(func.count())
+                .select_from(EntryEquipmentModel)
+                .join(EntryModel, EntryEquipmentModel.entry_id == EntryModel.id)
+                .where(*entry_conditions, *equipment_conditions)
+            )
+            # jsonpath 字面量需显式 cast 成 JSONPATH, 否则绑定参数会被推成 VARCHAR
+            masterwork_path = cast(
+                literal("$[*].is_masterwork_crit ? (@ == true)"), JSONPATH
+            )
+            masterwork_item_count_stmt = (
+                select(func.count())
+                .select_from(EntryEquipmentModel)
+                .join(EntryModel, EntryEquipmentModel.entry_id == EntryModel.id)
+                .where(
+                    *entry_conditions,
+                    *equipment_conditions,
+                    func.jsonb_path_exists(
+                        EntryEquipmentModel.statlines,
+                        masterwork_path,
+                    ),
+                )
+            )
+
+            entry_count = (await session.execute(entry_count_stmt)).scalar_one() or 0
+            item_count = (await session.execute(item_count_stmt)).scalar_one() or 0
+            masterwork_item_count = (
+                await session.execute(masterwork_item_count_stmt)
+            ).scalar_one() or 0
+            dist_res = await session.execute(dist_stmt)
+            rows = dist_res.all()
+
+            buckets: dict[str, list[AffixDistributionItem]] = {
+                "innate": [],
+                "temper": [],
+                "transfigured": [],
+            }
+            masterwork: list[AffixDistributionItem] = []
+
+            for row in rows:
+                buckets[str(row.category)].append(
+                    AffixDistributionItem(
+                        codename=row.codename,
+                        stat_type=row.stat_type,
+                        count=row.affix_count,
+                        percentage=_percentage(row.affix_count, item_count),
+                    )
+                )
+                if row.masterwork_count:
+                    masterwork.append(
+                        AffixDistributionItem(
+                            codename=row.codename,
+                            stat_type=row.stat_type,
+                            count=row.masterwork_count,
+                            percentage=_percentage(
+                                row.masterwork_count, masterwork_item_count
+                            ),
+                        )
+                    )
+
+            for items in buckets.values():
+                items.sort(key=lambda i: i.count, reverse=True)
+            masterwork.sort(key=lambda i: i.count, reverse=True)
+
+            return AffixDistributionDto(
+                player_class=condition.player_class,
+                slot=condition.slot,
+                min_tier=condition.min_tier,
+                entry_count=entry_count,
+                item_count=item_count,
+                masterwork_item_count=masterwork_item_count,
+                innate=buckets["innate"],
+                temper=buckets["temper"],
+                transfigured=buckets["transfigured"],
+                masterwork_crit=masterwork,
+            )
+
+
+def _percentage(count: int, total: int) -> float:
+    if total <= 0:
+        return 0.0
+    return round(count / total * 100, 2)

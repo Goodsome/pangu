@@ -6,11 +6,16 @@ from pydantic import BaseModel, Field
 from d4_leaderboard.application.commands.create_entry import CreateEntryCommand
 from d4_leaderboard.application.commands.delete_entry import DeleteEntryCommand
 from d4_leaderboard.application.commands.update_entry import UpdateEntryCommand
+from d4_leaderboard.application.dtos.affix_distribution_dto import AffixDistributionDto
+from d4_leaderboard.application.dtos.affix_distribution_filter import (
+    AffixDistributionFilter,
+)
 from d4_leaderboard.application.dtos.entry_dto import EntryDto
 from d4_leaderboard.application.dtos.entry_filter import EntryFilter
 from d4_leaderboard.application.ports.entry_query_service import EntryQueryService
 from d4_leaderboard.container import Container
 from d4_types.enums.player_class import PlayerClass
+from d4_leaderboard.domain.enums.equipment_slot import EquipmentSlot
 from d4_leaderboard.domain.identities.entry_id import EntryId
 from d4_leaderboard.domain.value_objects.equipment import Equipment
 from d4_leaderboard.domain.value_objects.paragon import ParagonBoard
@@ -65,6 +70,21 @@ async def create_entry(
         talismans=req.talismans,
     )
     await message_bus.handle(cmd)
+
+
+@router.get("/affix-distribution", response_model=AffixDistributionDto)
+@inject
+async def get_affix_distribution(
+    player_class: PlayerClass | None = Query(default=None),
+    slot: EquipmentSlot | None = Query(default=None),
+    min_tier: int = Query(default=100, ge=1, le=150),
+    query_service: EntryQueryService = Depends(Provide[Container.entry_query_service]),
+) -> AffixDistributionDto:
+    # 注意: 本路由必须注册在 GET /{entry_id} 之前, 否则非 UUID 路径会被先按 422 拒绝
+    condition = AffixDistributionFilter(
+        player_class=player_class, slot=slot, min_tier=min_tier
+    )
+    return await query_service.get_affix_distribution(condition)
 
 
 @router.get("/{entry_id}", response_model=EntryDto)

@@ -12,6 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from d4_leaderboard.container import Container
 from d4_types.enums.player_class import PlayerClass
+from d4_leaderboard.application.dtos.affix_distribution_dto import (
+    AffixDistributionDto,
+    AffixDistributionItem,
+)
+from d4_leaderboard.domain.enums.equipment_slot import EquipmentSlot
 from d4_leaderboard.infrastructure.persistence.models.entry_model import EntryModel
 from d4_leaderboard.infrastructure.persistence.repositories.sql_alchemy_entry_query_service import (
     SqlAlchemyEntryQueryService,
@@ -174,6 +179,63 @@ async def test_list_entries_endpoint_with_class_filter(
     assert response.status_code == 200
     page_query = mock_query_service.find_by_query.await_args.args[0]
     assert page_query.condition.player_class == PlayerClass.SORCERER
+
+
+@pytest.mark.anyio
+async def test_get_affix_distribution_endpoint(
+    app: FastAPI, container: Container
+) -> None:
+    mock_query_service = AsyncMock()
+    mock_query_service.get_affix_distribution.return_value = AffixDistributionDto(
+        player_class=PlayerClass.BARBARIAN,
+        slot=EquipmentSlot.HELM,
+        min_tier=100,
+        entry_count=2,
+        item_count=3,
+        masterwork_item_count=2,
+        innate=[
+            AffixDistributionItem(
+                codename="A", stat_type="+A", count=3, percentage=100.0
+            )
+        ],
+        temper=[],
+        transfigured=[],
+        masterwork_crit=[],
+    )
+    container.entry_query_service.override(mock_query_service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get(
+            "/entries/affix-distribution?player_class=BARBARIAN&slot=288&min_tier=100"
+        )
+
+    # 200 而非 422, 同时验证了路由未被 /{entry_id} 抢先匹配
+    assert response.status_code == 200
+    data = response.json()
+    assert data["item_count"] == 3
+    assert data["innate"][0]["codename"] == "A"
+
+    condition = mock_query_service.get_affix_distribution.await_args.args[0]
+    assert condition.player_class == PlayerClass.BARBARIAN
+    assert condition.slot == EquipmentSlot.HELM
+    assert condition.min_tier == 100
+
+
+@pytest.mark.anyio
+async def test_get_affix_distribution_endpoint_rejects_invalid_min_tier(
+    app: FastAPI, container: Container
+) -> None:
+    mock_query_service = AsyncMock()
+    container.entry_query_service.override(mock_query_service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/entries/affix-distribution?min_tier=0")
+
+    assert response.status_code == 422
 
 
 @pytest.mark.anyio
