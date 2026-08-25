@@ -34,9 +34,9 @@ pangu/
 
 | 阶段 | 上下文 | 图谱元素 | 能力 |
 | --- | --- | --- | --- |
-| 宏观架构级 | Architecture | 模块/包节点，`DEPENDS_ON` / `IMPORTS` 边 | 调用链路梳理、循环依赖发现、解耦成本评估 |
-| 符号级 | Structure / Refactoring | 类/函数节点，`DEFINES` / `INHERITS` / `CALLS` 边 | 跨模块移动与重命名、重构"爆炸半径"计算、全局 Import 更新 |
-| 微观 AST 级 | DOM / Evolution | 变量/语句/表达式节点，`READS` / `WRITES` / `NEXT_STATEMENT` 边 | 死代码消除、数据流追踪、按需延迟加载（Lazy Parsing） |
+| 宏观架构级 | architecture | 模块/包节点，`DEPENDS_ON` / `IMPORTS` 边 | 调用链路梳理、循环依赖发现、解耦成本评估 |
+| 符号级 | code_structure | 类/函数/变量符号节点，`DEFINES` / `INHERITS` / `REFERENCES` 边 | 跨模块移动符号、重构影响面计算、全局 Import 更新 |
+| 微观 AST 级 | code_dom | 语句/表达式 AST 值对象（双向 AST ↔ 领域对象映射） | 单文件按需解析、代码生成与改写（Ruff 格式化闭环） |
 
 ## 🛠️ 技术栈
 
